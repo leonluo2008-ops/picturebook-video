@@ -335,15 +335,39 @@ Step 6 ✅ 最终视频已交付用户
 6. **尾帧图必须用 --return-last-frame 生成**：不接受手动上传尾帧图片
 7. **并行生成，不串行**：同一阶段多个任务必须一次性提交
 8. **交付必须发实际文件**：不能只发链接或文字描述
+9. **云盘文件必须全部读完再出成品**：当云盘文件标记为「非常重要」时，读取所有文件+完整理解后才能开始写 skill，不能读了部分就出骨架
+
+---
 
 ---
 
 ## 参考文档
 
-| 文档 | 来源 | 内容 |
-|------|------|-------|
-| `seedance2.0-tool/references/director-mode.md` | 即梦官方 | 多镜头时间线写法、@-Tags 语法、运镜术语 |
-| `seedance2.0-tool/references/clip-continuity.md` | 实战验证 | 三种衔接模式（模式A/B/C）、出/入动作设计规范 |
-| `seedance2.0-tool/references/picturebook-workflow.md` | 即梦官方 | 绘本简化路径的完整 SOP |
+| 文档 | 来源 | 访问方式 |
+|------|------|----------|
+| `seedance2.0-tool/references/director-mode.md` | 即梦官方 | 本地共享 |
+| `seedance2.0-tool/references/clip-continuity.md` | 实战验证 | 本地共享 |
+| 即梦官方 SOP 系列（video-sop / script-chunk / shots-timing / shots-assembly / scene-reflection / video-prompt 等11个文件） | 即梦官方 | 飞书云盘 `lark-cli drive +download`，见下方清单 |
 
-> 即梦官方 SOP 完整 Phase（story-idea / story-script / script-chunk / shots-timing / shots-assembly / scene-reflection / ref-extract / story-ref-gen / video-prompt）见飞书云盘 `jimeng-2026-05-26-*.md` 系列文件。如需从零创作新故事而非绘本转视频，应调用对应 phase skill。
+> ⚠️ **重要**：references/ 目录中不要复制这些上游文档的本地副本。上游文档由 aistar-work.feishu.cn 管理，每次使用时通过 lark-cli 读取最新版本。本 skill 的 references/ 只存放本 skill 独有的实战验证文档（如 clip-continuity.md）。
+
+### 即梦官方 SOP 云盘文件清单
+
+飞书云盘文件夹 token: `NlaRfWdU9lgn29dYs6DceyPjnZb`
+
+| 文件名 | 内容 |
+|--------|------|
+| `jimeng-2026-05-26-2894-video-sop.md` | 即梦视频创作标准工作流程（9阶段） |
+| `jimeng-2026-05-26-1840-video-prompt.md` | 分镜生视频 prompt 规范 |
+| `jimeng-2026-05-26-6742-script-chunk.md` | 分镜切分规范 |
+| `jimeng-2026-05-26-3727-shots-timing.md` | 分镜计时规则 |
+| `jimeng-2026-05-26-5414-shots-assembly.md` | 分镜组合规范 |
+| `jimeng-2026-05-26-4972-scene-reflection.md` | 连贯性校验规范 |
+| `jimeng-2026-05-26-4798-ref-extract.md` | 素材挖掘规范 |
+| `jimeng-2026-05-26-1766-story-ref-gen.md` | 故事参考素材生成 |
+| `jimeng-2026-05-26-6845-story-idea.md` | 故事大纲创作 |
+| `jimeng-2026-05-26-9174-story-script.md` | 故事剧本创作 |
+| `jimeng-2026-05-26-2894-ecom-idea.md` | 营销广告创意构思 |
+| `jimeng-2026-05-26-3029-ecom-ref-gen.md` | 营销参考素材生成 |
+
+> 即梦官方 SOP 完整 Phase 应从云盘读取最新版本，不要使用本地缓存副本。
