@@ -4,6 +4,22 @@
 
 ---
 
+## [0.1.0] - 2026-05-26
+
+### 新增
+- 初始版本发布：picturebook-video skill（GitHub: leonluo2008-ops/picturebook-video）
+- 主工作流 SKILL.md（372行，覆盖6步完整流程 + 衔接设计规范）
+- README.md：项目说明、快速开始、目录结构、主要约束
+- CHANGELOG.md：开发日志模板
+- references/ 目录：13份即梦官方skill参考文档（见README.md目录结构）
+- references/clip-continuity.md：火把节实战衔接问题根因分析 + 三种解决模式（模式A/B/C）
+
+### 实战教训
+- **火把节Clip 4-6衔接断裂**：每个Clip独立生成，无接力设计，模型从头渲染场景导致clip连接像GIF随机播放
+- **修复方案**：导演模式多镜头时间线（模式B）+ 尾帧接力（模式C），衔接必须在分镜阶段设计，不能事后补救
+
+---
+
 ## [Unreleased]
 
 ### 新增

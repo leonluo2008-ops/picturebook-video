@@ -70,24 +70,29 @@ Step 6 · 交付与反馈
 
 ```
 picturebook-video/
-├── SKILL.md                          # 主工作流
-├── references/
-│   ├── video-sop.md                 # 即梦官方视频创作 SOP（9阶段）
-│   ├── script-chunk.md               # 分镜切分技能
-│   ├── shots-timing.md               # 分镜计时技能
-│   ├── shots-assembly.md             # 分镜组合技能
-│   ├── scene-reflection.md           # 连贯性校验技能
-│   ├── video-prompt.md               # 分镜生视频技能
-│   └── clip-continuity.md            # 衔接问题实战诊断（模式A/B/C）
+├── SKILL.md                          # 主工作流（6步）
 ├── README.md                         # 本文件
-└── CHANGELOG.md                      # 开发日志
+├── CHANGELOG.md                      # 开发日志
+└── references/                        # 即梦官方 skill 参考文档
+    ├── video-sop.md                  # 即梦官方视频创作 SOP（9阶段）
+    ├── script-chunk.md               # 分镜切分技能
+    ├── shots-timing.md               # 分镜计时技能
+    ├── shots-assembly.md             # 分镜组合技能
+    ├── scene-reflection.md           # 连贯性校验技能
+    ├── video-prompt.md               # 分镜生视频技能
+    ├── clip-continuity.md            # 衔接问题实战诊断（模式A/B/C）
+    ├── story-idea.md                 # 故事短片大纲创作技能
+    ├── story-script.md              # 故事短片剧本创作技能
+    ├── ref-extract.md                # 素材挖掘抽取技能
+    ├── story-ref-gen.md              # 故事参考素材生成技能
+    ├── ecom-idea.md                  # 营销广告创意构思技能
+    ├── ecom-script.md                # 营销广告剧本创作技能
+    └── ecom-ref-gen.md               # 营销广告参考素材生成技能
 ```
-
----
 
 ## 参考文档说明
 
-`references/` 目录中的文档来自即梦官方 skill 体系和实战验证：
+`references/` 包含即梦官方 skill 体系和实战验证文档：
 
 | 文档 | 来源 | 用途 |
 |------|------|------|
@@ -98,6 +103,13 @@ picturebook-video/
 | `scene-reflection.md` | 即梦官方 | 连贯性校验规范 |
 | `video-prompt.md` | 即梦官方 | Prompt 编写规范 |
 | `clip-continuity.md` | 实战验证 | 衔接问题根因 + 三种解决模式 |
+| `story-idea.md` | 即梦官方 | 故事短片大纲创作 |
+| `story-script.md` | 即梦官方 | 故事短片剧本创作 |
+| `ref-extract.md` | 即梦官方 | 素材挖掘抽取 |
+| `story-ref-gen.md` | 即梦官方 | 故事参考素材生成 |
+| `ecom-idea.md` | 即梦官方 | 营销广告创意构思 |
+| `ecom-script.md` | 即梦官方 | 营销广告剧本创作 |
+| `ecom-ref-gen.md` | 即梦官方 | 营销广告参考素材生成 |
 
 这些文档同时被 `seedance2.0-tool` skill 共享，保持同步更新。
 
