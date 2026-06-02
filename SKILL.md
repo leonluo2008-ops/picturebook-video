@@ -947,7 +947,8 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 | `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律 + v3 vs v7 对比**（2026-06-02 Red v1→v2→v3 + Cactus v6→v7 修复沉淀） |
 | `references/leading-reading-4clip-pattern.md` | **领读绘本 4-Clip 切分 + 时长公式 + 单测门 SOP**（指向 v7 范式） |
 | `templates/v7-prompt-template.md` | **v7 范式 Python f-string 模板**（ShotV7/AudioSegmentV7/ClipV7 dataclass + render_prompt() + 11 项自检脚本） |
-| `assets/example-prompts/cactus-clip1-v7.txt` | **Cactus Clip 1 v7 实际跑通 prompt + 执行记录**（任务 ID cgt-20260602171645-s5fq6 + 8s mp4 + 用户"里程碑"反馈） |
+| `assets/example-prompts/cactus-clip1-v7.txt` | **Cactus Clip 1 v7 实际跑通 prompt**（标题页+绿色仙人掌 · 任务 ID cgt-20260602171645-s5fq6 · 8s · 用户"里程碑"反馈） |
+| `assets/example-prompts/cactus-clips-2-3-4-v7.txt` | **Cactus Clip 2-4 v7 实际跑通 prompt**（刺/花/手臂/家庭 · 9+10+10s · 4 种动作模式泛化性验证） |
 | `scripts/build_clip_prompts.py` | v3/v3+锚点模板拼接脚本（⚠️ 待升级到 v7 范式，dead code） |
 | `test-prompts.json` | **达尔文 8 维评估用 3 个测试 prompt**（happy/复杂/边界） |
 | `results.tsv` | **达尔文优化循环历史记录**（baseline + 各 round keep/revert） |
