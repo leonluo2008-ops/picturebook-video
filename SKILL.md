@@ -51,6 +51,35 @@ Phase 9: 视频剪辑/成片
 2. **读取 seedance2.0-tool**：`skill_view(name='seedance2.0-tool')`，了解 CLI 命令格式和参数限制
 3. **确认图片和旁白已就绪**：图片已上传到工作目录，旁白是已确认的最终版本
 
+### 3a. 素材在飞书云盘怎么办？
+
+如果用户的图片/旁白在飞书云盘文件夹（`aistar-work.feishu.cn/drive/folder/xxx`），**不要用 browser 打开网页**。完整 SOP 见 `references/lark-cli-drive-access.md`，核心步骤：
+- `lark-cli config bind --source hermes --identity user-default`（个人身份，bot 看不到个人云盘）
+- `lark-cli auth login --no-wait --json --domain drive` 拿 device_code + verification_url
+- `lark-cli auth qrcode "<url>" -o qr.png` 生成二维码给用户扫
+- 用户扫完 → `lark-cli auth login --device-code "<code>"` 续轮询
+- `lark-cli api GET /open-apis/drive/v1/files --params '{"folder_token":"..."}'` 列文件
+- 批量下载到本地工作目录（`--output` 必须是相对路径）
+
+跑完用 `lark-cli auth status` 确认有 `drive:drive.metadata:readonly` + `drive:file:download` 两个 scope，否则列文件会 `Permission denied`。
+
+> **2026-06-02 教训**：本次实测有 5 个坑——lark-cli 不在 skills_list 初查范围内 / `feishu_drive_*` 工具 unavailable / browser 需登录态 / 权限 scope 默认缺 drive:drive / device code 10 分钟过期。**修复**：触发词含「飞书云盘/lark-cli/feishu drive/drive folder」时**先 `skill_view(name='lark-cli')`** 再执行。
+
+### 3b. 素材接入方式速查表（4 种）
+
+| 方式 | 关键词 | 处理方式 |
+|------|--------|----------|
+| **飞书云盘** | 「lark-cli」「飞书云盘」「feishu drive」「aistar-work.feishu.cn/drive/folder/」 | 走 §3a + 加载 `lark-cli` skill |
+| **对话直发** | 用户直接发送图片/文件 | 用 `feishu_doc_read`/`vision_analyze` 读，不需要走云盘 |
+| **本地路径** | 「路径」「~/Downloads」「/home/...」 | 直接 `read_file` / `vision_analyze` |
+| **API token** | 「OpenAPI」「DID」「附件 token」 | 走对应服务 API（云盘 token 用 §3a lark-cli 流程） |
+
+**判断信号**：
+- 用户发 `https://aistar-work.feishu.cn/drive/...` → §3a lark-cli（**不要用 browser**）
+- 用户发 `https://aistar.feishu.cn/docx/...` → 飞书文档 `feishu_doc_read`
+- 用户发 `https://open.feishu.cn/open-apis/...` → `lark-cli api` 直调
+- 用户说「图片发你了」+ 附件 → `vision_analyze`
+
 ---
 
 ## 创作整体流程（7个阶段）
@@ -309,7 +338,38 @@ Phase 9: 视频剪辑/成片
 | 场景完整性 | 同一场景尽量不拆分 |
 | 情节连贯性 | 同一段连续对话/动作不拆分 |
 
-> ⚠️ 绘本动画场景：每张静态图默认对应一个 Clip（1图=1旁白=1叙事单元=1Clip），只有在该 Clip 时长超出 15s 时才需要组合。
+#### 绘本场景的两种 Clip 切分策略
+
+> ⚠️ **核心更新（2026-06-02 实测）**：原 skill 默认 1图=1Clip 不适合所有绘本。
+
+| 绘本类型 | 切分策略 | 理由 |
+|---------|---------|------|
+| **叙事型绘本**（有故事弧、起承转合） | 1图=1Clip | 每页是独立叙事单元，clip 间通过画面切换承载情节 |
+| **领读型绘本**（弱情节、靠画面+旁白推，如「英文单词教学」「认知启蒙」） | **2图=1Clip（连续运镜合并）** | 弱情节下 1图 1Clip 太碎、时长撑不到 4s 最低线；合并后用 prompt 内时间线运镜衔接两图 |
+
+**领读型合并的判断条件**（同时满足才合并）：
+- 旁白<8s 单段（按 0.3s/字计算）
+- 两图场景元素相似（同色系/同主体/相邻景别）
+- 弱叙事弧（不需要明确的"前一幕→后一幕"情节推进）
+
+**领读型合并的 prompt 写法**（用首尾帧控制衔接）：
+- `--image <前图>` + `--last-frame <后图>` 锁住两个关键帧
+- prompt 中间用「镜头推进+暖光晕开」等自然过渡连接两图
+- **不需要**官方 SOP 的「尾帧接力」模式（那是漫剧场景的物理连续动作接力，绘本场景不适用）
+
+#### 领读型合并的总时长公式（2026-06-02 实测）
+
+合并后总时长 = `Clip1 时长 + Clip2 时长 + ...`，每个 Clip 分配区间：
+
+| 段落位置 | 推荐时长 | 理由 |
+|---------|---------|------|
+| **Clip 1（开头）** | 8s | 标题+主形象登场，需要稳 |
+| **Clip 2-N-1（中间段）** | 8-9s | 均匀推进，节奏稳定 |
+| **Clip N（结尾）** | 10s | 情感核心（坚强/自信/友谊），给足余韵 |
+
+**公式**：`总时长 ≈ 段落数 × 8-10s`，向上对齐到 8/9/10s 整数值。
+
+**例**：8 张图分 4 个 Clip → `8 + 8 + 9 + 10 = 35s` ✅
 
 #### 输出格式
 
@@ -440,10 +500,39 @@ Phase 9: 视频剪辑/成片
 | 宽高比 | `16:9` |
 | 分辨率 | `720P` |
 | 模型版本 | `seedance2.0_vip` |
+| **`--generate-audio`** | **`false`** ⚠️ 绘本场景强制 |
+
+> ⚠️ **`--generate-audio` 必须设为 `false`（2026-06-02 二大爷确认）**：
+> 绘本旁白是后期 TTS 单独合成的，clip 里不该自带任何说话声/环境音。
+> 否则会和旁白冲突，听感乱。
+> 后续 BGM 也只在 Phase 9 合并时叠，不通过 seedance 生成。
+
+### 单测门 SOP（2026-06-02 实测偏好）
+
+> ⚠️ **开批量前的强制 gate**。用户明确偏好：避免 4 个 clip 全跑完才发现 prompt 写错。
+
+```
+Phase 8 启动
+  ↓
+【单测】选 1 个 Clip（推荐 Clip 1，开场最具代表性）
+  ↓ 提交并 vision 自评
+  ↓ 发给用户看
+  ↓ 用户确认「效果 OK，可以继续」
+  ↓
+【批量】剩余 N-1 个 Clip 并行提交
+```
+
+**单测重点看**：
+- 风格锁定（是否跟原图风格一致）
+- 镜头运镜（推进/拉远是否自然）
+- 收势（结尾是否稳定定格）
+- 无穿帮/崩坏
+
+**用户没确认前不要批量**——这是踩坑教训，不是优化建议。
 
 ### 并行生成规则
 
-> ⚠️ 所有 Clip **一次性并行提交**，不串行分批。
+> ⚠️ 同批 Clip **一次性并行提交**，不串行分批。但**跨批必须等用户确认**。
 
 ---
 
@@ -532,6 +621,9 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 9. **时长分配基于旁白叙事功能**：交代/动作/情感/高潮四种类型各有逻辑，不是硬编码比例
 9. **旁白处理**：Seedance 模型具备旁白生成能力，当前问题是还未找到正确写法，标注为「待后续完善」，不是「禁止写旁白」
 10. **下载文件路径不固定**：seedance.py download 到 `--download` 指定目录，但文件名需用 task_id 查状态确认实际下载路径
+11. **`--download` 参数语义陷阱（2026-06-02 实测）**：seedance.py 的 `--download <path>` 是**完整文件路径**（不是目录）。如果传的是目录名，多个 clip 会**全写到同一个文件**上互相覆盖。正确做法：传**文件路径**（如 `--download ./output/clip1.mp4`），或者传目录路径后**立刻 mv 重命名**。并行生成多个 clip 时，**每个用独立文件名**。
+12. **领读绘本总时长公式（2026-06-02 实测）**：合并后总时长 = `Clip1 时长 + Clip2 时长 + ...`，每个 Clip 在 8-10s 区间分配。分配原则：开头要给稳（8s），结尾情感核心要给余韵（10s），中间段均匀（8-9s）。公式：`总时长 ≈ 段落数 × 8-10s`，向上对齐。
+13. **单测门 SOP（2026-06-02 实测）**：批量生成前**先做 1 个 Clip 让人看效果**，确认满意后再批量。这是用户的明确偏好——避免全部跑完才发现 prompt 写错。SOP：先 vision 自评 → 发给用户 → 等待确认 → 再并行批量。
 
 ---
 
@@ -539,7 +631,11 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 
 | 文档 | 说明 |
 |------|------|
+| `lark-cli/SKILL.md` | 飞书 CLI 使用规范（访问云盘/文档的官方路径） |
 | `seedance2.0-tool/SKILL.md` | 即梦 CLI 命令格式（必读） |
 | `references/video-prompt-narrative.md` | Prompt 叙事设计技能——连续运镜 vs 时间轴分镜写法详解 |
 | `references/narrative-closure-design.md` | 叙事单元收势设计三种模式（含错误示例 vs 正确示例对比） |
+| `references/lark-cli-drive-access.md` | 飞书云盘素材获取 SOP（Phase -1：把云盘文件下载到本地） |
 | `references/official-docs-token-mapping.md` | 官方 SOP 文档 token → 内容映射表 |
+| `references/leading-reading-4clip-pattern.md` | 领读绘本 4-Clip 合并模板（2026-06-02 实测沉淀：4图段=8-8-9-10s 总 35s） |
+| `references/领读型合并-双图连续运镜.md` | **领读型绘本 2图=1Clip 合并模式**（首尾帧控制 + 连续运镜 prompt + 时长公式） |
