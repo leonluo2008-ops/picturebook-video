@@ -1,0 +1,2 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-06-02T18:30	baseline	picturebook-video	-	92.2	baseline	-	Phase 1 基线评估（5/10 满分维度+资源整合度 8/10+实测 8/10 静态对照）	full_test
