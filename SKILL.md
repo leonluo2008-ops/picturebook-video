@@ -106,6 +106,34 @@ Phase 9: 视频剪辑/成片
 
 ## Pre-flight · 启动前检查
 
+### 0. 已知踩坑自查（**必做 · 不做会重蹈覆辙**）
+
+> **来源**：2026-06-02 Red 绘本对话中，**已经踩过 2 次的"封面 ≠ P1"** 错误——memory 里有规则但本轮没查就又踩了。**同类任务前必查**。
+
+```bash
+# 1) 查所有已知踩坑关键词
+grep -E "封面|页码|首图|最后一张|起始|收尾" \
+  ~/.hermes/profiles/huiben/memories/MEMORY.md
+
+# 2) 查本 skill 名下的相关教训
+grep -E "绘本|picturebook|Red|领读" \
+  ~/.hermes/profiles/huiben/memories/MEMORY.md
+
+# 3) 查风控白名单（每次都要校对）
+grep -E "风控|敏感|触.*reject|sensitive" \
+  ~/.hermes/profiles/huiben/memories/MEMORY.md
+```
+
+**自查发现**相关条目 → **必须先读完再继续**（不是扫一眼，而是把规则应用到本轮任务）。**没有任何踩坑相关条目** → 继续 step 1。
+
+**常见已知踩坑**（持续累积，2026-06-02 快照）：
+
+| 关键词 | 踩坑内容 | 修复 |
+|--------|---------|------|
+| 封面/P1 分离 | 封面认知页 ≠ P1 单词认知页，必须分开 | 封面=WORD!全大写，P1=Look at the [WORD] |
+| 风控白名单 | 仅警察/军队/枪/武器/暴力触发；机械/警笛类拟声**可正常使用** | 绘本消防车/汽车/警车视觉动作 + 警笛/喇叭/vroom 全部可以写 |
+| 反模板化结尾 | X! X! X! / Find the X! / I can say X! 模板化结尾 | 结尾让孩子参与动作（看/数/发现/感受），不是喊目标词 |
+
 ### 1. 下载官方 SOP
 
 飞书云盘文件夹 token: `TBUNf0P7qlBz43dMvwecPxq6nGe`
@@ -468,7 +496,118 @@ Phase 9: 视频剪辑/成片
 
 ---
 
-## Phase 8 · 分镜生视频（video-prompt）
+## ⛔ Phase 8 必读 · 绘本 prompt 三铁律（强制前置 · 不通过不进 Phase 8）
+
+> 来源：2026-06-02 Red 绘本 v1→v2→v3 三轮实测沉淀。
+> **不满足这三条 = 画面切快 + 收势失败 = 白跑一轮**。
+
+### 铁律 1 · 句号切分视觉，音效描述必须用分号 / 逗号
+
+**现象**：v2 用句号 `.` 把视觉流程切成多段，模型把每段当成独立小节执行 → 画面节奏被「音效块」压缩。
+
+**修复**：视觉描述用**分号 `;`** 连接，音效描述**嵌入视觉句中间**（用**逗号 `,`** 串接）→ 整段保持单段连续语义。
+
+```
+❌ 错误：起始段. 音效块. 推进段. 收势段. 音效块. 风格段.
+✅ 正确：起始段含音效副词, 推进段含音效副词; 收势段含收尾音效; 风格段.
+```
+
+### 铁律 2 · 收势词（final frame / camera locks / holds）放最后一句，后面不追加任何内容
+
+**现象**：v2 在收势词后追加 `[Sound effect: ... chime settling]` → 模型把视觉定格指令当成"中间过渡"，把尾部音效当成收尾 → 收势失败，画面继续动。
+
+**修复**：收势词必须**是 prompt 的最后一句有意义的画面描述**。如果想加收尾音效，用逗号串接在收势句内部，**不再开新句**。
+
+```
+❌ 错误：final frame: ... holds to the last frame. [Sound effect: chime settling]. 风格段.
+✅ 正确：final frame: ... holds to the last frame, quiet warm chime settles. 风格段.
+```
+
+### 铁律 3 · 否定性指令（no speech / no narration / no BGM）放末尾会干扰视觉模型
+
+**现象**：v2 末尾加 "No speech, no narration, no background music..." 否定句 → 视觉模型不擅长"反向作画"，这句会变成无效描述，反而把最后一段从"画面定格指令"变成"文字说明"。
+
+**修复**：删除否定句。**正向描述已经够了**——只要 prompt 里不出现朗读文字、不出现 BGM 词，模型自然就不会生成这些。
+
+```
+❌ 错误：风格段. No speech, no narration, no background music — only sound effects.
+✅ 正确：风格段.
+```
+
+### 三铁律自检清单（写完 prompt 后必跑）
+
+- [ ] 整段 prompt 只有 1 个句号（在「风格段」前），其他都是分号
+- [ ] 收势词（final frame / camera locks / holds）在 prompt 的**最后**一句画面描述里
+- [ ] 收势词后面**不追加任何**新内容（音效、否定句、风格段都没有）
+- [ ] prompt 里**没有** `[Sound effect: ...]` 独立块
+- [ ] prompt 里**没有** "no speech / no narration / no BGM" 否定句
+- [ ] 音效描述**嵌入视觉句中**（用 `,` 串接），不是独立块
+
+**自检不通过 → 改完再提交**。
+
+### 完整 prompt 模板（v3 范式）
+
+```python
+prompt_template = """@Image1 as the opening frame, {起始画面描述}, {起始音效副词};
+{camera 运镜描述 + 中段音效副词}, transitions seamlessly to @Image2 as the second half, {结束画面描述};
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame, {收尾音效副词}.
+{风格锁定句}."""
+```
+
+**3 个分号，1 个句号（收尾），0 个 `[Sound effect: ...]` 独立块，0 个否定句**。
+
+**红苹果示例**（直接可复用）：
+
+```python
+prompt_template.format(
+    起始画面描述="the bold collaged letters 'RED' in red, blue and yellow paper stand on a yellow paper strip, a small white rabbit looks up at them, soft white background",
+    起始音效副词="gentle paper-landing tap-tap-tap as the three letters settle into place",
+    运镜="the camera slowly pushes in with a warm light bloom sweeping across the scene, paper textures become more vivid",
+    中段音效副词="soft plop as the apple gently appears",
+    结束画面描述="a red paper-collaged apple with green stem and brown leaf sits in the center, handcrafted paper-cut style throughout",
+    收尾音效副词="quiet warm chime settles",
+    风格锁定句="Children's picture book collage illustration style, paper-cut craft with visible paper texture and torn edges, warm and lively atmosphere, bright primary colors, handcrafted feel",
+)
+```
+
+> **完整 v1→v2→v3 实战对比**见 `references/绘本音效-prompt写法.md`（三铁律的详细来由 + 错版/对版示例）
+
+---
+
+### Phase 8 · 分镜生视频（video-prompt）
+
+### 绘本场景音频策略（先于 5 要素看）
+
+#### 绘本音频三件事（互不替代，先分清再写 prompt）
+
+绘本视频里**音频有三件事**，**互不替代**：
+
+| 类型 | 是否需要 | 写进 prompt | 由谁生成 |
+|------|---------|------------|---------|
+| **旁白朗读**（人声念文字） | ✅ 需要 | **否**——旁白走后期 TTS（**待探索**：Seedance 2.0 具备旁白能力，尚未找到合适的 prompt 写法，目前不在 clip 里生成） | 后期 TTS 合成 |
+| **BGM 背景音乐** | ❌ 不要（绘本默认） | **否**——prompt 里不出现 BGM 词 | 不加 |
+| **音效**（拟声/环境音，配合画面动作） | ✅ 需要 | **是**——短促拟声、卡点环境音 | Seedance `--generate-audio true` 同步生成 |
+
+#### 绘本音频决策树（写 prompt 前必跑）
+
+```
+Q1：这个 clip 需不需要人声念旁白文字？
+├── 是 → 走后期 TTS 合成，prompt 不写朗读文字（Seedance 2.0 旁白能力待探索）
+└── 否 ↓
+
+Q2：这个 clip 需不需要 BGM 持续铺底？
+├── 是 → prompt 不写 BGM 词，单独叠音轨
+└── 否（绘本默认） ↓
+
+Q3：这个 clip 需不需要拟声/环境音卡点？
+├── 是 → --generate-audio true，prompt 嵌入音效副词（看三铁律）
+└── 否 → --generate-audio false（绘本场景极少）
+```
+
+**绘本默认配置**：`--generate-audio true` + prompt 里**只写音效动作描述**（不写朗读、不写 BGM）。
+
+> ⚠️ 旧版默认值 `--generate-audio false` 是错的。绘本 ≠ 全静音。绘本需要拟声音效（字母落位 tap-tap-tap、苹果出现 plop、消防车警笛呜——），但不需要 BGM 持续铺底，也不需要人声念旁白。三件事**互不替代**。
+> 后续若找到 prompt 写法让 Seedance 直接生成旁白，可去掉"后期 TTS"环节——目前待探索。
 
 ### Prompt 编写规范（5要素）
 
@@ -479,7 +618,7 @@ Phase 9: 视频剪辑/成片
 | 1 | **参考主体引用** | 首帧图片 `seedance.py create --image ./N.jpg` |
 | 2 | **场景描述** | 当前 Clip 所在场景，保持与参考图一致 |
 | 3 | **分镜动作描述** | 按选择好的写法（连续运镜/时间轴分镜）描述，**必须包含收势设计** |
-| 4 | **台词/音效说明** | **不写旁白**——旁白在剪辑阶段合成 |
+| 4 | **音效说明** | 短促拟声，**嵌入视觉句中间**（用逗号串接），不要用 `[Sound effect: ...]` 独立块 |
 | 5 | **风格一致性说明** | 整体风格与参考素材保持一致 |
 
 ### 收势写法核心词
@@ -500,12 +639,13 @@ Phase 9: 视频剪辑/成片
 | 宽高比 | `16:9` |
 | 分辨率 | `720P` |
 | 模型版本 | `seedance2.0_vip` |
-| **`--generate-audio`** | **`false`** ⚠️ 绘本场景强制 |
+| **`--generate-audio`** | **`true`** ⚠️ 绘本场景带音效（拟声/环境音，非人声、非 BGM） |
 
-> ⚠️ **`--generate-audio` 必须设为 `false`（2026-06-02 二大爷确认）**：
-> 绘本旁白是后期 TTS 单独合成的，clip 里不该自带任何说话声/环境音。
-> 否则会和旁白冲突，听感乱。
-> 后续 BGM 也只在 Phase 9 合并时叠，不通过 seedance 生成。
+> ⚠️ **`--generate-audio` 必须设为 `true`（2026-06-02 二大爷确认）**：
+> 绘本需要拟声/环境音配画面（字母落位 tap、苹果出现 plop、消防车警笛等），这些**靠 Seedance 同步生成**。
+> prompt 里**不写朗读**（不写 "A red apple" 这种文字内容）→ 模型不会念旁白。
+> prompt 里**不写 BGM**（不写 "playful children's BGM"）→ 不会铺底。
+> 详见 `references/绘本音效-prompt写法.md` 的三铁律。
 
 ### 单测门 SOP（2026-06-02 实测偏好）
 
@@ -522,11 +662,31 @@ Phase 8 启动
 【批量】剩余 N-1 个 Clip 并行提交
 ```
 
-**单测重点看**：
-- 风格锁定（是否跟原图风格一致）
-- 镜头运镜（推进/拉远是否自然）
-- 收势（结尾是否稳定定格）
-- 无穿帮/崩坏
+**单测重点看（5 项）**——**AI/人分工明确**：
+
+| # | 检查项 | AI 可查？ | 人必须查？ | 工具 |
+|---|--------|----------|-----------|------|
+| 1 | 风格锁定（跟原图拼贴+手绘一致） | ✅ vision_analyze 截图比对 | 兜底 | vision_analyze / 看图 |
+| 2 | 镜头运镜（推进/拉远自然） | ✅ vision_analyze 拆帧看 | 兜底 | vision_analyze |
+| 3 | 收势（结尾稳定定格，无渐隐/淡出/动作截断） | ✅ vision_analyze 看尾帧 | 兜底 | vision_analyze |
+| 4 | 无穿帮/崩坏 | ✅ vision_analyze 检查每一帧 | 兜底 | vision_analyze |
+| 5 | **音效**：①有没有人声念旁白？②有没有 BGM 持续铺底？③有没有拟声/环境音卡点？④音效是否短促不抢戏（0.5-1.5s/段）？ | ❌ vision_analyze **不支持 mp4 音频** | ✅ **必须人耳听** | 飞书 send_message 发视频给用户 |
+
+**为什么 5 项必须由人查音效**（2026-06-02 实测教训）：
+- `vision_analyze` 工具**只支持图片**（.jpg/.png），不支持 mp4 视频文件
+- "Only real image files are supported for vision analysis" 报错实测遇到
+- 走 `mcp_zai_analyze_video` 也只能分析视觉，**音频是黑箱**
+- **AI 永远查不出**"这段音效是 chimes 还是引擎 vroom"、"卡点在不在画面动作上"、"是否人声朗读"
+
+**SOP**：
+1. AI 跑 1-4 项（截图 + vision_analyze）
+2. AI 把 mp4 视频**发飞书**给用户（`send_message` + `MEDIA:path` 语法）
+3. **人听 + 5 项兜底确认**
+4. 用户说"效果 OK" → AI 进入批量
+
+**如果音效不卡点 / 太抢戏** → 调整 prompt 里的音效描述用词（不要加 "BGM" / "music" / "song"，不要用长句描述音效）。
+**如果画面切快 / 收势失败** → 检查 prompt 是不是用了句号切分 + 收势词后追加内容（**回到 Phase 8 必读 · 三铁律**）。
+**如果任务 failed with OutputVideoSensitiveContentDetected** → 检查 prompt 是否出现"警察/军人/枪/武器/暴力"等**敏感题材本体**（不是机械/警笛类拟声，那些安全）。
 
 **用户没确认前不要批量**——这是踩坑教训，不是优化建议。
 
@@ -537,6 +697,8 @@ Phase 8 启动
 ---
 
 ## Phase 9 · 视频剪辑/成片
+
+> ⚠️ **默认不帮用户拼（2026-06-02 Red 绘本用户明确表态）**：单测门和批量完成后，**只发送所有 clip 文件 + 拼接示例命令**即可，**不主动跑 ffmpeg 拼接**。如用户明确要求拼片，按 §9.1 流程执行。详见关键教训 #16。
 
 ### 9.1 视频拼接
 
@@ -605,7 +767,59 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 
 ---
 
-## 关键教训（{项目名}实战 · 2026-05-26）
+### ⚠️ Seedance 内容风控白名单（2026-06-02 用户最终纠正）
+
+#### 信息源等级（**写在最前，防脑补**）
+
+本节所有规则按**信息源可信度**分层，**优先采用高等级**：
+
+| 等级 | 来源 | 可信度 | 例子 |
+|------|------|-------|------|
+| **L1 · 用户原话** | 用户在对话中明确说的 | 最高 | "只有警察、军队等敏感词汇容易风控" |
+| **L2 · 用户明确纠正** | 用户纠错后的最终版 | 高 | "机械/车辆视觉动作这些是可以使用的" |
+| **L3 · 实测任务结果** | 真实任务 succeeded/failed 记录 | 中 | ✅ `a distant 'wee-oo wee-oo' siren as the fire truck rolls in` → succeeded |
+| **L4 · 兄弟 agent 沉淀** | 其它 agent 写入的 skill 章节 | 中 | 同上，跨会话参考 |
+| **L5 · 自己脑补**（**必须标注 `推断`**） | 没在对话中验证的"理论解释" | **低** | ❌ "机械动作+拟声叠加触发风控"——错的 |
+
+**强制原则**：
+- L5（脑补）写进 skill 时**必须打 `推断` 标签**——下一个 task 验证后才能摘标签
+- L3（实测）必须**有 task_id 引用**——空口说"我跑过"不算
+- L1 跟 L3 冲突时**以 L1 为准**（用户原话 > 实测）
+- 上一轮我犯的错：把用户"警笛这一类容易风控"（L1 模糊描述）脑补成"机械/警笛/鸣笛全部触发"（L5 错误扩张）→ skill 章节来回改 3 次。**根因**：没等 L3 实测验证就急着把 L5 写进 skill。
+
+**根因（用户原话 · 2026-06-02 Red 绘本踩坑后澄清）**：
+> "只有警察、军队等敏感词汇容易风控，机械/车辆视觉动作这些是可以使用的"
+
+- ❌ **不是**机械/警笛类**拟声词**（vroom / horn / siren 这些**可以正常使用**）
+- ❌ **不是**机械/车辆**视觉动作**（ladder extends / wheels roll 这些**可以正常使用**）
+- ✅ **真正风控**：**警察/军队/枪/武器/暴力**等敏感题材
+- 触发症状：API 返回 `The request failed because the output video may contain sensitive information. Request id: ...`
+
+**绘本/通用素材音效词清单**（2026-06-02 实测 · 修正版）：
+
+| 状态 | 词 |
+|------|---|
+| ✅ 安全 | `chime`, `rustling`, `plop`, `tap-tap-tap`, `bubble`, `sparkle`, `flutter`, `whoosh`, `bloom`, `settle` |
+| ✅ 安全 | `vroom`, `horn`, `siren`, `alarm`, `engine`, `beep`, `beep-beep`（机械/车辆类全部可以写） |
+| ❌ 触发风控 | **警察/军队/枪支/武器/暴力**等敏感题材本体 |
+
+**绘本消防车/汽车/警车/军车场景的安全写法**：
+
+```
+✅ 安全：a distant 'wee-oo wee-oo' siren as the fire truck rolls in    → task succeeded
+✅ 安全：a friendly 'beep-beep' as the small car rolls in               → task succeeded
+✅ 安全：soft engine 'vroom' as the car starts                          → task succeeded
+✅ 安全：soft gentle chime as the fire truck rolls in                   → task succeeded（绘本风格更温柔）
+✅ 安全：soft gentle chime as the small car rolls in                    → task succeeded
+```
+
+**唯一禁忌**：明确出现"警察/军人/枪/武器/暴力"等敏感题材本体。**绘本里的警笛、军车、警车**这些**视觉动作 + 拟声**全部可以写。
+
+绘本风格调性建议（不是风控要求）：绘本对童趣有克制，`chime` 替代警笛`是一种风格选择，不是安全妥协。
+
+---
+
+### 关键教训（{项目名}实战 · 2026-05-26）
 
 1. **绘本图片是「独立叙事单元」**：每张图是独立画面，图间没有物理连续动作，视频生成时每个 clip 从头渲染——这是正常行为，**不是缺陷**
 2. **「突然中断」问题的根因**：原 Prompt 只描述「画面里有什么」，没有设计 Clip 结尾的「收势动作」，导致动作进行中就被截断
@@ -624,6 +838,30 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 11. **`--download` 参数语义陷阱（2026-06-02 实测）**：seedance.py 的 `--download <path>` 是**完整文件路径**（不是目录）。如果传的是目录名，多个 clip 会**全写到同一个文件**上互相覆盖。正确做法：传**文件路径**（如 `--download ./output/clip1.mp4`），或者传目录路径后**立刻 mv 重命名**。并行生成多个 clip 时，**每个用独立文件名**。
 12. **领读绘本总时长公式（2026-06-02 实测）**：合并后总时长 = `Clip1 时长 + Clip2 时长 + ...`，每个 Clip 在 8-10s 区间分配。分配原则：开头要给稳（8s），结尾情感核心要给余韵（10s），中间段均匀（8-9s）。公式：`总时长 ≈ 段落数 × 8-10s`，向上对齐。
 13. **单测门 SOP（2026-06-02 实测）**：批量生成前**先做 1 个 Clip 让人看效果**，确认满意后再批量。这是用户的明确偏好——避免全部跑完才发现 prompt 写错。SOP：先 vision 自评 → 发给用户 → 等待确认 → 再并行批量。
+14. **Hermes 环境下的 `~` 双重展开陷阱（2026-06-02 实测）**：在 hermes agent 里 `python3 ~/.hermes/skills/.../seedance.py` 调用时，`~` 会被错误展开为 `~/.hermes/profiles/huiben/home/.hermes/skills/...`（profile 目录 + home 子目录 + 原始路径），导致 `No such file or directory`。**修复**：一律用**绝对路径**，例如 `python3 /home/luo/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seedance.py`。同 trap 也适用于所有 `~/.hermes/...` 开头的命令。
+15. **绘本音频三件事要分清 + 音效 prompt 写法的三铁律（2026-06-02 Red 绘本 v1→v2→v3 修复）**：
+    - 绘本 ≠ 全静音。**三件事互不替代**：旁白（人声念文字，走后期 TTS）/ BGM（持续音乐铺底，默认不加）/ 音效（短促拟声+环境音，配合画面动作）。
+    - 旧默认值 `--generate-audio false` 是错的，应为 `true`（让 Seedance 生成音效）。
+    - 音效写法的三铁律（v2 踩坑 + v3 修复）：
+      1. **不要用 `[Sound effect: ...]` 独立块**——句号 `.` 会把视觉切成多段，导致画面切快、节奏拖乱。
+      2. **收势词（final frame / camera locks / holds to the last frame）后不要再追加任何内容**——尾部追加的音效块会覆盖收势指令，导致结尾收不住。
+      3. **否定性指令（no speech / no narration / no BGM）放 prompt 末尾会干扰视觉模型**——视觉模型不擅长"反向作画"，这句会变成无效描述。
+    - 正确写法：**句号改分号**（视觉单段连续）+ **音效描述嵌入视觉句中间**（逗号串接，副词地位）+ **收势词放最后一句**（不被覆盖）+ **删除否定句**。
+    - 详见 `references/绘本音效-prompt写法.md`。
+
+16. **Phase 9 拼片：默认不帮用户拼（2026-06-02 Red 绘本用户明确表态）**：
+    - 用户原话："我先自己下载拼接，不需要你拼接"
+    - 默认行为：单测门和批量完成后，**只发送所有 clip 文件**（带目录路径），**不跑 ffmpeg 拼接**、**不主动提议拼片**。
+    - 拼接时如果用户主动要求，按 §9.1 流程（ffmpeg concat + `-c copy`）执行即可。
+    - 反例：把"拼接"自动塞进交付物=把工程化的"我会做"塞给不想要的人。
+17. **不要把用户的简短描述脑补成完整理论（2026-06-02 Red 绘本风控错判教训）**：
+    - 错版过程：用户原话"警笛这一类的容易风控" → 我脑补"警笛/机械/车辆/鸣笛/喇叭/vroom/horn/siren 全部都触发" → 自圆其说编了一套"机械动作+拟声叠加触发"的伪理论 → 把错版写进 skill 和 memory。
+    - 用户最终纠正："只有警察、军队等敏感词汇容易风控，机械/车辆视觉动作这些是可以使用的"
+    - 正确做法：
+      1. **不脑补**——只记用户**原话**，不扩张。
+      2. **不照搬**其他 agent 的"加强版"——它可能跟你的脑补同源。
+      3. **不立刻**把"对策"加进 skill——**等下一个真实任务**踩到再沉淀。
+    - 遇到"X 类词触发风控"这种模糊信息：**记原话**，加 `(待验证)` 标记，**等真实复现一次**再固化。
 
 ---
 
@@ -639,3 +877,4 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 | `references/official-docs-token-mapping.md` | 官方 SOP 文档 token → 内容映射表 |
 | `references/leading-reading-4clip-pattern.md` | 领读绘本 4-Clip 合并模板（2026-06-02 实测沉淀：4图段=8-8-9-10s 总 35s） |
 | `references/领读型合并-双图连续运镜.md` | **领读型绘本 2图=1Clip 合并模式**（首尾帧控制 + 连续运镜 prompt + 时长公式） |
+| `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律**（2026-06-02 Red 绘本 v1→v2→v3 修复沉淀：从画面切快+收势失败的踩坑提炼出正确写法） |
