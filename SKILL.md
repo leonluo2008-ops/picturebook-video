@@ -943,7 +943,11 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 | `references/narrative-closure-design.md` | 叙事单元收势设计三种模式（含错误示例 vs 正确示例对比） |
 | `references/lark-cli-drive-access.md` | 飞书云盘素材获取 SOP（Phase -1：把云盘文件下载到本地） |
 | `references/official-docs-token-mapping.md` | 官方 SOP 文档 token → 内容映射表 |
-| `references/领读型合并-带时间锚点-TTS匹配.md` | 领读绘本 4-Clip 合并模板（2026-06-02 实测沉淀：4图段=8-8-9-10s 总 35s） |
-| `references/领读型合并-双图连续运镜.md` | **领读型绘本 2图=1Clip 合并模式**（首尾帧控制 + 连续运镜 prompt + 时长公式） |
-| `references/分镜时序-精准动作-prompt范式.md` | **分镜时序 + 精准动作 v5/v6 范式**（2026-06-02 Cactus 实测：显式时间窗 + @ImageN 绑定 + shot 内部动作 → 精准切换+精准动作。用户的金句："能让画面精准静止→也能精准运动"） |
-| `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律**（2026-06-02 Red 绘本 v1→v2→v3 修复沉淀：从画面切快+收势失败的踩坑提炼出正确写法） |
+| `references/分镜时序-prompt范式-v7.md` | **v7 范式完整文档**（分镜时序+精准动画+精准音频控制 · 8 段固定结构 · 11 项必跑自检 · 5 件套句式。2026-06-02 Cactus 4 段实测通过） |
+| `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律 + v3 vs v7 对比**（2026-06-02 Red v1→v2→v3 + Cactus v6→v7 修复沉淀） |
+| `references/leading-reading-4clip-pattern.md` | **领读绘本 4-Clip 切分 + 时长公式 + 单测门 SOP**（指向 v7 范式） |
+| `templates/v7-prompt-template.md` | **v7 范式 Python f-string 模板**（ShotV7/AudioSegmentV7/ClipV7 dataclass + render_prompt() + 11 项自检脚本） |
+| `assets/example-prompts/cactus-clip1-v7.txt` | **Cactus Clip 1 v7 实际跑通 prompt + 执行记录**（任务 ID cgt-20260602171645-s5fq6 + 8s mp4 + 用户"里程碑"反馈） |
+| `scripts/build_clip_prompts.py` | v3/v3+锚点模板拼接脚本（⚠️ 待升级到 v7 范式，dead code） |
+| `test-prompts.json` | **达尔文 8 维评估用 3 个测试 prompt**（happy/复杂/边界） |
+| `results.tsv` | **达尔文优化循环历史记录**（baseline + 各 round keep/revert） |
