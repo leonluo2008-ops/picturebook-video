@@ -556,15 +556,16 @@ grep -E "风控|敏感|触.*reject|sensitive" \
 ```
 绘本类型？
 ├── 领读型（弱情节、靠画面+旁白推）
-│   ├── 需要 TTS 后期卡点 → v7 范式（精准分镜时序+精准动画+精准音频）
-│   │   详见 references/分镜时序-精准动作-prompt范式.md（v7 章节）
+│   ├── 需要 TTS 后期卡点 + 精准动作 + 精准音频 → v7 范式
+│   │   详见 references/分镜时序-prompt范式-v7.md
+│   │   拼接脚本：scripts/build_clip_prompts.py（v7 模板 + 11 项自检）
 │   └── 不需要 TTS 卡点 → v3 范式（双图连续运镜，散文叙述）
-│       详见 references/领读型合并-双图连续运镜.md
+│       详见 references/绘本音效-prompt写法.md §7.1（v3 标为"备选"）
 └── 叙事型（强情节、起承转合）
     └── 1图=1Clip 标准模式（不在本 skill 范式范围）
 ```
 
-> **v7 是 2026-06-02 后的推荐范式**。v3 范式适用于"氛围型、不需要 TTS 卡点"的绘本。
+> **v7 是 2026-06-02 后的推荐范式**。v3 范式仅适用于"氛围型、不需要 TTS 卡点"的绘本。
 
 ### 完整 prompt 模板（v3 范式）
 
@@ -907,15 +908,17 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
     - 正确写法：**句号改分号**（视觉单段连续）+ **音效描述嵌入视觉句中间**（逗号串接，副词地位）+ **收势词放最后一句**（不被覆盖）+ **删除否定句**。
     - 详见 `references/绘本音效-prompt写法.md`。
 
-15a. **分镜时序 + 精准动作 v5/v6 范式（2026-06-02 Cactus 绘本实测）**：
-    - **v3 范式（双图连续运镜）**：`@Image1 ... transitions seamlessly to @Image2 ...` 散文叙述，**模型自动决定切换时机**——氛围型可以，**TTS 精准卡点不行**。
-    - **v3+锚点（带时间锚点 TTS 匹配）**：`as the camera X begins / transitions` 触发式动作，**软触发**——模型不完全遵守，**画面切换时机会偏移**。
-    - **v5 范式（分镜时序 + 纯静态）**：用 `from 0.0s to 1.2s @Image1 ... from 1.2s to 8.0s @Image2 ...` **显式分镜时序表** + `Each shot holds steady within its time window` 让模型**精准切换+静止**。**用户验证 v5 精准切换 OK，但缺动画感**。
-    - **v6 范式（分镜时序 + 精准动画）**：在 v5 基础上，shot 内部用 `in this shot [动作描述], then [下一动作/holds steady for the rest of this shot]` 让模型**精准运动**。
+15a. **分镜时序 v7 范式（2026-06-02 Cactus 4 段实测 · 里程碑）**：
+    - **v3 范式（双图连续运镜）**：`@Image1 ... transitions seamlessly to @Image2 ...` 散文叙述，**模型自动决定切换时机**——氛围型可以，**TTS 精准卡点不行**。v3 范式**已废弃**，仅作"备选"保留在 `references/绘本音效-prompt写法.md §7.1`。
+    - **v3+锚点（带时间锚点 TTS 匹配）**：`as the camera X begins / transitions` 触发式动作，**软触发**——模型不完全遵守，**画面切换时机会偏移**。v3+锚点**已废弃**。
+    - **v5 范式（分镜时序 + 纯静态）**：用 `from 0.0s to 1.2s @Image1 ... from 1.2s to 8.0s @Image2 ...` **显式分镜时序表** + `Each shot holds steady within its time window` 让模型**精准切换+静止**。**用户验证 v5 精准切换 OK，但缺动画感**。v5**已废弃**。
+    - **v6 范式（分镜时序 + 精准动画）**：在 v5 基础上，shot 内部用 `in this shot [动作描述], then [下一动作/holds steady for the rest of this shot]` 让模型**精准运动**。v6**已废弃**（音效段会产生持续音+人声）。
+    - **v7 范式（当前推荐）**：v6 + **`Storyboard Audio Description: X.Xs to Y.Ys [音效1] then ambient silence, Xs [音效2], X.Xs to Y.Ys minimal ambient silence, a single brief warm chime at the very end`** 独立音频段 + **`No background music, no human voice, no narration, no singing`** 音频禁令句。**关键发现**：音频模型会听否定句（No BGM / no human voice 全部生效），视觉模型不擅长反向作画（铁律 3）。**v7 4 段 Cactus 实测通过：零人声零 BGM + 精准卡点音效**。
     - **用户金句**（2026-06-02 Cactus v5 检查反馈后）："能让画面在目标时段精准切换，并静止，那么也可以让画面在目标时段动起来，是吧"——**答：是的，同一机制反过来用**。
     - **8 段旁白 → 8 个动作映射原则**（Cactus 范式）：把动作关联的旁白就近配对，每个 Clip 内做 2 个动作（前 50% 做动作，后 50% 稳态停留）。
-    - **决策树**：氛围型 → v3 / 需要 TTS 卡点但不要求动作 → v3+锚点 / 需要 TTS 精准卡点 + 精准动作 → v5/v6（本范式）。
-    - 详见 `references/分镜时序-精准动作-prompt范式.md`。
+    - **8 段固定结构**（v7 范式）：1)分镜引导 2-3)shot 视觉分镜 4)收势词 5)音频描述 6)音频禁令 7)风格锁定 8)句号。
+    - **决策树**：氛围型 → v3（已废弃，少用）/ 需要 TTS 精准卡点 + 精准动作 + 精准音频 → v7（本范式）。
+    - 详见 `references/分镜时序-prompt范式-v7.md`（v7 完整文档）。
 
 16. **Phase 9 拼片：默认不帮用户拼（2026-06-02 Red 绘本用户明确表态）**：
     - 用户原话："我先自己下载拼接，不需要你拼接"
@@ -943,7 +946,9 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 | `references/narrative-closure-design.md` | 叙事单元收势设计三种模式（含错误示例 vs 正确示例对比） |
 | `references/lark-cli-drive-access.md` | 飞书云盘素材获取 SOP（Phase -1：把云盘文件下载到本地） |
 | `references/official-docs-token-mapping.md` | 官方 SOP 文档 token → 内容映射表 |
-| `references/领读型合并-带时间锚点-TTS匹配.md` | 领读绘本 4-Clip 合并模板（2026-06-02 实测沉淀：4图段=8-8-9-10s 总 35s） |
-| `references/领读型合并-双图连续运镜.md` | **领读型绘本 2图=1Clip 合并模式**（首尾帧控制 + 连续运镜 prompt + 时长公式） |
-| `references/分镜时序-精准动作-prompt范式.md` | **分镜时序 + 精准动作 v5/v6 范式**（2026-06-02 Cactus 实测：显式时间窗 + @ImageN 绑定 + shot 内部动作 → 精准切换+精准动作。用户的金句："能让画面精准静止→也能精准运动"） |
-| `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律**（2026-06-02 Red 绘本 v1→v2→v3 修复沉淀：从画面切快+收势失败的踩坑提炼出正确写法） |
+| `references/分镜时序-prompt范式-v7.md` | **v7 范式完整文档**（分镜时序+精准动画+精准音频控制 · 8 段固定结构 · 11 项必跑自检 · 5 件套句式。2026-06-02 Cactus 4 段实测通过） |
+| `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律 + v3 vs v7 对比**（2026-06-02 Red v1→v2→v3 + Cactus v6→v7 修复沉淀） |
+| `scripts/build_clip_prompts.py` | **v7 范式 prompt 自动拼接 + 11 项自检工具**（输入：ClipV7 数据类；输出：可直接喂给 seedance.py create 的 prompt + 命令。包含 Cactus Clip 1 完整范例可参考后改） |
+| `templates/v7-prompt-template.md` | **v7 范式 Python f-string 模板**（ShotV7/AudioSegmentV7/ClipV7 dataclass + render_prompt() + 11 项自检脚本） |
+| `assets/example-prompts/cactus-clip1-v7.txt` | **Cactus Clip 1 v7 实际跑通 prompt + 执行记录**（任务 ID cgt-20260602171645-s5fq6 + 8s mp4 + 用户"里程碑"反馈） |
+| `test-prompts.json` | **达尔文 8 维评估用 3 个测试 prompt**（happy/复杂/边界） |
