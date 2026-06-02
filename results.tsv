@@ -1,3 +1,4 @@
 timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-06-02T18:30	baseline	picturebook-video	-	92.2	baseline	-	Phase 1 基线评估（5/10 满分维度+资源整合度 8/10+实测 8/10 静态对照）	full_test
 2026-06-02T19:00	darwin-rev1	picturebook-video	92.2	95.45	keep	实测表现	维度 8 改 dry_run+真实产物对照（subagent 不可用 fallback），平均 9.30/10	review
+2026-06-02T19:20	e8dbf9f	picturebook-video	95.45	95.95	keep	资源整合度	Round 1: 建 templates/+assets/+SKILL.md 引用更新（维度 6 8→9，+0.5 加权）	full_test
