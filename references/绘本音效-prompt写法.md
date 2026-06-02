@@ -223,8 +223,90 @@ prompt_template.format(
 
 **应对**：用 `{音效副词}` 占位符预留，由本项目 Phase 5 Step 1 阶段生成。机械/车辆类主体的拟声（vroom/horn/siren/beep 等）现在全部安全，可以根据画面真实需求自由选择。**绘本风格调性**建议优先 chime/rustling 等温柔卡点（属于风格选择，不是风控规避）。
 
-## 7. 关联 skill 章节
+## 7. 范式对比：v3 嵌入式 vs v7 独立音频段
 
-- `picturebook-video/SKILL.md` Phase 8 · 绘本场景音频策略 + 参数默认值表（已嵌入三铁律 + 默认配置）
-- `picturebook-video/SKILL.md` 关键教训 #15（v1→v2→v3 修复沉淀）
-- `references/领读型合并-双图连续运镜.md` · 时长公式 + 4 段式 prompt 模板（需配合三铁律改写）
+> **v7 是 2026-06-02 后的推荐范式**。v3 仅适用于"氛围型绘本/不要求 TTS 严格卡点"。
+
+### 7.1 v3 范式（嵌入式音效 · 备选）
+
+```
+@Image1 as the opening frame, ... soft white background, soft gentle chime as the CACTUS letters settle;
+the camera slowly pushes in with a warm light bloom, soft plop as the apple appears, transitions to @Image2 ...;
+final frame: ... quiet warm chime settles.
+风格段.
+
+→ 实测：v6 跑出来持续环境音 + 干扰 TTS 的人声（用户反馈）
+→ 适用：氛围型绘本/不要求 TTS 严格卡点
+```
+
+### 7.2 v7 范式（独立 Storyboard Audio Description 段 · 推荐）⭐
+
+```
+@Image1 ...;
+@Image2 ...;
+final frame: ...;
+Storyboard Audio Description: 0.0s to 1.2s a single paper-landing tap-tap as the CACTUS letters settle then ambient silence, 1.2s a quick soft whoosh as the cactus grows up, 1.2s to 8.0s minimal desert ambient silence, a single brief warm chime at the very end;
+No background music, no human voice, no narration, no singing;
+风格段.
+
+→ 实测：v7 跑出来真正的"卡点音效"（Cactus 4 段验证通过）
+→ 适用：领读型绘本 + TTS 后期卡点（绘本主流场景）
+```
+
+### 7.3 v7 关键发现（里程碑）
+
+| 模型 | 对否定句的反应 | 来源 |
+|------|--------------|------|
+| **视觉模型** | ❌ 不擅长"反向作画"——"No X" 干扰画面指令 | 三铁律 3（Red v2 教训） |
+| **音频模型** | ✅ 会听否定禁令——`No background music, no human voice, no narration, no singing` 全部生效 | 参考示例 + Cactus 4 段实测 |
+
+**结论**：**音频控制可以用否定句，视觉控制不能用**——这是 v6 → v7 的关键突破。
+
+### 7.4 Storyboard Audio Description 段写法规范
+
+**必备结构**（按时间窗分时描述）：
+
+```
+Storyboard Audio Description: 
+  X.Xs to Y.Ys [第 1 段音效] then ambient silence, 
+  X.Xs [第 2 段音效触发], 
+  X.Xs to Y.Ys [第 2 段剩余时间] minimal ambient silence, 
+  a single brief [收尾音效] at the very end;
+```
+
+**音频禁令段**（紧随其后）：
+
+```
+No background music, no human voice, no narration, no singing;
+```
+
+**音效用词白名单**：
+
+| 类别 | 推荐词 |
+|------|--------|
+| 一次性卡点 | `a single tap-tap`, `a single chime`, `a single pop`, `a single plop` |
+| 快速触发 | `a quick whoosh`, `a quick rustle`, `a quick tap` |
+| 短促环境 | `brief warm chime`, `brief sparkle pop`, `brief petal flutter` |
+| 静默标记 | `ambient silence`, `minimal ambient silence`, `then silence` |
+
+### 7.5 v7 范式完整 Cactus Clip 1 示例
+
+```python
+prompt_v7 = """This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 1.2s @Image1 is the opening shot, in this shot the colorful paper-collaged letters 'CACTUS' bounce into the frame from the edges and land in the center, settling into place one by one to spell CACTUS, then they hold steady for the rest of this shot;
+from 1.2s to 8.0s @Image2 is the second shot, in this shot a green saguaro cactus slowly grows up from the yellow desert sand with paper layers unfolding, then it stands tall and sways gently in a warm breeze for the rest of this shot;
+final frame: the camera locks completely, paper textures crisp and vivid, the scene holds its final pose;
+Storyboard Audio Description: 0.0s to 1.2s a single paper-landing tap-tap as the CACTUS letters settle then ambient silence, 1.2s a quick soft whoosh as the cactus grows up, 1.2s to 8.0s minimal desert ambient silence, a single brief warm chime at the very end;
+No background music, no human voice, no narration, no singing;
+Children's picture book collage illustration style, paper-cut craft with visible paper texture and torn edges, warm and lively atmosphere, bright primary colors, handcrafted feel."""
+```
+
+**8 段结构 / 7 个分号 / 1 个句号在风格段尾 / 0 个独立 `[Sound effect: ...]` 块 / 0 个视觉段否定句 / 1 个音频禁令段**。
+
+---
+
+## 8. 关联 skill 章节
+
+- `picturebook-video/SKILL.md` Phase 8 必读 · 绘本 prompt 三铁律 + 范式选择决策树（v3/v7 何时用）
+- `picturebook-video/SKILL.md` Phase 8 必读 · 单测门 SOP（v7 范式专项检查 ⑥⑦⑧）
+- `references/分镜时序-prompt范式-v7.md` · v7 范式完整文档（8 段固定结构）

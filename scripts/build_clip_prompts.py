@@ -20,9 +20,20 @@ from dataclasses import dataclass
 
 # === v3 范式 prompt 模板（picturebook-video skill 强制前置章节）===
 
+# 模板 A：单线连续运镜（无时间锚点）—— 适合不在意 TTS 卡点 / 氛围型
 PROMPT_TEMPLATE = """@Image1 as the opening frame, {start_scene}, {start_sound};
 {camera_motion}, {mid_sound}, transitions seamlessly to @Image2 as the second half, {end_scene};
 final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame, {end_sound}.
+{style}."""
+
+
+# 模板 B：v3 变体（带时间锚点）—— 适合需要 TTS 后期精准匹配画面切换
+# 三段时间用 "as the camera X at 1.3 seconds" 等触发式短句分号串接
+# 不破坏视觉单段语义（不切碎成独立小节）
+PROMPT_TEMPLATE_ANCHORED = """@Image1 as the opening frame, {start_scene}, {start_sound};
+{segment_1}, {camera_motion_begins}, {mid_sound};
+{segment_2}, transitions seamlessly to @Image2 as the second half, {end_scene};
+{segment_3}, final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame, {end_sound}.
 {style}."""
 
 
@@ -44,13 +55,51 @@ class Clip:
     style: str = DEFAULT_STYLE
 
 
+@dataclass
+class ClipAnchored:
+    """模板 B：v3 变体（带时间锚点）的输入数据
+
+    三段时间锚点（segment_1/2/3）对应 TTS 旁白切换点
+    适合需要 TTS 后期精准匹配画面切换的场景
+    """
+    name: str
+    start_scene: str       # 起始画面描述（首帧 @Image1）
+    start_sound: str       # 起始音效副词
+    segment_1: str         # 第 1 段时间动作（0 → 切换点 1）含"as the camera X at 1.3s starts"
+    camera_motion_begins: str  # 镜头运镜（贯穿整段，跟 segment_1 配对）
+    mid_sound: str         # 中段音效副词
+    segment_2: str         # 第 2 段时间动作（切换点 1 → 切换点 2）
+    end_scene: str         # 结束画面描述（尾帧 @Image2）
+    segment_3: str         # 第 3 段时间动作（切换点 2 → 收势）
+    end_sound: str         # 收尾音效副词
+    duration: int          # 4-15s
+    style: str = DEFAULT_STYLE
+
+
 def build_prompt(clip: Clip) -> str:
+    """模板 A：单线连续运镜"""
     return PROMPT_TEMPLATE.format(
         start_scene=clip.start_scene,
         start_sound=clip.start_sound,
         camera_motion=clip.camera_motion,
         mid_sound=clip.mid_sound,
         end_scene=clip.end_scene,
+        end_sound=clip.end_sound,
+        style=clip.style,
+    )
+
+
+def build_prompt_anchored(clip: 'ClipAnchored') -> str:
+    """模板 B：v3 变体（带时间锚点）—— TTS 后期精准匹配用"""
+    return PROMPT_TEMPLATE_ANCHORED.format(
+        start_scene=clip.start_scene,
+        start_sound=clip.start_sound,
+        segment_1=clip.segment_1,
+        camera_motion_begins=clip.camera_motion_begins,
+        mid_sound=clip.mid_sound,
+        segment_2=clip.segment_2,
+        end_scene=clip.end_scene,
+        segment_3=clip.segment_3,
         end_sound=clip.end_sound,
         style=clip.style,
     )
@@ -115,14 +164,27 @@ def self_check(prompt: str) -> list[str]:
 
 def render_command(clip: Clip, first_frame: str, last_frame: str, output_path: str) -> str:
     """
-    渲染完整的 seedance.py create 命令（方便复制粘贴）
+    渲染完整的 seedance.py create 命令（模板 A：单线连续）
     """
     prompt = build_prompt(clip)
+    return _render_seedance(prompt, first_frame, last_frame, clip.duration, output_path)
+
+
+def render_command_anchored(clip: ClipAnchored, first_frame: str, last_frame: str, output_path: str) -> str:
+    """
+    渲染完整的 seedance.py create 命令（模板 B：带时间锚点）
+    """
+    prompt = build_prompt_anchored(clip)
+    return _render_seedance(prompt, first_frame, last_frame, clip.duration, output_path)
+
+
+def _render_seedance(prompt: str, first_frame: str, last_frame: str, duration: int, output_path: str) -> str:
+    """实际渲染 seedance.py 命令（共享给两个模板）"""
     return f"""python3 seedance.py create \\
   --image {first_frame} \\
   --last-frame {last_frame} \\
   --prompt "{prompt}" \\
-  --duration {clip.duration} \\
+  --duration {duration} \\
   --ratio 16:9 \\
   --generate-audio true \\
   --wait \\
