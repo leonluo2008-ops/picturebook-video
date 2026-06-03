@@ -1,0 +1,153 @@
+# Ok 好的绘本 v8 范式 · 实际跑通 prompt（4 Clip 全套）
+
+> **状态**：✅ Clip 1 单测通过 + 4 Clip prompt 自动化生成
+> **任务 ID（Clip 1）**：`cgt-20260603165420-h11e2`（具体看 seed 参数）
+> **单测视频**：`/home/luo/huiben-projects/20260603-feishu-test/output/clip1-v3.mp4`
+> **时长**：8s
+> **总时长（4 Clip）**：8 + 9 + 9 + 10 = **36s**
+
+> **用户验证反馈**（2026-06-03）：
+> "OK，这次效果很不错，这是一次非常成功的探索。"
+
+---
+
+## v8 范式核心改动（vs v7）
+
+| 段 | v7（Cactus 静默型） | v8（Ok 好的 调性匹配型） |
+|---|---|---|
+| 段 5 音频描述 | 只写拟声卡点 | **每 shot 加 BGM 调性词前缀** |
+| 段 6 禁令 | `No background music, no human voice, no narration, no singing` | `No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling`（**删除 `No background music`**）|
+
+---
+
+## Clip 1（8s · @Image1 + @Image2）
+
+**完整 prompt 文本**：
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 3.5s @Image1 is the opening shot, a small round bear stands center stage on a circular wooden stage with a warm celebratory atmosphere, surrounded by small forest animal audience clapping, paper-collage crafted theater with warm orange-yellow curtain backdrop, in this shot the small bear raises its right paw to give a thumbs-up with warm light bloom expanding, then the bear holds the thumbs-up pose for the rest of this shot;
+from 3.5s to 7.0s @Image2 is the second shot, a warm cozy doorway scene at sunrise with a tender send-off mood, golden sunlight pouring in from the open wooden door onto a yellow tiled floor, a mama bear on the right waves goodbye with her left paw, a small bear with a blue-yellow backpack stands on the left stepping through the doorway, in this shot the small bear steps forward through the doorway with the thumbs-up pose, then the small bear holds the pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: playful cheerful ukulele pizzicato strings, light bouncy rhythm with warm celebratory mood throughout this shot, [0.0s] gentle paper-landing tap-tap-tap as the thumbs-up pose settles; gentle warm acoustic guitar, tender send-off mood with soft piano throughout this shot, [3.5s] soft morning whoosh as the door swings open, gentle whoosh as golden sunlight pours in; [7.0s] quiet warm chime settles;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, paper-cut collage with watercolor wash, round Q-version cartoon animals, warm color palette of orange, yellow, brown, paper texture with visible torn edges, handcrafted feel, bright primary colors, the word 'OK' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+**8 段结构分解**：
+
+| 段 | 内容 |
+|---|------|
+| 1 | 分镜引导（`This is a storyboard reference image sequence; render ...`） |
+| 2 | `from 0.0s to 3.5s @Image1 is the opening shot, ...`（舞台亮相） |
+| 3 | `from 3.5s to 7.0s @Image2 is the second shot, ...`（门口送别） |
+| 4 | `final frame: the camera locks completely, ...`（收势） |
+| **5** | **Storyboard Audio Description: BGM 调性词 throughout this shot + 拟声卡点** |
+| 6 | 禁令（只禁人声）|
+| 7 | 风格锁定 |
+| 8 | 句号收尾 |
+
+---
+
+## Clip 2（9s · @Image3 + @Image4）
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 4.0s @Image1 is the opening shot, a bright cheerful forest path with a playful adventurous mood, two big green trees on each side, a small bear on the left and a small orange fox on the right walk hand in hand along a winding yellow path, colorful wildflowers scattered on the grass, both animals smile and raise their free paw to give a thumbs-up, in this shot the small bear and fox walk forward with thumbs-up poses, then they hold the pose for the rest of this shot;
+from 4.0s to 8.0s @Image2 is the second shot, a quiet calm indoor reading nook with a warm understanding mood, beside a wooden-framed window with green forest outside, a small bear sits on a round woven rug giving a thumbs-up, a mama bear beside holds an open storybook and looks warmly at the small bear, in this shot the mama bear turns a page of the book, then the small bear holds the thumbs-up pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: playful adventurous pizzicato and light flute melody, bright cheerful mood throughout this shot, [0.0s] soft footstep rustling on grass, gentle whoosh as the forest breeze sways the leaves; gentle warm piano with soft strings, calm understanding mood throughout this shot, [4.0s] soft page-turn rustle, gentle warm bubble as sunlight glows through the window; [8.0s] quiet warm chime settles;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, paper-cut collage with watercolor wash, round Q-version cartoon animals, warm color palette of orange, yellow, brown, paper texture with visible torn edges, handcrafted feel, bright primary colors, the word 'OK' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+---
+
+## Clip 3（9s · @Image5 + @Image6）
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 4.0s @Image1 is the opening shot, a sunny excited dining room with a joyful hungry mood, yellow-white striped curtains, four teddy bears sitting around a table filled with strawberry, banana, hamburger, pink cake, and orange juice, the light-brown small bear in the center raises right paw to give a thumbs-up with mouth watering, in this shot the small bear raises the thumbs-up paw with a mouth-watering expression, then the small bear holds the pose for the rest of this shot;
+from 4.0s to 8.0s @Image2 is the second shot, a bright playful outdoor grass field with a lively energetic mood, bright blue sky, white fluffy clouds, and scattered red-yellow-blue wildflowers, a small bear on the left, a white rabbit in the middle, and a small orange fox on the right all smile and raise paws to give a thumbs-up, in this shot the three friends walk together with thumbs-up poses, then they hold the pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: happy hungry bouncy xylophone and pizzicato strings, joyful excited mood throughout this shot, [0.0s] soft excited bubble as the small bear sees the food, gentle tap as a strawberry lands on the plate; playful lively accordion and light percussion, energetic outdoor mood throughout this shot, [4.0s] soft whoosh as the breeze blows through the grass, gentle flutter as a small bird flies by; [8.0s] quiet warm chime settles;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, paper-cut collage with watercolor wash, round Q-version cartoon animals, warm color palette of orange, yellow, brown, paper texture with visible torn edges, handcrafted feel, bright primary colors, the word 'OK' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+---
+
+## Clip 4（10s · @Image7 + @Image8）
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 4.5s @Image1 is the opening shot, a cozy children's bedroom at night with a tender loving bedtime mood, a crescent moon and stars through the window, a small bear lies in bed under a yellow blanket with a thumbs-up paw, a mama bear leans down to kiss the small bear's forehead, a warm bedside lamp glows on a wooden nightstand, in this shot the mama bear gently leans down to kiss the small bear's forehead, then the small bear holds the thumbs-up pose for the rest of this shot;
+from 4.5s to 9.0s @Image2 is the second shot, a magical forest clearing with a hopeful uplifting all-is-well mood, a full rainbow arching across a warm beige sky, a white rabbit on the left, an orange fox, a small bear center, and a big papa bear on the right all smile and raise paws to give a thumbs-up, in this shot the camera slowly pulls back to reveal the rainbow and four friends with thumbs-up poses, then they hold the pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: soft tender lullaby with music box and soft piano, gentle loving bedtime mood throughout this shot, [0.0s] soft gentle bloom as the bedside lamp glows, quiet whoosh as the mama bear's kiss lands; uplifting hopeful warm orchestra with strings and gentle bells, all-is-well ending mood throughout this shot, [4.5s] soft sparkle as the rainbow brightens, gentle warm chime as the four friends stand together; [9.0s] single quiet warm chime as the final note;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, paper-cut collage with watercolor wash, round Q-version cartoon animals, warm color palette of orange, yellow, brown, paper texture with visible torn edges, handcrafted feel, bright primary colors, the word 'OK' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+---
+
+## AI 量化验证（Clip 1 v3 单测）
+
+| 指标 | Red v3 参考 | Ok v3 |
+|---|---|---|
+| 视频大小 | 12.4 Mbps | 3.6 Mbps |
+| 音频平均音量 | -29 ~ -33 dB | **-15 ~ -25 dB（更响）** |
+| BGM 持续性 | ✅ 持续 | ✅ 持续 |
+| 水印 | 无 | 无 |
+| 4 段调性多样性 | 4 段 | 8 段不同 BGM（4 Clip × 2 shot）|
+
+**关键修复**：
+- ✅ `--watermark false` 消除水印
+- ✅ 段 5 加 BGM 调性词 → BGM 持续铺底
+- ✅ 段 6 删 `No background music` → 允许 BGM 自由生成
+- ✅ 段 6 保留 `No human voice/no singing` 等人声禁令 → 纯音乐
+- ✅ 段 1 引导句（v7+v8 共用）
+- ✅ 段 4 收势 + 段 7 风格（不动）
+
+---
+
+## 4 Clip 调性词汇总
+
+| Clip | Shot 1 BGM | Shot 2 BGM |
+|---|---|---|
+| 1 | playful cheerful ukulele pizzicato strings, light bouncy rhythm with warm celebratory mood | gentle warm acoustic guitar, tender send-off mood with soft piano |
+| 2 | playful adventurous pizzicato and light flute melody, bright cheerful mood | gentle warm piano with soft strings, calm understanding mood |
+| 3 | happy hungry bouncy xylophone and pizzicato strings, joyful excited mood | playful lively accordion and light percussion, energetic outdoor mood |
+| 4 | soft tender lullaby with music box and soft piano, gentle loving bedtime mood | uplifting hopeful warm orchestra with strings and gentle bells, all-is-well ending mood |
+
+**8 段调性 + 8 段场景情绪一一对应**——Seedance 自动为每段配相符的纯音乐 BGM。
+
+---
+
+## 11 项自检结果（v8 范式）
+
+| # | 检查项 | 结果 |
+|---|--------|------|
+| 1 | 段 1 引导句 `storyboard reference image sequence` | ✅ |
+| 2 | 段 2-3 显式时序 `from X.Xs to Y.Ys @ImageN` | ✅ |
+| 3 | 段 4 收势 `final frame: ... holds to the last frame` | ✅ |
+| 4 | 段 5 `Storyboard Audio Description:` | ✅ |
+| 5 | **段 5 每 shot `throughout this shot`**（v8 专属）| ✅ |
+| 6 | 段 6 `No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling` | ✅ |
+| 7 | **段 6 不含 `No background music`**（v8 必避）| ✅ |
+| 8 | 段 7 `Children's picture book` 风格锚点 | ✅ |
+| 9 | 视觉段无 `no / no BGM / no speech` | ✅ |
+| 10 | 无独立 `[Sound effect: ...]` 块 | ✅ |
+| 11 | 收势词在最后一句画面描述 | ✅ |
+
+**4 Clip × 11 项 = 44 项全通过**。
+
+---
+
+## 自动化产物
+
+| 路径 | 用途 |
+|------|------|
+| `/home/luo/huiben-projects/20260603-feishu-test/build_clips.py` | v8 范式自动化脚本（含 11 项自检）|
+| `/home/luo/huiben-projects/20260603-feishu-test/clips-prompt.json` | 4 Clip prompt 结构化（含 v8 标记）|
+| `/home/luo/huiben-projects/20260603-feishu-test/output/clip1-v3.mp4` | 单测视频（含完整 BGM + 无水印）|

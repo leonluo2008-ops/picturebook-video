@@ -1,0 +1,67 @@
+# Eat 吃绘本 v11-α 范式 clip 2 真实示例
+# 来源：2026-06-03 Eat 吃绘本 v11-α 单测（clip 2）
+# 范式：v11-α 画面动感增强（v10 BGM 同调性 + 段 2/3 加微动作）
+# 用户原话："几乎没有什么变化。原始图片和剧情导致的，没有更多的发挥空间"
+# 状态：❌ 实测失败（v11-α 不是真正解法，真正解法是 v11-δ 多帧输入）
+
+# ==============================================================================
+# v11-α vs v10 关键差异（唯一改动点）
+# ==============================================================================
+#
+# v10 (clip2-v10.mp4):
+#   in this shot the small bear brings the banana close to its mouth for a bite,
+#   then the small bear holds the banana-eating pose for the rest of this shot;
+#
+# v11-α (clip2-v11.mp4):
+#   in this shot the small bear brings the banana close to its mouth for a bite,
+#   then the small bear holds the banana-eating pose with a warm smile and subtle gentle breathing for the rest of this shot;
+#
+# 注入位置："holds the X pose" 后 + 稳态短语前
+# 注入常量：V11_MICRO_MOTION = " with a warm smile and subtle gentle breathing"
+# 实现：regex (holds the [\w\s-]+ pose)( with warm kitchen light glowing)?( for the rest of this shot)?
+#
+# ==============================================================================
+# Clip 2 (v11-α 单测 · 8s 时长对比 9s 错误——v10 是 9s)
+# ==============================================================================
+# 时长：9s
+# 图：3.jpg, 4.jpg
+# 任务 ID: cgt-20260603185736-v7jbb
+# 跑通时长: 217.7s
+# seed: 76124
+# 输出：/home/luo/huiben-projects/20260603-eat-picbook/output/clip2-v11.mp4 (2.8M)
+
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 4.0s @Image1 is the opening shot, the small bear holds a bright yellow banana in both paws with an excited happy face, sitting in the warm kitchen, in this shot the small bear brings the banana close to its mouth for a bite, then the small bear holds the banana-eating pose with a warm smile and subtle gentle breathing for the rest of this shot;
+from 4.0s to 8.0s @Image2 is the second shot, the small bear holds a fresh orange carrot in both paws with a curious delighted expression, kitchen background stays warm, in this shot the small bear brings the carrot close to its mouth, then the small bear holds the carrot pose with a warm smile and subtle gentle breathing for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: same warm ukulele pizzicato melody from the previous clip continues throughout this entire clip, gently evolving with soft pizzicato strings and xylophone accents, with a gentle mood shift toward a curious warm tone during the second half as the small bear explores the banana and carrot; [0.0s] soft excited bubble, gentle peel rustle as the banana is unpeeled; [4.0s] soft crunch sound as the carrot is bitten, gentle tap as a piece lands; [8.0s] quiet warm chime settles;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, Eric Carle paper-cut collage with watercolor wash, round Q-version teddy bear character, warm color palette of cream, brown, orange, red, paper texture with visible torn edges, handcrafted feel, the word 'EAT' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+
+# ==============================================================================
+# 实测结论
+# ==============================================================================
+#
+# ❌ **画面动感无明显改善**（用户反馈）
+# 根因：Eric Carle 静态拼贴风绘本，**原图本身就是"静止"的**，没有给 AI 更多动作发挥空间
+# 真正的解法：v11-δ（多帧输入——用即梦生成中间动作帧后作为 --ref-images 传入）
+#
+# 未来不要重复跑 v11-α——它已死。真正的工作流见 v11-δ。
+#
+# ==============================================================================
+# v11-α 4 段都注入了微动作（实测确认 8/8 段）
+# ==============================================================================
+#
+# clip 1 shot 1: ...holds the welcoming arms-up pose with warm kitchen light glowing with a warm smile and subtle gentle breathing, then the bear holds the pose for the rest of this shot
+# clip 1 shot 2: ...holds the apple pose with a warm smile and subtle gentle breathing for the rest of this shot
+# clip 2 shot 1: ...holds the banana-eating pose with a warm smile and subtle gentle breathing for the rest of this shot
+# clip 2 shot 2: ...holds the carrot pose with a warm smile and subtle gentle breathing for the rest of this shot
+# clip 3 shot 1: ...holds the fish-eating pose with a warm smile and subtle gentle breathing for the rest of this shot
+# clip 3 shot 2: ...holds the bread pose with a warm smile and subtle gentle breathing for the rest of this shot
+# clip 4 shot 1: ...holds the cake-eating pose with a warm smile and subtle gentle breathing for the rest of this shot
+# clip 4 shot 2: ...holds the celebration pose with a warm smile and subtle gentle breathing for the rest of this shot
+#
+# 注入成功率 8/8（v11 build 自检通过）
+# 画面动感改善 0/8（用户反馈"几乎没有什么变化"）
+#
+# 结论：注入词是正确动作，但 AI 看到静态图后无动可加——根因在输入端

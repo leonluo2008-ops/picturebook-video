@@ -104,6 +104,101 @@ Phase 9: 视频剪辑/成片
 
 ---
 
+## 自动化原则（用户偏好 · 2026-06-03 Ok 好的绘本实测）
+
+> ⚠️ **用户原话**："**你自己按照 picturebook-video 的流程，自动化处理，不是叫你别看图。**"
+> 核心原则：**agent 按 skill 流程跑完全部步骤 → 输出最终交付物（提示词/分镜表），不在中间停下来描述中间过程。**
+
+**适用场景**：用户给"素材已就绪 + 让你做绘本视频"类指令。
+
+**自动化跑完的步骤**：
+1. ✅ Pre-flight 自查（0 + 1 + 2 + 3）
+2. ✅ Phase 5 全部 4 步（叙事单元 → 计时 → 组合 → 连贯性校验）
+3. ✅ Phase 6 输出分镜表 + 4 个 Clip 完整 prompt
+4. ✅ 11 项自检 + 报告
+5. ⏸️ Phase 7 上传 + Phase 8 单测门 **必须停下来等用户拍板**（不可逆 + 收费）
+
+**不自动化的事**：
+- ❌ **不**逐张图复述看到什么（用户不需要文字版画面描述）
+- ❌ **不**在 Phase 5 步骤 1-4 中间停下来等用户确认（"风格锚点你定"是用户授权）
+- ❌ **不**输出过度元描述（"我看了图1-8，发现..."——直接给最终结论）
+
+**风格锚点 / 合并策略 / 时长分配 / 范式选择**——agent 按 skill 默认 + 实测图片观察**自己定**（SOUL.md 决策权归我原则）。用户不同意会**直接说**"改 XX"，不需要预先确认。
+
+> **画外音测试**：每个 Phase 输出前自问"这段话是给用户做决定用的，还是我自说自话？"——是后者就删掉。**只输出对用户决策有用的内容**（如 Phase 6 提示词 + 自检结果 + 阻塞项）。
+
+---
+
+## ⚠️ 工作流原则 · 探索式迭代（2026-06-03 v9→v10→v11 沉淀 · 类级教训）
+
+> **本节是 picturebook-video skill 的核心工作流原则**——不只是绘本视频，**所有"通过实测迭代完善 skill"的工作流**都适用。
+
+### 用户的实际工作流 ≠ skill 默认工作流
+
+**用户原话**（2026-06-03 v11-α 失败后园丁阶段）：
+> "我的工作方式就是在和你的对话中，通过实际的测试来探索和不断完善整个 skill。"
+
+**这意味着用户每次对话的工作流**：
+```
+测试 1 个变体（v10）→ 发飞书看效果 → 用户判断（"v10 路线可行"）→ 沉淀 v10 范式
+  → 测试下 1 个变体（v11-α）→ 发飞书看效果 → 用户判断（"几乎没有什么变化"）→ 沉淀 v11-α 失败
+  → ...
+```
+
+**而 skill 当前默认是"PRD→实现→沉淀"模式**——一次性给完整需求，跑完整流程，输出成片。**两者不匹配**。
+
+### skill 必须支持的工作流特征
+
+| 特征 | 含义 | 当前 skill 表现 |
+|------|------|----------------|
+| **小步快跑** | 用户每次只改 1 个变体（v10 = 1 个改动 / v11-α = 1 个改动）| ✅ 范式分 v7/v8/v9/v10/v11-α 支持 |
+| **每次沉淀** | 每次跑完必须沉淀（成功/失败都沉淀）| ✅ SKILL.md §v9/v10/v11-α 章节有写 |
+| **实测 + 用户判断** | 必须人耳听/眼看，不能只靠 AI 量化 | ✅ 单测门 SOP 强调人耳听 |
+| **失败也沉淀** | 失败方向（v11-α）也要写进 skill，避免重复踩坑 | ⚠️ v11-α references 文档已加 §10 失败评估 |
+| **探索状态管理** | 哪些方向在测、哪些已弃、哪些待验——状态要可见 | ❌ 缺"探索路线图"章节（园丁 Phase 2 建议 P1）|
+
+### 探索式迭代工作流的 3 条铁律
+
+1. **改 1 个变量 → 跑 → 用户判断 → 沉淀**——不要一次改多个变量（v9 改 BGM 写法 / v10 改跨 clip 主题 / v11-α 改微动作 都是各 1 个变量）
+2. **失败方向要明确标"已死"**（v11-α）——避免下次又跑同方向；v11-α references 文档 §10 "实测最终结果"段是样板
+3. **用户反馈模糊概念时先问"是哪个范围"**——v9 出现根因（"听用户原话要听场景"教训）："clip 内部断层"≠"clip 之间衔接"，必须让用户澄清范围
+
+### 范式版本号约定
+
+每次绘本启动把范式版本号写进 `clips-prompt.json` 的 `version` 字段（如 `"v10-20260603"`）。**版本号是探索式迭代的可追溯性**——未来翻旧项目能知道当时跑的是哪个范式。
+
+### 探索方向归档（园丁 Phase 2 建议 P1，待实施）
+
+skill 当前缺"探索路线图"段。**未来加上**：
+```markdown
+## 探索路线图
+
+| 范式 | 状态 | 目标 | 验证方式 | 备注 |
+|------|------|------|---------|------|
+| v7 静默型 | ✅ stable | 安静绘本无 BGM | Cactus 实测 | 默认备选 |
+| v8 调性匹配 | ⚠️ deprecated | 复杂多情绪 | Red/Ok 实测 | 有 clip 内部断层问题，被 v9 替代 |
+| v9 整 Clip 一致 | ✅ stable | 整 Clip 一段 BGM | Eat 吃实测 | 当前默认 |
+| v10 跨 Clip 同主题 | ✅ stable | 领读型同氛围 | Eat 吃实测 | v9 升级版 |
+| v11-α 微动作 | ❌ parked → **已死** | 画面动感增强 | Eat clip 2 失败 | 根因是输入限制（不是 prompt） |
+| v11-β 改 hold pose | 🔜 planned | 静态图运镜 | 未测 | v11-α 失败后**优先级降** |
+| v11-γ 软化 final frame | 🔜 planned | 不冻结 | 未测 | **不建议**（v7/v8 验证过冻结必要）|
+| v11-δ 多帧输入 | 🔜 **P0 planned** | 即梦生成中间帧 | 未测 | v11-α 真正解法 |
+| v11-ε 换写实风绘本 | 🔜 planned | Dear Zoo 验证 | 未测 | v11-δ 的验证绘本 |
+```
+
+**当前实际状态**（已沉淀到本节，路线图段落待正式建档）：
+
+| 范式 | 状态 | 目标 | 实测 | 备注 |
+|------|------|------|------|------|
+| v7 静默型 | ✅ stable | 安静治愈绘本无 BGM | Cactus | 默认备选 |
+| v8 调性匹配 | ⚠️ deprecated | 单 Clip 多情绪 | Red/Ok | 已知断层，被 v9 替代 |
+| v9 整 Clip 一致 | ✅ stable | 整 Clip 一段 BGM | Eat 吃 | **当前默认** |
+| v10 跨 Clip 同主题 | ✅ stable | 领读型同氛围 | Eat 吃 | v9 升级版 |
+| v11-α 微动作 | ❌ **已死** | 画面动感增强 | Eat clip 2 | 用户反馈"几乎没有什么变化" |
+| v11-δ 多帧输入 | 🔜 **P0** | 即梦生成中间帧 | 未测 | 真正解法 |
+
+---
+
 ## Pre-flight · 启动前检查
 
 ### 0. 已知踩坑自查（**必做 · 不做会重蹈覆辙**）
@@ -556,9 +651,12 @@ grep -E "风控|敏感|触.*reject|sensitive" \
 ```
 绘本类型？
 ├── 领读型（弱情节、靠画面+旁白推）
-│   ├── 需要 TTS 后期卡点 → v7 范式（精准分镜时序+精准动画+精准音频）
+│   ├── 重复句式 + 整体氛围优先（如 I eat X / Pete the cat / Dear Zoo）
+│   │   ├── 需要 TTS 卡点 + 跨 clip 同 BGM → **v10 范式**（领读型同氛围）
+│   │   └── 不需要 TTS 卡点 + 跨 clip 同 BGM → **v10 范式**
+│   ├── 需要 TTS 后期卡点 + 单 clip 多情绪 → v7 范式（精准分镜时序+精准动画+精准音频）
 │   │   详见 references/分镜时序-精准动作-prompt范式.md（v7 章节）
-│   └── 不需要 TTS 卡点 → v3 范式（双图连续运镜，散文叙述）
+│   └── 不需要 TTS 卡点 + 单 clip 多情绪 → v3 范式（双图连续运镜，散文叙述）
 │       详见 references/领读型合并-双图连续运镜.md
 └── 叙事型（强情节、起承转合）
     └── 1图=1Clip 标准模式（不在本 skill 范式范围）
@@ -606,7 +704,13 @@ prompt_template.format(
 | 类型 | 是否需要 | 写进 prompt | 由谁生成 |
 |------|---------|------------|---------|
 | **旁白朗读**（人声念文字） | ✅ 需要 | **否**——旁白走后期 TTS（**待探索**：Seedance 2.0 具备旁白能力，尚未找到合适的 prompt 写法，目前不在 clip 里生成） | 后期 TTS 合成 |
-| **BGM 背景音乐** | ❌ 不要（绘本默认） | **否**——prompt 里不出现 BGM 词 | 不加 |
+| **BGM 背景音乐** | **A 静默氛围型 ❌** / **B 调性匹配型 ✅** | **A 否** / **B 否（不写 BGM 词，让模型自动配纯音乐）** | Seedance `--generate-audio true` 自带生成 / 后期 ffmpeg 替换 |
+
+**⚠️ 2026-06-03 用户实测反转**：绘本 BGM **不是**默认不要，**两种风格任选**：
+- **A 静默氛围型**（Cactus 范式）：绘本默认无 BGM，prompt 段 6 写 `No background music`
+- **B 调性匹配型**（Red/Ok 好的范式）：Seedance 自动配调性相符纯音乐 BGM，prompt 段 6 **不**写 `No background music`，**只禁人声**
+
+详见 SKILL.md §"BGM 调性策略"章节。
 | **音效**（拟声/环境音，配合画面动作） | ✅ 需要 | **是**——短促拟声、卡点环境音 | Seedance `--generate-audio true` 同步生成 |
 
 #### 绘本音频决策树（写 prompt 前必跑）
@@ -654,19 +758,319 @@ Q3：这个 clip 需不需要拟声/环境音卡点？
 
 ### 参数默认值
 
-| 参数 | 默认值 |
-|------|--------|
-| 时长 | Clip 表中计算的总时长（必须严格与表中一致，不能超出15秒） |
-| 宽高比 | `16:9` |
-| 分辨率 | `720P` |
-| 模型版本 | `seedance2.0_vip` |
-| **`--generate-audio`** | **`true`** ⚠️ 绘本场景带音效（拟声/环境音，非人声、非 BGM） |
+| 参数 | 默认值 | 绘本场景规则 |
+|------|--------|------------|
+| 时长 | Clip 表中计算的总时长（必须严格与表中一致，不能超出15秒） | ✅ 同上 |
+| 宽高比 | `16:9` | ✅ 同上 |
+| 分辨率 | `720P` | ✅ 同上 |
+| 模型版本 | `seedance2.0_vip` | ✅ 同上 |
+| **`--generate-audio`** | **`true`** ⚠️ 绘本场景带音效（拟声/环境音，非人声、非 BGM） | ✅ 同上 |
+| **`--watermark`** | **`false`** ⚠️ 绘本场景必须显式关闭 | seedance.py 默认 `true` 会带 AI 水印，所有绘本 create 命令必须加 `--watermark false`（2026-06-03 Ok 好的绘本实测踩坑：4 个 clip 全带水印返工）|
 
 > ⚠️ **`--generate-audio` 必须设为 `true`（2026-06-02 二大爷确认）**：
-> 绘本需要拟声/环境音配画面（字母落位 tap、苹果出现 plop、消防车警笛等），这些**靠 Seedance 同步生成**。
+**绘本 ≠ 全静音。绘本需要拟声/环境音配画面（字母落位 tap、苹果出现 plop、消防车警笛等），这些**靠 Seedance 同步生成**。**
 > prompt 里**不写朗读**（不写 "A red apple" 这种文字内容）→ 模型不会念旁白。
 > prompt 里**不写 BGM**（不写 "playful children's BGM"）→ 不会铺底。
 > 详见 `references/绘本音效-prompt写法.md` 的三铁律。
+- **v7 范式 build script 必跑项（2026-06-03 Ok 好的绘本实测踩坑）**：
+  1. **段 1 引导句不能漏**——`This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video`。**漏掉这段 = Seedance 把 2 图当 1 段独立运镜处理，时序窗失效 + 模型自由发挥铺 BGM**（Cactus 4 段 vs Ok 好的 4 段实测差异：Ok 好的缺引导句 → clip2-4 全带 BGM）。v7 自检脚本要把"段 1 = 引导句"作为 #0 项必检。
+  2. **拼接 f-string 易漏字段**（如把 `motion` 字段忘加到 final frame 段），导致"看似通过自检但 prompt 不完整"。**自检脚本要对照模板段数（v7 = 8 段）逐段检查字段存在性**，不能只看关键词字符串。
+  3. **v7 模板示例**（来自 references/分镜时序-prompt范式-v7.md）：8 段固定结构 = 引导 + shot1 + shot2 + final frame + Storyboard Audio + No 禁令 + 风格 + 句号。**build script 应把 8 段都做模板变量**，避免漏段。
+  4. **写 prompt 前必读 `references/分镜时序-prompt范式-v7.md`**——不要凭印象写。该 reference 已含完整 8 段结构 + Python f-string 模板 + 11 项自检 + Cactus 真实示例。
+
+  5. **绘本场景禁用 MiniMax 生成 BGM（2026-06-03 用户原话）**：用户明确表态"在绘本视频制作时不能使用"。绘本场景需要 BGM 时只能：①让用户自备 BGM.mp3 ②后期 ffmpeg 替换音频流铺 ③完全不加 BGM（绘本默认）。**Seedance 生成的"自带"拟声不算 BGM**（如 chime/whoosh/tap 等短促拟声合规）。
+
+### ⚠️ BGM 调性策略（2026-06-03 用户实测偏好 · 段 6 禁令分两种风格）
+
+> **之前的范式**（Cactus 实测，2026-06-02）：v7 段 6 写 `No background music, no human voice, no narration, no singing` → 绘本默认无 BGM（"静默氛围型"）。
+>
+> **反转**（Red/Ok 好的绘本实测，2026-06-03）：**Seedance 2.0 可以为每个 Clip 自动配相符调性的纯音乐 BGM**（昨天 Red 绘本效果就非常好）。用户原话："我说的 BGM 和场景相符，是指每一个 clip 场景，不是整个系列绘本。我不要求 Clip 1、Clip 2、Clip 3、Clip 4 保持统一的调性，只需要每一组、每一个 Clip 生成的 BGM 和画面的场景相符就可以了"。
+
+**两种 BGM 风格**（根据绘本调性需求选择）：
+
+| 风格 | 适用场景 | 段 6 写法 | 实测案例 |
+|------|---------|----------|----------|
+| **A. 静默氛围型（v7）** | 安静 / 治愈 / 睡前 / 单色系调性绘本 | `No background music, no human voice, no narration, no singing;` | Cactus（沙漠绿植 + 仙人掌坚强） |
+| **B. 调性匹配型（v8）** | 多情绪场景 / 暖色 / 活泼 / 故事化绘本 | `No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;` **（删除 `No background music`，让 Seedance 自动配调性相符的纯音乐 BGM）** | Red 苹果、Ok 好的（舞台+门口+森林+卧室+彩虹） |
+
+**两种范式**（v7 + v8 双范式并存）：
+- **v7 静默氛围型**：参考 `references/分镜时序-prompt范式-v7.md` + `assets/example-prompts/cactus-clip1-v7.txt` + `cactus-clips-2-3-4-v7.txt`
+- **v8 调性匹配型**：参考 `references/分镜时序-prompt范式-v8.md` + `assets/example-prompts/ok-clips-1-4-v8.txt`
+
+**v7 → v8 关键升级**（段 5 音频描述）：
+```diff
+- Storyboard Audio Description: [0.0s] tap-tap-tap; [3.5s] whoosh; [7.0s] chime;
++ Storyboard Audio Description: playful cheerful ukulele pizzicato strings, light bouncy rhythm with warm celebratory mood throughout this shot, [0.0s] tap-tap-tap; gentle warm acoustic guitar, tender send-off mood with soft piano throughout this shot, [3.5s] whoosh; [7.0s] chime;
+```
+
+**调性匹配型 BGM 控制三铁律**：
+1. **必须禁人声**（`no human voice / no singing / no vocal / no humming / no whistling`）—— BGM 必须是纯音乐，**绝对不能有人声**（用户原话："BGM 一定是纯音乐，不要有人声，这是绝对禁止"）
+2. **段 5 必须写 BGM 调性词**（每 shot 加 `[乐器] + [调性形容词] + [场景情绪] throughout this shot`）—— 让 Seedance 知道要生成持续 BGM 配画面调性
+3. **不在 prompt 写"play BGM / music"** —— 模型看到"music"会自由发挥，**画面段已经写清楚情绪词足够驱动 BGM 调性**
+
+**调性匹配型 v3 prompt 模板**（Ok 好的实测通过）：
+```
+Storyboard Audio Description: {bgm_mood_1} throughout this shot, [{t1}] {sfx_1}; {bgm_mood_2} throughout this shot, [{t2}] {sfx_2}; [{t3}] {sfx_3};
+```
+- `bgm_mood_1` = shot1 调性（乐器+情绪+节奏），如 `playful cheerful ukulele pizzicato strings, light bouncy rhythm with warm celebratory mood`
+- `bgm_mood_2` = shot2 调性，可完全不同（绘本不要求系列统一调性）
+- `{sfx}` = 该 shot 内具体拟声/环境音卡点（tap/whoosh/chime 等）
+
+**调性词参考库**（写进 BGM 调性词位置）：
+
+| 场景 | BGM 调性词（实测通过） |
+|------|---------------------|
+| 舞台/聚会/鼓掌 | `playful cheerful ukulele pizzicato strings, light bouncy rhythm with warm celebratory mood` |
+| 送别/挥手/出门 | `gentle warm acoustic guitar, tender send-off mood with soft piano` |
+| 森林/出发/冒险 | `playful adventurous pizzicato and light flute melody, bright cheerful mood` |
+| 室内/共读/理解 | `gentle warm piano with soft strings, calm understanding mood` |
+| 餐桌/吃饭/流口水 | `happy hungry bouncy xylophone and pizzicato strings, joyful excited mood` |
+| 户外/玩耍/奔跑 | `playful lively accordion and light percussion, energetic outdoor mood` |
+| 卧室/晚安/亲吻 | `soft tender lullaby with music box and soft piano, gentle loving bedtime mood` |
+| 彩虹/结束/圆满 | `uplifting hopeful warm orchestra with strings and gentle bells, all-is-well ending mood` |
+
+**⚠️ 调性匹配型实测风险**（Ok 好的绘本踩坑，2026-06-03）：
+- **必须**有段 1 引导句 + 视觉段调性词 + **音频段 BGM 调性词**（三者缺一不可）
+- 缺段 1 引导句 → Seedance 把 2 图当独立单图渲染，模型"自由发挥"铺不同 BGM
+- 视觉段无调性词 → 模型只能用"warm color"等通用词，BGM 调性粗糙
+- **音频段无 BGM 调性词 → 完全无 BGM**（只有稀疏拟声）—— 这是最容易踩的坑，因为 v7 默认就是"不写 BGM"
+
+**禁用 MiniMax 生成 BGM**（2026-06-03 用户原话禁止）："不要用 MiniMax 去生成 BGM，这是在绘本视频制作时不能使用的"。绘本场景需要 BGM 时只能 ①让 Seedance 自带生成 ②用户自备 BGM.mp3 后期 ffmpeg 替换音频流 ③完全不加 BGM（静默氛围型）。
+
+**调性词参考库**（写进视觉段，引导 Seedance 配 BGM）：
+
+| 调性词 | 场景 | 期望 BGM |
+|-------|------|----------|
+| `warm celebratory atmosphere` | 舞台/聚会/鼓掌 | 欢快活泼 |
+| `tender send-off mood` | 送别/挥手/出门 | 温馨柔和 |
+| `bright cheerful ... playful adventurous mood` | 森林/出发/冒险 | 轻快明亮 |
+| `quiet calm ... warm understanding mood` | 室内/共读/理解 | 平静温暖 |
+| `sunny excited ... joyful hungry mood` | 餐桌/吃饭/流口水 | 欢快跳跃 |
+| `bright playful ... lively energetic mood` | 户外/玩耍/奔跑 | 活泼动感 |
+| `cozy ... tender loving bedtime mood` | 卧室/晚安/亲吻 | 温柔安静 |
+| `magical ... hopeful uplifting all-is-well mood` | 彩虹/结束/圆满 | 升华希望 |
+
+**决策树**（绘本启动时先决定 BGM 风格）：
+
+```
+绘本调性？
+├── 安静治愈 / 睡前 / 单色系 / 氛围为主
+│   └── A. 静默氛围型（No BGM）→ 走 Cactus 范式
+│
+└── 多情绪场景 / 暖色 / 活泼 / 故事化 / 多 Clip 不同调性
+    └── B. 调性匹配型（让 Seedance 配纯音乐）→ 走 Red/Ok 好的 范式
+        - 段 1 引导句必须
+        - 视觉段必须含调性词
+        - 段 6 只禁人声
+```
+
+**11 项自检脚本对应**：
+- A 风格：段 6 必含 `No background music`
+- B 风格：段 6 必含 `No human voice`，**不**含 `No background music`
+
+### ✅ v9 范式 · 整 Clip 一致 BGM（2026-06-03 Eat 吃绘本实测通过）
+
+> **v8 已知问题（已沉淀）**：v8 实现"BGM 与画面精准匹配"（4 Clip 8 段不同 BGM 调性，持续 -27~-34dB），但**clip 内部 BGM 断层**——同一 Clip 内 8-10s 内 BGM 切太碎令人不适。
+>
+> **用户原话**："虽然同一个 clip 里视频画面是分段的，但实际上画面之间也是合理切分，他们之间也是有转场衔接的。同一个 clip 时间本来就不长，如果 BGM 切换太频繁，会信人不适。"
+
+**v9 修正方向**（✅ 已验证通过）：
+
+| v8（错） | **v9（对）** |
+|---|---|
+| 段 5 每 shot 一段 BGM 调性词 | **段 5 整 Clip 一段 BGM 主题贯穿** |
+| `ukulele shot 1, guitar shot 2`（3.5s 硬切）| `ukulele BGM continues throughout the entire clip, with mood shift during the second half`（同主题渐变）|
+| 4 段不同 BGM = 4 Clip × 2 shot = 8 段切换 | 4 段不同 BGM = 4 Clip（**整 Clip 一致**）|
+
+**v9 关键修复**：
+
+1. ✅ 整 Clip **只有一段 BGM 主题**（不按 shot 切）
+2. ✅ 必含 `continues throughout the entire clip`（持续标记）
+3. ✅ 必含 `with a mood shift toward X during the second half`（软调性变化）
+4. ✅ 段 6 禁人声（删 `No background music`）
+
+**AI 量化验证**（v8 vs v9 音量曲线对比）：
+
+| 时间 | v8（按 shot 切） | **v9（整 Clip 一致）** |
+|---|---|---|
+| 0.0s | -inf | -inf |
+| 0.5-3.0s | -52 ~ -34 dB（稀疏）| **-27 ~ -33 dB（持续）** |
+| **3.5s（边界）** | **-15 ~ -25 dB（突然出现）** | **-24 dB（平缓延续）** |
+| 4.0-7.0s | -16 ~ -23 dB | **-23 ~ -29 dB（持续）** |
+| 整 Clip 评价 | shot 边界 BGM 硬切 | **一条平滑曲线贯穿 0.5s-7.5s** |
+
+**v9 完整范式**：见 `references/分镜时序-prompt范式-v9.md`
+**v9 真实示例**：见 `assets/example-prompts/eat-clips-1-4-v9.txt`
+**v9 自动化脚本**：见 `scripts/build_v9_clips.py`
+
+**v7+v8+v9 三范式并存**（按绘本调性选）：
+
+| 范式 | 适用 | 段 5 BGM 写法 | 段 6 写法 | 决策信号 |
+|---|---|---|---|---|
+| **v7 静默氛围型** | 安静 / 治愈 / 单色系 | 只写拟声 | `No background music, ...` | "安静"/"沙漠" |
+| **v8 调性匹配型** | 多情绪 / 暖色 / 复杂调性 | 每 shot 一段 BGM | `No human voice, ...`（删 BGM 禁令）| "复杂"/"多情绪" |
+| **v9 整 Clip 一致型** | 同主题多动作 / 一致性优先 | 整 Clip 一段 + mood shift | 同 v8 | "连贯"/"不要切太碎" / **默认** |
+
+**默认范式**（2026-06-03 起）：绘本启动默认走 **v9**（v8 作为复杂多情绪场景备选，v7 静默型保留）。
+
+**v9 必避反模式**：
+
+- ❌ 段 5 每 shot 一段 BGM 调性词（v8 写法）→ shot 边界 BGM 硬切
+- ❌ 段 5 缺 `continues throughout the entire clip` → BGM 不持续铺底
+- ❌ 段 5 缺 `mood shift` 软描述 → 整 Clip 同调性无聊
+- ❌ 用 MiniMax 生成 BGM 后期铺（用户禁止）
+
+**切换范式方法**：
+
+- v7 → v9：跳过 v8 直接升级（段 5 加 BGM 主题 + 段 6 删 `No background music`）
+- v8 → v9：段 5 合并每 shot BGM 调性词为整 Clip 一段 + 加 `continues throughout the entire clip` + 加 `mood shift` 软描述
+- v7 → v8：见 v7 升级表（参考 §BGM 调性策略）
+- v9 → v10：见下方 v10 章节
+
+### ✅ v10 范式 · 跨 Clip 共享同一 BGM 主题（2026-06-03 Eat 吃绘本 clip2/3 实测通过）
+
+> **v9 已知局限**：v9 解决"clip 内部 BGM 断层"，但**clip 互相不知道对方存在**——clip 1 用 ukulele pizzicato 主题，clip 2 可能 AI 自由发挥生成为 xylophone 主题，**clip 边界会出现调性跳变**。
+>
+> **用户原话（2026-06-03）**："在之前的基础上，尝试使用提示词来控制 clip2 和 clip3 的 BGM 衔接，让他们具有同样的调性，因为这是儿童领读视频，不需要很准确匹配场景，只要整体氛围达到一定感觉就可以。"
+
+**v10 修正方向**（✅ 已验证通过）：
+
+| v9（错） | **v10（对）** |
+|---|---|
+| 每个 clip prompt 自由定义 BGM 主题 | **clip 2+ 的 prompt 显式继承 clip 1 的 BGM 主题词** |
+| clip 1: `ukulele pizzicato` → clip 2: AI 可能生成 `xylophone` | clip 2: `same warm ukulele pizzicato melody from the previous clip continues` |
+
+**v10 关键修复**（3 件事）：
+
+1. ✅ 引入 `v10_bgm` 字段（继承上一 clip 主题词）
+2. ✅ clip 2+ prompt 必含 `same warm ukulele pizzicato melody from the previous clip continues throughout this entire clip`
+3. ✅ clip 1 不写 v10_bgm（是主题源），clip 2+ 写 v10_bgm（继承源）
+
+**v10 prompt 模板**（clip 2+ 段 5 写法）：
+
+```diff
++ Storyboard Audio Description: same warm ukulele pizzicato melody from the previous clip continues throughout this entire clip, gently evolving with soft pizzicato strings and xylophone accents, with a gentle mood shift toward a curious warm tone during the second half as the small bear explores the banana and carrot;
+```
+
+**v10 关键限制（必读）**：
+
+- **Seedance 不会真去查 clip 1 实际生成的 BGM**——只能靠 prompt 文字约束让它"假设"前一个 clip 用了某主题
+- **同一绘本只能选一个 BGM 主题词**（ukulele / xylophone / acoustic guitar 等）—— clip 2+ 都用同一个
+- **如果 v10 跑出来两个 clip BGM 还是不同**——说明 Seedance 没遵循 prompt 的"same ... from the previous clip"约束，需要：
+  1. 加大种子重复（每次用同一个 `--seed` 不可行，seedance.py 不支持）
+  2. 改 prompt 措辞：`continuing the same warm ukulele pizzicato theme from the start to the end of this clip` 更明确
+  3. 退到 v9（接受跨 clip 主题变化）
+
+**v10 量化指标**（v9 vs v10 跨 clip 边界对比）：
+
+| 指标 | v9（各自自由） | **v10（共享主题词）** |
+|---|---|---|
+| clip 2 4.0s 边界 dB | -27.4 | -29.3 |
+| clip 3 4.0s 边界 dB | -23.1 | -34.2 |
+| 边界 dB 差 | 4.3 dB | 4.9 dB |
+| 音量 dB 是否衡量调性 | ❌（dB 是响度，不是音高/音色）| ❌（同上）|
+| **人耳调性听感** | clip 2/3 BGM 风格不同 | **同 ukulele pizzicato 主题** ✅ |
+
+**核心结论**：音量 dB 不能量化调性一致性。**调性是否一致只能人耳听**——v10 跑完后必须连续听两个 clip 的 BGM 风格判断。
+
+**v10 完整范式**：见 `references/分镜时序-prompt范式-v10.md`
+**v10 真实示例**：见 `assets/example-prompts/eat-clips-2-3-v10.txt`
+**v10 自动化脚本**：在 `build_clips.py`（绘本项目目录）加 `build_v10_prompt()` 函数 + CLI `--version v9|v10` 切换。**注意**：`build_v10_prompt` 必须用 `clip.get("v10_bgm") or clip["bgm_theme"]` 兼容 clip 1 缺字段（v10 Eat 吃实测踩坑：直接 `clip["v10_bgm"]` 会 KeyError）。详见 `references/分镜时序-prompt范式-v10.md` §3。
+
+**v7+v8+v9+v10 四范式并存**（按绘本调性选）：
+
+| 范式 | 适用 | 段 5 BGM 写法 | 段 6 写法 | 决策信号 |
+|---|---|---|---|---|
+| **v7 静默氛围型** | 安静 / 治愈 / 单色系 | 只写拟声 | `No background music, ...` | "安静"/"沙漠" |
+| **v8 调性匹配型** | 多情绪 / 暖色 / 复杂调性 | 每 shot 一段 BGM | `No human voice, ...`（删 BGM 禁令）| "复杂"/"多情绪" |
+| **v9 整 Clip 一致型** | 同主题多动作 / 一致性优先 | 整 Clip 一段 + mood shift | 同 v8 | "连贯"/"不要切太碎" / **默认** |
+| **v10 跨 Clip 同主题型** | 领读型 / 多 clip 同氛围 | 整 Clip 一段 + `same ... from the previous clip continues`（clip 2+） | 同 v8 | "领读型"/"整体氛围一致" |
+
+**v10 实测问题（2026-06-03 Eat 吃绘本 4 clip 跑完）**：
+
+1. **BGM 调性**：✅ 4 clip 调性统一（v10 路线目标达成）
+2. **BGM 收势**：❌ 当前每 clip 都写 "quiet warm chime settles" 收势词，**中间 clip 不应有收势**——只有最后 1 clip 用收势
+3. **画面动感**：❌ 比 v7/v8/v9 缺动感——待分析是 prompt 写法问题还是 v10 范式副作用
+
+**v10 必避反模式**：
+
+- ❌ clip 2+ 段 5 写自由 BGM 主题词（v9 写法）→ AI 自由发挥破坏同调性
+- ❌ 同一绘本用多个 BGM 主题词（ukulele + xylophone 混用）→ 跨 clip 不一致
+- ❌ 用音量 dB 量化调性一致性（dB 是响度不是音色）→ 误判 v10 失败
+- ❌ 用 MiniMax 生成 BGM 后期铺（用户禁止）
+- ❌ **中间 clip 段 5 写 "quiet warm chime settles" 收势词** → 收势只能用在最后 1 clip
+
+**v10 BGM 收势机制（实测沉淀，2026-06-03）**：
+
+- **连跑多个 clip**（如 `clip2 + clip3` 一起跑测试）→ Seedance **自动不收势**（隐式行为）
+- **单跑 1 个 clip**（如 `clip1-v9.mp4` 单测）→ Seedance **会按 prompt 收势**
+- **多 clip 拼整本绘本**场景下：v10 路线"中间 clip 不应有收势"已在连跑测试中隐式验证
+- **实操建议**：v10 范式不需主动改 prompt 收势词，连跑 = 自动不收势 ✅
+
+### ⚠️ v11-α 探索 · 段 2/3 加微动作（2026-06-03 Eat 吃绘本 clip 2 单测）
+
+> **v10 已知问题**：v10 调性统一达成、收势通过连跑验证，但**画面缺动感**（用户反馈"和 v7/v8/v9 相比画面缺少了动感"）
+>
+> **v11-α 假设**：根因是段 2/3 动作描述太"稳态"（`holds the X pose for the rest of this shot` 写法）→ AI 倾向"安全稳态输出"
+
+**v11-α 最小改动**（✅ 已实测）：
+
+```diff
+- in this shot the small bear brings the apple close to its mouth, then the small bear holds the apple pose for the rest of this shot
++ in this shot the small bear brings the apple close to its mouth, then the small bear holds the apple pose with a warm smile and subtle gentle breathing for the rest of this shot
+```
+
+**v11-α 实测结果**（2026-06-03 clip 2 单测）：
+
+- ❌ **画面动感无明显改善**（用户反馈"几乎没有什么变化"）
+- **可能根因**（用户推测）：绘本原始图片和剧情的限制——Eat 吃的图是静态 Eric Carle 拼贴风，**没有给 AI 更多动作发挥空间**
+- **代码沉淀**：`scripts/build_v9_clips.py` 加 `build_v11_prompt()` + `inject_micro_motion()` 函数 + CLI `--version v11` 切换
+- **自动化产物**：`output/clip2-v11.mp4`（2.8M, 9s, seed 76124）
+
+**v11-α 关键教训**：
+
+1. **画面动感不只靠 prompt 动作词**——**原始图片本身的动作空间** 是更基础的限制因素
+2. **静态拼贴风绘本**（Eric Carle 类）→ AI 难以生成"动起来"画面，需要换绘本测试
+3. **v11-α 改动太小可能看不出差异**——如果还要试 v11，建议叠加 v11-β（camera drift 运镜）
+4. **v10 范式作为绘本默认范式仍成立**——v11-α 失败不否定 v10
+
+**v11-α 必避反模式**：
+
+- ❌ **静态拼贴风绘本**（Eric Carle 类）改 prompt 加微动作无效——根因不在 prompt
+- ❌ **改动太小看不出差异**——v11-α 注入"with a warm smile"太轻量，对 AI 影响小
+
+**v11 未来方向**（未做，留作后续）：
+
+- **v11-β**：加 camera drift 运镜（`the camera slowly drifts closer`），可能对静态图有效
+- **v11-γ**：换绘本测试——选**写实风**绘本（Dear Zoo / Brown Bear 类有真实动物动作空间）
+- **v11-δ**：直接在原图上**多帧变化**——跑前用即梦生成 4 帧中间动作图，作为 v11-γ 的输入
+
+**当前状态**：❌ **v11-α 已实测失败**（2026-06-03 用户反馈"几乎没有什么变化"）—— v10 仍是绘本默认范式，v11-α 不再是后续方向。**真正解法是 v11-δ（多帧输入工作流）**，不是 v11-α 后续优化。详见 `references/分镜时序-prompt范式-v11.md` §10 失败评估 + v11-δ 工作流。
+
+**选择记录**：每次绘本启动把范式版本号写进 `clips-prompt.json` 的 `version` 字段（如 `"v9-20260603"`）。
+
+### ⚠️ v9 出现的工作方法论教训（2026-06-03 用户反馈驱动）
+
+> 用户原话："**听用户原话要听场景，不要脑补到相邻概念**"
+
+**事件 1（v9 出现）**：v8 跑通后用户反馈"clip 内部 BGM 断层"——我**第一次理解错了**，把"clip 内部断层"脑补成"clip 之间衔接"（相邻概念），给出 BGM 跨 clip 衔接方案。用户纠正后才明白：用户原意是**同一个 Clip 内 8-10s 内 BGM 不要切太碎**（一个 Clip 一段 BGM 主题）。
+
+**事件 2（v11-α 失败）**：v10 跑通后用户反馈"画面缺动感"——我**没听场景就脑补到"改 prompt"**（相邻概念），v11-α 改了 prompt 注入微动作，**失败**。用户最终反馈"原始图片和剧情导致的，没有更多的发挥空间"——根因在**输入端**（图片限制），不在 prompt。
+
+**两个事件同源**：
+- 都把"症状描述"（断层 / 缺动感）脑补到"相邻概念"（衔接 / 改 prompt）
+- 都**没回到用户原始场景**（clip 内部 / 输入端）就出方案
+- 都**浪费了 1 轮迭代**——v9 浪费是因为脑补到 clip 衔接，v11-α 浪费是因为脑补到改 prompt
+
+**根因**：用户描述时只说"症状"，我**直接给方案**，**没问"是哪个范围"或"是哪个环节"**。
+
+**修复**（**v12 起执行 · 写进类级工作流原则**）：
+
+- 用户反馈模糊概念时**先问"是哪个范围"**（clip 之间 / clip 内部 / shot 之间 / prompt 端 / 输入端 / 后期拼接）
+- 不要直接给出"相邻概念"的方案
+- **让用户澄清**比"猜一个并错下去"成本低
+- **听用户原话要听场景**——用户描述的是"症状"（断层 / 缺动感），但要回到"发生场景"（clip 内部 / 输入端）再分析
+- **"症状 → 根因 → 修复方向"三段式分析**——不要跳过"根因"直接给"修复方向"（v11-α 错的根因：跳过"根因在输入端"直接给"改 prompt"方案）
 
 ### 单测门 SOP（2026-06-02 实测偏好）
 
@@ -931,6 +1335,59 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
       3. **不立刻**把"对策"加进 skill——**等下一个真实任务**踩到再沉淀。
     - 遇到"X 类词触发风控"这种模糊信息：**记原话**，加 `(待验证)` 标记，**等真实复现一次**再固化。
 
+18. **水印 + 缺段 1 引导句 → 双 BUG 同时踩（2026-06-03 Ok 好的绘本实测）**：
+    - **水印坑**：seedance.py `--watermark` 默认 `true` 必带 AI 水印。绘本是给家长/孩子看的，水印=产品缺陷。**所有绘本 create 命令必须显式 `--watermark false`**——已写进 Phase 8 参数默认值表（绘本场景规则列）。
+    - **段 1 引导句漏 → BGM 乱铺**：Cactus 4 段（v7 引导句齐全）实测 0 BGM；Ok 好的 4 段（v7 引导句漏）实测 clip2-4 全铺了不同 BGM。**根因**：缺引导句时 Seedance 把 2 图当独立单图渲染，模型"自由发挥"为暖色绘本铺 BGM 调氛围。**修复**：build_clips.py 模板段 1 写死引导句；自检脚本把"段 1 含 'storyboard reference image sequence'"作为 #0 项必检。
+    - **写作约束**：未来新绘本任务执行前，**必读** `references/分镜时序-prompt范式-v7.md` 拿到完整 8 段模板——不要凭印象写。该 reference 已含 Cactus 4 段实测通过的模板示例（cactus-clip1-v7.txt + cactus-clips-2-3-4-v7.txt）。
+
+19. **v8 → v9 范式升级：clip 内部 BGM 断层修复（2026-06-03 Eat 吃绘本实测）**：
+    - **v8 已知问题**：v8 按 shot 切 BGM（如 Clip 1 Shot 1 = 0-3.5s ukulele → 3.5s 切 Shot 2 = 吉他钢琴），shot 边界 BGM 突然切换太频繁令人不适。用户原话："虽然同一个 clip 里视频画面是分段的，但实际上画面之间也是合理切分，他们之间也是有转场衔接的。同一个 clip 时间本来就不长，如果 BGM 切换太频繁，会信人不适。"
+    - **v9 修复**：
+      1. 段 5 整 Clip 一段 BGM 主题（不按 shot 切）
+      2. 必含 `continues throughout the entire clip`（持续标记）
+      3. 必含 `with a mood shift toward X during the second half`（软调性变化）
+      4. 段 6 禁人声（删 `No background music`）
+    - **AI 量化验证**：v9 在 3.5s 边界音量 -24 dB 平缓延续（v8 突然出现 -15~-25 dB）——一条平滑曲线贯穿 0.5s-7.5s。
+    - **v7+v8+v9 三范式并存**（按绘本调性选）：v7 静默氛围型 / v8 调性匹配型（已知断层）/ **v9 整 Clip 一致型（默认 2026-06-03 起）**。
+    - 详见 `references/分镜时序-prompt范式-v9.md` + `assets/example-prompts/eat-clips-1-4-v9.txt` + `scripts/build_v9_clips.py`。
+    - **关键工作方法论教训**：用户反馈模糊概念时**先问"是哪个范围"**（clip 之间 / clip 内部 / shot 之间），不要直接给出"相邻概念"的方案。**听用户原话要听场景**——用户描述的是"症状"（断层），但要回到"发生场景"（clip 内部/之间）再分析。**让用户澄清**比"猜一个并错下去"成本低。
+
+20. **v9 → v10 范式升级：跨 Clip 共享 BGM 主题修复（2026-06-03 Eat 吃绘本实测）**：
+    - **v9 已知局限**：v9 解决"clip 内部 BGM 断层"，但**clip 互相不知道对方存在**——clip 1 用 ukulele 主题，clip 2 可能 AI 自由发挥生成为 xylophone 主题，**clip 边界调性跳变**。
+    - **用户原话**（2026-06-03）："在之前的基础上，尝试使用提示词来控制 clip2 和 clip3 的 BGM 衔接，让他们具有同样的调性，因为这是儿童领读视频，不需要很准确匹配场景，只要整体氛围达到一定感觉就可以。"
+    - **v10 修复**（4 件事）：
+      1. 引入 `v10_bgm` 字段（继承上一 clip 主题词）
+      2. clip 2+ 段 5 必含 `same warm ukulele pizzicato melody from the previous clip continues throughout this entire clip`
+      3. clip 1 不写 v10_bgm（是主题源），clip 2+ 写 v10_bgm（继承源）
+      4. `build_v10_prompt(clip)` 用 `clip.get("v10_bgm") or clip["bgm_theme"]` 兼容 clip 1 缺字段
+    - **v10 关键限制**：**Seedance 不会真去查 clip 1 实际生成的 BGM**——只能靠 prompt 文字约束让它"假设"前一个 clip 用了某主题。**音量 dB 不能量化调性一致性**（dB 是响度不是音色），调性是否一致**只能人耳听**。
+    - **v10 适用绘本类型**：领读型绘本（I eat X 系列、Pete the cat、Dear Zoo、Brown Bear 等重复句式）—— 整体氛围一致 > 调性匹配。
+    - **v10 决策树信号**："领读型"/"整体氛围一致"/"重复句式绘本"—— 这些信号触发 v10（v9 是默认）。
+    - **v10 实测踩坑（2 个）**（写进 references 文档 §6）：
+      1. `--ref-images` 多图必须空格分隔（seedance.py `nargs="+"`）—— 逗号分隔会报 `File not found: a.jpg,b.jpg` 错误
+      2. `--download` 是文件路径不是目录——多 clip 并行时**每个必须用独立文件名**，否则后一个覆盖前一个
+    - 详见 `references/分镜时序-prompt范式-v10.md`（完整 12 段）+ `assets/example-prompts/eat-clips-2-3-v10.txt`（Eat 吃 clip 2/3 完整 prompt）+ `build_clips.py`（项目目录脚本，含 `build_v10_prompt()` + CLI `--version v10` 切换）。
+
+21. **v10 测试方法核心：**v10 跨 clip 调性是否一致**只能人耳听**（dB 不能量化），跑完后必须连续听两个 clip 验证 BGM 风格。**v10 跑通 ≠ 跨 clip 一定同调性**——prompt 写了 "same ... from the previous clip" AI 不一定真遵循，**必须人耳验证**。
+
+22. **v10 跑通 ≠ 完美 · 3 个实测问题（2026-06-03 Eat 吃 4 clip 跑完）**：v10 跨 clip 同主题目标**达成**（✅），但暴露出 3 个新问题——这些是 **v11 设计的起点**：
+    1. **BGM 收势位置错误**：v9 模板给每个 clip 都生成 `quiet warm chime settles` 收势词，**v10 范式下只有最后 1 clip 才用收势**，中间 clip 用 `BGM continues softly into the next moment` 软延续。**v11-α 修复**：加 `is_final_clip: bool` 字段 + `build_v11_prompt()` 区分中间/末尾。
+    2. **画面缺动感**：v10 4 clip 比 v7/v8/v9 缺动感，可能根因：①稳态描述 `holds the X pose for the rest of this shot` 占比过高 ②v10 范式副作用（同 BGM + 稳态画面 + AI 偏安全输出）③`continues throughout the entire clip` 关键词副作用。**v11-β 修复**：段 2/3 加微动作（`eyes widen with excitement`）+ 改 `hold pose` 为 `slight natural movement`。
+    3. **v10 范式边界**：领读型绘本（I eat X / Pete the cat / Dear Zoo / Brown Bear 等重复句式）适合 v10；单一 clip 内多情绪用 v8；静默治愈用 v7；8-10s 静态画面要靠 prompt 写出动感（v11 修问题 3 后可解）。
+    - 详细 v11 方向（4 种修复方向 A/B/C/D）见 `references/分镜时序-prompt范式-v10.md` §13。
+    - **v11 路线图**：v11-α（修 BGM 收势，10 分钟出结果）→ v11-β（加微动作，对比 v10 看是否改善）→ v11-γ（可选 camera drift 运镜）。**两个问题独立可分开调**，不必同时上。
+
+23. **v10 → v11-α 真实路线（2026-06-03 失败沉淀）**：v11-α（加微动作）**实测失败**（用户反馈"几乎没有什么变化"）——见 `references/分镜时序-prompt范式-v11.md` §10。**真正解法是 v11-δ（多帧输入工作流）**：跑 Seedance 前用即梦生成 4 帧中间动作图，作为 `--ref-images` 多图输入，让 AI 在多帧间做插值。**核心教训**：
+    - "**画面动感**"症状描述**指向输入端**（图片限制），不是 prompt 端
+    - 改 prompt 是相邻概念——v11-α 失败后必须把方向切到输入增强
+    - **未来不要重复跑 v11-α**——它已死，**v11-δ 才是 P0 真正方向**
+    - 完整 v11 路线图见 `references/分镜时序-prompt范式-v11.md` §10 + 主 SKILL.md §工作流原则探索式迭代
+    - v11-δ 工作流（4 步）：
+      1. 拿原绘本 N 张图（如 eat 1-8.jpg）
+      2. 对每张图用即梦生成"动作中间帧"（如 eat 1-mid1.jpg, 1-mid2.jpg, 1-mid3.jpg）
+      3. 把"原图 + 中间帧"作为 `--ref-images` 传给 Seedance（**多图必须空格分隔**，逗号会报错）
+      4. prompt 引导 AI"在这些帧之间做平滑插值"
+
 ---
 
 ## 参考文档
@@ -943,12 +1400,19 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 | `references/narrative-closure-design.md` | 叙事单元收势设计三种模式（含错误示例 vs 正确示例对比） |
 | `references/lark-cli-drive-access.md` | 飞书云盘素材获取 SOP（Phase -1：把云盘文件下载到本地） |
 | `references/official-docs-token-mapping.md` | 官方 SOP 文档 token → 内容映射表 |
-| `references/分镜时序-prompt范式-v7.md` | **v7 范式完整文档**（分镜时序+精准动画+精准音频控制 · 8 段固定结构 · 11 项必跑自检 · 5 件套句式。2026-06-02 Cactus 4 段实测通过） |
+| `references/分镜时序-prompt范式-v7.md` | **v7 范式完整文档**（静默氛围型，Cactus 实测通过；8 段固定结构 + 11 项必跑自检 + 5 件套句式。2026-06-02 Cactus 4 段实测通过） |
+| `references/分镜时序-prompt范式-v8.md` | **v8 范式完整文档**（调性匹配型，每 Clip 配相符 BGM；段 5 加 BGM 调性词 + throughout this shot + 段 6 删 No background music。2026-06-03 Ok 好的绘本 4 Clip 实测通过；**已知 clip 内部 BGM 断层问题**，被 v9 取代） |
+| `references/分镜时序-prompt范式-v9.md` | **v9 范式完整文档**（**整 Clip 一致 BGM**，段 5 整 Clip 一段 BGM 主题 + `continues throughout the entire clip` + mood shift 软描述；段 6 删 No background music。**2026-06-03 Eat 吃绘本 4 Clip 实测通过**，3.5s shot 边界无 BGM 断层；AI 量化 -22~-34dB 持续平滑曲线） |
 | `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律 + v3 vs v7 对比**（2026-06-02 Red v1→v2→v3 + Cactus v6→v7 修复沉淀） |
 | `references/leading-reading-4clip-pattern.md` | **领读绘本 4-Clip 切分 + 时长公式 + 单测门 SOP**（指向 v7 范式） |
 | `templates/v7-prompt-template.md` | **v7 范式 Python f-string 模板**（ShotV7/AudioSegmentV7/ClipV7 dataclass + render_prompt() + 11 项自检脚本） |
 | `assets/example-prompts/cactus-clip1-v7.txt` | **Cactus Clip 1 v7 实际跑通 prompt**（标题页+绿色仙人掌 · 任务 ID cgt-20260602171645-s5fq6 · 8s · 用户"里程碑"反馈） |
 | `assets/example-prompts/cactus-clips-2-3-4-v7.txt` | **Cactus Clip 2-4 v7 实际跑通 prompt**（刺/花/手臂/家庭 · 9+10+10s · 4 种动作模式泛化性验证） |
-| `scripts/build_clip_prompts.py` | v3/v3+锚点模板拼接脚本（⚠️ 待升级到 v7 范式，dead code） |
+| `assets/example-prompts/ok-clips-1-4-v8.txt` | **Ok 好的 Clip 1-4 v8 实际跑通 prompt**（舞台+门口+森林+共读+餐桌+户外+卧室+彩虹 · 8+9+9+10s · 8 段不同 BGM 调性） |
+| `assets/example-prompts/eat-clips-1-4-v9.txt` | **Eat 吃 Clip 1-4 v9 实际跑通 prompt**（餐桌+苹果+香蕉+胡萝卜+鱼+面包+蛋糕+盛宴 · 8+9+9+10s · 整 Clip 一段 BGM + mood shift 软调性变化） |
+| `scripts/build_clip_prompts.py` | v3 范式模板拼接脚本（被 v8 范式取代，保留作历史参考） |
+| `scripts/build_v8_clips.py` | **v8 范式自动拼接脚本**（含 11 项自检 + clips-prompt.json 自动化输出 + 默认 --watermark false · 2026-06-03 Ok 好的绘本实测） |
+| `scripts/build_v9_clips.py` | **v9 范式自动拼接脚本**（含 v9 专属 11 项自检 + 必检 `continues throughout the entire clip` + `mood shift` 软描述 · 2026-06-03 Eat 吃绘本实测通过） |
 | `test-prompts.json` | **达尔文 8 维评估用 3 个测试 prompt**（happy/复杂/边界） |
+| `results.tsv` | **达尔文优化循环历史记录**（baseline + 各 round keep/revert） |
 | `results.tsv` | **达尔文优化循环历史记录**（baseline + 各 round keep/revert） |

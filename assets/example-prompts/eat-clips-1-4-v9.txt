@@ -1,0 +1,161 @@
+# Eat 吃绘本 v9 范式 · 实际跑通 prompt（4 Clip 全套）
+
+> **状态**：✅ Clip 1 单测通过 + 4 Clip prompt 自动化生成
+> **单测视频**：`/home/luo/huiben-projects/20260603-eat-picbook/output/clip1-v9.mp4`
+> **时长**：8s
+> **总时长（4 Clip）**：8 + 9 + 9 + 10 = **36s**
+
+> **v9 vs v8 关键差异**：
+> - v8：每 shot 一段 BGM 调性词 → shot 边界 BGM 突然切换（用户反馈断层）
+> - v9：整 Clip 一段 BGM 主题贯穿 + `mood shift` 软描述 → BGM 平缓延续
+>
+> **v9 关键修复**（2026-06-03）：
+> 1. ✅ 整 Clip 一段 BGM 主题（不按 shot 切）
+> 2. ✅ 必含 `continues throughout the entire clip`（持续标记）
+> 3. ✅ 必含 `with a mood shift toward X during the second half`（软调性变化）
+> 4. ✅ 段 6 禁人声（删 `No background music`）
+
+---
+
+## v9 范式 8 段结构
+
+| 段 | 内容 |
+|---|------|
+| 1 | 分镜引导（`This is a storyboard reference image sequence; render ...`）|
+| 2 | `from X.Xs to Y.Ys @Image1 is the opening shot, ...`（Shot 1 视觉）|
+| 3 | `from X.Xs to Y.Ys @Image2 is the second shot, ...`（Shot 2 视觉）|
+| 4 | `final frame: the camera locks completely, ...`（收势）|
+| **5** | **Storyboard Audio Description: [整 Clip BGM 主题] continues throughout the entire clip, with [mood shift 描述]; [t1] [拟声1]; [t2] [拟声2]; [t3] [收尾];** |
+| 6 | 禁令（只禁人声）|
+| 7 | 风格锁定 |
+| 8 | 句号收尾 |
+
+---
+
+## Clip 1（8s · @Image1 + @Image2）—— v9 整 Clip BGM 首测
+
+**完整 prompt 文本**：
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 3.5s @Image1 is the opening shot, a small round teddy bear sits at a wooden dining table in a warm cozy kitchen with arms raised in a happy welcoming gesture, surrounded by a colorful spread of fruits and bread on the table, the bear's mouth is open with a joyful expression, in this shot the bear holds the welcoming arms-up pose with warm kitchen light glowing, then the bear holds the pose for the rest of this shot;
+from 3.5s to 7.0s @Image2 is the second shot, the small bear holds a red apple in both paws with a delighted expression, the kitchen background stays warm and cozy, the camera slowly pushes in toward the apple, in this shot the small bear brings the apple close to its mouth, then the small bear holds the apple pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: playful cheerful warm ukulele pizzicato melody continues throughout the entire clip, with a gentle mood shift toward a curious warm tone during the second half as the small bear explores the apple; [0.0s] soft excited bubble as the small bear greets the food, gentle tap as a strawberry lands on the plate; [3.5s] soft plop as the apple is lifted, gentle whoosh as the camera pushes in; [7.0s] quiet warm chime settles;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, Eric Carle paper-cut collage with watercolor wash, round Q-version teddy bear character, warm color palette of cream, brown, orange, red, paper texture with visible torn edges, handcrafted feel, the word 'EAT' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+**8 段结构分解**：
+
+| 段 | 内容 |
+|---|------|
+| 1 | 分镜引导（`This is a storyboard reference image sequence; render ...`）|
+| 2 | `from 0.0s to 3.5s @Image1 is the opening shot, ...`（餐桌欢呼）|
+| 3 | `from 3.5s to 7.0s @Image2 is the second shot, ...`（举苹果）|
+| 4 | `final frame: the camera locks completely, ...`（收势）|
+| **5** | **Storyboard Audio Description: 整 Clip ukulele BGM 主题 + mood shift toward curious warm tone; 拟声卡点** |
+| 6 | 禁令（只禁人声）|
+| 7 | 风格锁定 |
+| 8 | 句号收尾 |
+
+---
+
+## Clip 2（9s · @Image3 + @Image4）
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 4.0s @Image1 is the opening shot, the small bear holds a bright yellow banana in both paws with an excited happy face, sitting in the warm kitchen, in this shot the small bear brings the banana close to its mouth for a bite, then the small bear holds the banana-eating pose for the rest of this shot;
+from 4.0s to 8.0s @Image2 is the second shot, the small bear holds a fresh orange carrot in both paws with a curious delighted expression, kitchen background stays warm, in this shot the small bear brings the carrot close to its mouth, then the small bear holds the carrot pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: bouncy happy xylophone and pizzicato strings melody continues throughout the entire clip, with the rhythm gently brightening during the second half as the small bear discovers a fresh orange carrot; [0.0s] soft excited bubble, gentle peel rustle as the banana is unpeeled; [4.0s] soft crunch sound as the carrot is bitten, gentle tap as a piece lands; [8.0s] quiet warm chime settles;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, Eric Carle paper-cut collage with watercolor wash, round Q-version teddy bear character, warm color palette of cream, brown, orange, red, paper texture with visible torn edges, handcrafted feel, the word 'EAT' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+---
+
+## Clip 3（9s · @Image5 + @Image6）
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 4.0s @Image1 is the opening shot, the small bear holds a fresh orange fish in both paws with a happy eating expression, warm kitchen background, in this shot the small bear brings the fish close to its mouth, then the small bear holds the fish-eating pose for the rest of this shot;
+from 4.0s to 8.0s @Image2 is the second shot, the small bear holds a freshly baked brown bread in both paws with a warm delighted expression, kitchen background stays cozy, in this shot the small bear brings the bread close to its mouth, then the small bear holds the bread pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: warm cozy acoustic guitar with soft piano melody continues throughout the entire clip, with a tender lullaby-like softening during the second half as the scene shifts to fresh warm bread; [0.0s] soft excited bubble, gentle sizzle as the fish is presented; [4.0s] soft crust crunch, gentle warm whoosh as the aroma rises; [8.0s] quiet warm chime settles;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, Eric Carle paper-cut collage with watercolor wash, round Q-version teddy bear character, warm color palette of cream, brown, orange, red, paper texture with visible torn edges, handcrafted feel, the word 'EAT' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+---
+
+## Clip 4（10s · @Image7 + @Image8）
+
+```
+This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
+from 0.0s to 4.5s @Image1 is the opening shot, the small bear holds a pink frosted cake slice in both paws with mouth wide open in joyful anticipation, warm kitchen background, in this shot the small bear brings the cake close to its mouth, then the small bear holds the cake-eating pose for the rest of this shot;
+from 4.5s to 9.0s @Image2 is the second shot, the small bear stands with both arms raised high in a triumphant celebration surrounded by a colorful feast of fruits, vegetables, bread, fish, and cake, the bear's smile is huge and joyful, in this shot the bear opens its arms wider to embrace all the food, then the small bear holds the celebration pose for the rest of this shot;
+final frame: the camera locks completely, the image becomes still, no fade, no dissolve, holds to the last frame;
+Storyboard Audio Description: joyful celebratory warm bells and pizzicato orchestra melody continues throughout the entire clip, building to a hopeful uplifting tone in the final seconds as the small bear celebrates eating everything; [0.0s] soft excited bubble, gentle frosting tap as the cake is lifted; [4.5s] soft sparkle as the feast is revealed, gentle warm chime as the celebration begins; [9.0s] single quiet warm chime as the final note;
+No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling;
+Children's picture book illustration style, Eric Carle paper-cut collage with watercolor wash, round Q-version teddy bear character, warm color palette of cream, brown, orange, red, paper texture with visible torn edges, handcrafted feel, the word 'EAT' as a large colorful collaged graphic element integrated into the scene, text-as-graphic, 16:9, no subtitles, no text overlays.
+```
+
+---
+
+## AI 量化验证（Clip 1 v9 单测）
+
+### 音量曲线对比（v8 vs v9）
+
+| 时间 | v8（按 shot 切） | **v9（整 Clip 一致）** |
+|---|---|---|
+| 0.0s | -inf | -inf |
+| 0.5-3.0s | -52 ~ -34 dB（稀疏）| **-27 ~ -33 dB（持续）** |
+| **3.5s（边界）** | **-15 ~ -25 dB（突然出现）** | **-24 dB（平缓延续）** |
+| 4.0-7.0s | -16 ~ -23 dB | **-23 ~ -29 dB（持续）** |
+| 整 Clip 评价 | shot 边界 BGM 硬切 | **一条平滑曲线贯穿 0.5s-7.5s** |
+
+**关键成功**：**3.5s shot 边界 BGM 没有断层**——`mood shift` 调性渐变带来自然音量起伏（-33 dB → -23 dB → -29 dB），不是硬切。
+
+---
+
+## 4 Clip 整 Clip BGM 调性词表
+
+| Clip | Shot 数 | 整 Clip BGM 主题 | mood shift 描述 |
+|---|---|---|---|
+| 1 | 1+2 (图 1+2) | playful cheerful warm ukulele pizzicato melody | gentle mood shift toward curious warm tone during second half as bear explores apple |
+| 2 | 3+4 (图 3+4) | bouncy happy xylophone and pizzicato strings | rhythm gently brightening during second half as bear discovers carrot |
+| 3 | 5+6 (图 5+6) | warm cozy acoustic guitar with soft piano | tender lullaby-like softening during second half as scene shifts to bread |
+| 4 | 7+8 (图 7+8) | joyful celebratory warm bells and pizzicato orchestra | building to hopeful uplifting tone in final seconds as bear celebrates eating everything |
+
+**4 段不同 BGM 主题，段内 mood shift 自然渐变**——Seedance 一次生成整 Clip 同主题 BGM。
+
+---
+
+## 11 项自检结果（v9 范式）
+
+| # | 检查项 | 结果 |
+|---|--------|------|
+| 1 | 段 1 引导句 `storyboard reference image sequence` | ✅ |
+| 2 | 段 2-3 显式时序 `from X.Xs to Y.Ys @ImageN` | ✅ |
+| 3 | 段 4 收势 `final frame: ... holds to the last frame` | ✅ |
+| 4 | 段 5 `Storyboard Audio Description:` | ✅ |
+| 5 | **段 5 `continues throughout the entire clip`**（v9 专属）| ✅ |
+| 6 | **段 5 `mood shift` 软描述**（v9 专属）| ✅ |
+| 7 | 段 6 `No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling` | ✅ |
+| 8 | 段 6 不含 `No background music`（v9 必避）| ✅ |
+| 9 | 段 7 `Children's picture book` 风格锚点 | ✅ |
+| 10 | 视觉段无 `no / no BGM / no speech` | ✅ |
+| 11 | 收势词在最后一句画面描述 | ✅ |
+
+**4 Clip × 11 项 = 44 项全通过**。
+
+---
+
+## 自动化产物
+
+| 路径 | 用途 |
+|---|---|
+| `/home/luo/huiben-projects/20260603-eat-picbook/build_clips.py` | v9 范式自动化脚本（含 11 项自检）|
+| `/home/luo/huiben-projects/20260603-eat-picbook/clips-prompt.json` | 4 Clip prompt 结构化（含 v9 标记 + `continues throughout the entire clip`）|
+| `/home/luo/huiben-projects/20260603-eat-picbook/output/clip1-v9.mp4` | 单测视频（含整 Clip BGM 持续 -22~-34dB）|
