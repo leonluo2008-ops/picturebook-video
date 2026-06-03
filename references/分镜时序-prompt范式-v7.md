@@ -131,9 +131,13 @@ No background music, no human voice, no narration, no singing;
    - 在**段 5**（收势词之后，禁令段之前）
    - 关键发现：参考示例的"Storyboard Audio Description"分段模式被 Seedance **完美遵守**——分时段精确控制音效
 
-5. **音频禁令**：`No background music, no human voice, no narration, no singing`
+5. **音频禁令**：`No human voice, no narration, no singing` + 可选 `No background music`
    - 在**段 6**（音频段之后，风格段之前）
    - ⚠️ 跟三铁律 3 的视觉段"不能用否定句"**不冲突**——音频禁令段 Seedance 实际会听（参考示例验证）
+   - **两种 BGM 风格（2026-06-03 用户实测反转）**：
+     - **A. 静默氛围型**（Cactus 范式）：段 6 = `No background music, no human voice, no narration, no singing` → 绘本默认无 BGM
+     - **B. 调性匹配型**（Red/Ok 好的范式）：段 6 = `No human voice, no narration, no singing, no dialogue, no vocal, no humming, no whistling`（**删除 `No background music`，让 Seedance 自动配调性相符纯音乐 BGM**）
+   - 详见 SKILL.md §"BGM 调性策略"
 
 ### v7 必跑自检（11 项）
 
@@ -144,7 +148,7 @@ No background music, no human voice, no narration, no singing;
 | 3 | 句号数 ≤ 9（数字缩写如 `1.2s/8.0s` 不计入） | ✅ |
 | 4 | 段 4 含 `final frame` | ✅ |
 | 5 | 段 5 以 `Storyboard Audio Description:` 开头 | ✅ |
-| 6 | 段 6 以 `No background music` 开头 | ✅ |
+| 6 | 段 6 以 `No background music` **或** `No human voice` 开头 | ✅ |
 | 7 | 段 7 以 `Children's picture book` 开头 | ✅ |
 | 8 | 段 7 末尾有 1 个句号收尾 | ✅ |
 | 9 | 视觉段（段 2-4）无 `no / no BGM / no speech` | ✅ |
