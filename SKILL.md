@@ -798,7 +798,7 @@ grep -E "风控|敏感|触.*reject|sensitive" \
     └── 1图=1Clip 标准模式（不在本 skill 范式范围）
 ```
 
-> **v7 是 2026-06-02 后的音频子范式**（静默型）。**v14 是 2026-06-04 起的绘本默认骨架**（4 段 prompt：主体定义 + 分镜绑定 + 风格 + BGM 段）—— v7/v8/v9/v10 是 v14 段 4 的音频子策略。详见 [references/分镜时序-prompt范式-v14.md](references/分镜时序-prompt范式-v14.md)。
+> **v15 是 2026-06-05 起的绘本默认范式**（v14 骨架升级：4 段 prompt + 启动前 6 必问 + 运镜调性 + v7-Say 音效密集型）。**v14 仍可用**（4 段骨架 + v7 静默型）—— v7/v8/v9/v10 是 v15/v14 段 4 的音频子策略。详见 [references/versions/v15.md](references/versions/v15.md) + [references/分镜时序-prompt范式-v14.md](references/分镜时序-prompt范式-v14.md)。
 
 ### 完整 prompt 模板（v3 范式）
 
@@ -1169,7 +1169,8 @@ Storyboard Audio Description: {bgm_mood_1} throughout this shot, [{t1}] {sfx_1};
 1. **画面动感不只靠 prompt 动作词**——**原始图片本身的动作空间** 是更基础的限制因素
 2. **静态拼贴风绘本**（Eric Carle 类）→ AI 难以生成"动起来"画面，需要换绘本测试
 3. **v11-α 改动太小可能看不出差异**——如果还要试 v11，建议叠加 v11-β（camera drift 运镜）
-4. **v10 范式作为绘本默认范式仍成立**——v11-α 失败不否定 v10
+4. **v10 范式作为绘本默认范式仍成立**（v14 段 4 音频子策略）—— v11-α 失败不否定 v10
+   **2026-06-05 更新**：绘本默认已升 v15（v14 骨架 + 6 必问 + 音效密集型），v10 仍可作 v15 段 4 的子策略。
 
 **v11-α 必避反模式**：
 
@@ -1836,7 +1837,8 @@ Phase 9 ✅ ffmpeg 拼接 + BGM 合并完成
 | `references/分镜时序-prompt范式-v7.md` | **v7 范式完整文档**（静默氛围型，Cactus 实测通过；8 段固定结构 + 11 项必跑自检 + 5 件套句式。2026-06-02 Cactus 4 段实测通过） |
 | `references/分镜时序-prompt范式-v8.md` | **v8 范式完整文档**（调性匹配型，每 Clip 配相符 BGM；段 5 加 BGM 调性词 + throughout this shot + 段 6 删 No background music。2026-06-03 Ok 好的绘本 4 Clip 实测通过；**已知 clip 内部 BGM 断层问题**，被 v9 取代） |
 | `references/分镜时序-prompt范式-v9.md` | **v9 范式完整文档**（**整 Clip 一致 BGM**，段 5 整 Clip 一段 BGM 主题 + `continues throughout the entire clip` + mood shift 软描述；段 6 删 No background music。**2026-06-03 Eat 吃绘本 4 Clip 实测通过**，3.5s shot 边界无 BGM 断层；AI 量化 -22~-34dB 持续平滑曲线） |
-| `references/分镜时序-prompt范式-v14.md` | **v14 范式完整文档**（**绘本默认骨架 4 段结构**：主体定义 + 分镜绑定 + 风格 + BGM 段；v7/v8/v9/v10 是 v14 段 4 的音频子范式。2026-06-04 起绘本默认。文字保留 v2 措辞 + BGM 二选一 + 11 项自检 + 范式决策树） |
+| `references/versions/v15.md` | **v15 范式完整文档**（**绘本默认 2026-06-05 起**：v14 骨架 4 段结构 + 启动前 6 必问 + 运镜调性 + v7-Say 音效密集型；v7/v8/v9/v10 是 v15 段 4 的音频子范式。Say 说绘本 10 Clip 实测通过。配套 6 必问 + 撤回运镜三禁 + 必避反模式） |
+| `references/分镜时序-prompt范式-v14.md` | **v14 范式完整文档**（**绘本默认骨架 4 段结构**：主体定义 + 分镜绑定 + 风格 + BGM 段；v7/v8/v9/v10 是 v14 段 4 的音频子范式。2026-06-04 起绘本默认，2026-06-05 起升 v15。文字保留 v2 措辞 + BGM 二选一 + 11 项自检 + 范式决策树） |
 | `references/绘本音效-prompt写法.md` | **绘本音效 prompt 写法的三铁律 + v3 vs v7 对比**（2026-06-02 Red v1→v2→v3 + Cactus v6→v7 修复沉淀） |
 | `references/leading-reading-4clip-pattern.md` | **领读绘本 4-Clip 切分 + 时长公式 + 单测门 SOP**（指向 v7 范式） |
 | `references/2026-06-05-say-pitfalls.md` | **2026-06-05 Say 说绘本踩坑对话日志**（旁白语言版本 / 彩色文字 / 运镜定制 3 个实测素材，对应 SKILL.md 关键教训 #25 #26 #27） |
