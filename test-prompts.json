@@ -1,23 +1,29 @@
 [
   {
     "id": 1,
-    "prompt": "我从飞书云盘下载了一本新绘本的 8 张图和旁白。链接是 https://aistar-work.feishu.cn/drive/folder/ABC123。绘本类型是领读型（弱情节、靠画面+旁白推），旁白中英文对照，每段 1.2-4.5s。请帮我制作 4 个 Clip 的绘本动画视频（总时长 37s 左右），后期我自己 TTS 配旁白。",
-    "expected": "skill 能：1) 走 lark-cli 飞书云盘 SOP 下载素材；2) 识别领读型绘本 → 2图=1Clip 合并 → 4 Clip；3) 用 v7 范式（分镜时序+精准动画+Storyboard Audio Description+音频禁令）生成 4 段 prompt；4) 走单测门 SOP（先单测 Clip 1，等用户确认再批量）；5) 给出 4 段 seedance.py create 命令。",
-    "scenario": "happy path · 完整流程",
-    "difficulty": "标准"
+    "prompt": "查找 BGM，不生成BGM的经验",
+    "expected_should_trigger": "达尔文应能找到 v7 音频控制里程碑（No BGM 禁令段），给出 'No background music, no human voice, no narration, no singing' 关键句式",
+    "expected_reason": "用户模糊需求 → 1) 读 SKILL.md line 14 入口 2) 读 VERSION_INDEX.md 速查表 3) 命中 v7 关键句式。检索词 '禁 BGM' 'No BGM' 应能在 v7.md 命中。",
+    "scenario": "实测留痕·检索能力·禁 BGM",
+    "difficulty": "标准",
+    "covers": "VERSION_INDEX 速查 + references/versions/v7.md 详情"
   },
   {
     "id": 2,
-    "prompt": "我有一本 5 张图的绘本，旁白中文短句（每段 1-2s）。我不想让 Seedance 生成旁白人声（会干扰后期 TTS），但希望有卡点音效配画面动作。Seedance 默认会生成持续环境音 + 可能的人声。请问 prompt 怎么写？",
-    "expected": "skill 能：1) 识别 v7 范式（精准音频控制 = Storyboard Audio Description 段 + No BGM/no voice 禁令）；2) 给出 8 段固定结构示例（分镜引导+shot×N+收势+音频描述+禁令+风格+句号）；3) 解释三铁律 3 的修订（音频段允许否定句）；4) 给出 v7 vs v3 范式选择决策。",
-    "scenario": "复杂场景 · 音频精准控制",
-    "difficulty": "较难"
+    "prompt": "查找多图，生成视频的经验",
+    "expected_should_trigger": "达尔文应能找到 v14 多图分镜（绘本默认），给出 4 段式 prompt 公式（主体定义+风格锚+分镜绑定+BGM 段）",
+    "expected_reason": "用户模糊需求 → 检索词 '多图分镜' 应命中 v14.md。v14.md 包含完整 4 段式公式 + A/B 模式 + 6 条铁律 + 适用场景。",
+    "scenario": "实测留痕·检索能力·多图分镜",
+    "difficulty": "标准",
+    "covers": "VERSION_INDEX 速查 + references/versions/v14.md 详情"
   },
   {
     "id": 3,
-    "prompt": "我跑 Seedance 2.0 生成视频，prompt 写'2 张图做 1 个 Clip 8s，画面在 1.2s 处切换'。结果出来画面在 3s 才切换，且 2.jpg 的标题'A Green Cactus'被模型生成的画面吃掉了。怎么办？",
-    "expected": "skill 能：1) 诊断问题：散文式'切换'写法不可靠；2) 推荐 v7 范式（'from 0.0s to 1.2s @Image1...; from 1.2s to 8.0s @Image2...' 显式时间窗）；3) 解释为什么 v3 范式'transitions seamlessly to @Image2 as the second half'会让 2.jpg 被当作'target'而非'尾帧'；4) 给出修复后的 prompt 示例。",
-    "scenario": "边界场景 · 切换不准+尾帧标题被吃",
-    "difficulty": "难"
+    "prompt": "查找生成旁白的经验",
+    "expected_should_trigger": "达尔文应能找到 v7.md 中'No human voice, no narration, no singing' 段（如何在 Seedance prompt 里禁人声/禁旁白生成，让旁白走后期 TTS）",
+    "expected_reason": "用户模糊需求 '生成旁白' 实际是 '想控制旁白'（关掉 Seedance 自动生成）→ 检索词 'no narration' 'no human voice' '旁白' 命中 v7.md。v7.md 有 '旁白走后期 TTS' 的适用范围说明。",
+    "scenario": "实测留痕·检索能力·旁白控制",
+    "difficulty": "标准",
+    "covers": "VERSION_INDEX 速查 + references/versions/v7.md 详情（旁白场景）"
   }
 ]
