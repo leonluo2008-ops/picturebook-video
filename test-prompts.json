@@ -1,29 +1,47 @@
 [
   {
     "id": 1,
-    "prompt": "查找 BGM，不生成BGM的经验",
-    "expected_should_trigger": "达尔文应能找到 v7 音频控制里程碑（No BGM 禁令段），给出 'No background music, no human voice, no narration, no singing' 关键句式",
-    "expected_reason": "用户模糊需求 → 1) 读 SKILL.md line 14 入口 2) 读 VERSION_INDEX.md 速查表 3) 命中 v7 关键句式。检索词 '禁 BGM' 'No BGM' 应能在 v7.md 命中。",
-    "scenario": "实测留痕·检索能力·禁 BGM",
+    "prompt": "我想做一个绘本动画，输入 8 张图 + 旁白，应该用什么范式？怎么启动？",
+    "expected_should_trigger": "SKILL.md 应引导用户跑 v15 启动前 6 必问（比例/时长/切分 + 3 默认 = 运镜/范式/规则），并指出 v15 是绘本默认范式（2026-06-05 起）",
+    "expected_reason": "v15 范式是当前默认（v0.7.0 精简版核心）→ 启动前 6 必问 = 铁律体系 + 切分决策树入口",
+    "scenario": "Cat 绘本启动场景 · v15 范式入口",
     "difficulty": "标准",
-    "covers": "VERSION_INDEX 速查 + references/versions/v7.md 详情"
+    "covers": "SKILL.md · v15 4 大件 · 6 必问 · 3 默认"
   },
   {
     "id": 2,
-    "prompt": "查找多图，生成视频的经验",
-    "expected_should_trigger": "达尔文应能找到 v14 多图分镜（绘本默认），给出 4 段式 prompt 公式（主体定义+风格锚+分镜绑定+BGM 段）",
-    "expected_reason": "用户模糊需求 → 检索词 '多图分镜' 应命中 v14.md。v14.md 包含完整 4 段式公式 + A/B 模式 + 6 条铁律 + 适用场景。",
-    "scenario": "实测留痕·检索能力·多图分镜",
-    "difficulty": "标准",
-    "covers": "VERSION_INDEX 速查 + references/versions/v14.md 详情"
+    "prompt": "我有 1 张图，但旁白特别长（10s+），还包含 6 个 AT 韵词，怎么拆 Clip？",
+    "expected_should_trigger": "应引导走 v15.1 长旁白单图多 Clip 拆分规范：触发公式（朗读 + 单词数×2.5s > 15s）+ 语义块拆分（3+3+1）+ 节奏公式（2-1-3-3-3）+ 末帧 = 朗读+静默",
+    "expected_reason": "Cat 4a v3 标版实战案例 · 触发公式 + 语义块 + 节奏公式 + 末帧铁律 #36 #37",
+    "scenario": "Cat AT 家族单图拆分场景 · v15.1 标版入口",
+    "difficulty": "复杂",
+    "covers": "SKILL.md · v15.1 · 铁律 #36 #37 · references/长旁白拆分规范-v15.1.md"
   },
   {
     "id": 3,
-    "prompt": "查找生成旁白的经验",
-    "expected_should_trigger": "达尔文应能找到 v7.md 中'No human voice, no narration, no singing' 段（如何在 Seedance prompt 里禁人声/禁旁白生成，让旁白走后期 TTS）",
-    "expected_reason": "用户模糊需求 '生成旁白' 实际是 '想控制旁白'（关掉 Seedance 自动生成）→ 检索词 'no narration' 'no human voice' '旁白' 命中 v7.md。v7.md 有 '旁白走后期 TTS' 的适用范围说明。",
-    "scenario": "实测留痕·检索能力·旁白控制",
+    "prompt": "切分方案跑出来 5 个 Clip，但 prompt 写完发现漏了 1 张图 + 漏了 1 个子 Clip，怎么办？",
+    "expected_should_trigger": "应引导跑铁律 #38 切分表必查清单 4 项：1. 切分表列全了吗 2. 收势图含了吗 3. 拆分子 Clip 列了吗 4. 跑前 vs 跑后对齐了吗",
+    "expected_reason": "Cat 漏图 2+漏图 8+缺 4b 实战教训 · 铁律 #38 是 4 项自检清单",
+    "scenario": "Cat 完整跑通后连环错场景 · 铁律 #38 自检",
+    "difficulty": "复杂",
+    "covers": "SKILL.md · 铁律 #38 · 切分表自检清单"
+  },
+  {
+    "id": 4,
+    "prompt": "末帧我想让画面定格，但用户反馈说'朗读完画面就结束，没有呼吸'，怎么改？",
+    "expected_should_trigger": "应命中铁律 #36：末帧 = 朗读+静默（不是 0.5s 收势），末帧镜头时长 = 朗读 1s + 静默 2-3s，'画面定格'标签应该删",
+    "expected_reason": "Cat 4a v3 标版实测反馈 · 末帧铁律 #36 沉淀",
+    "scenario": "Cat 4a v1/v2 末帧错场景 · 铁律 #36 修复",
     "difficulty": "标准",
-    "covers": "VERSION_INDEX 速查 + references/versions/v7.md 详情（旁白场景）"
+    "covers": "SKILL.md · 铁律 #36 · v15.1 标版节奏"
+  },
+  {
+    "id": 5,
+    "prompt": "算旁白时长有中文有英文有韵词，怎么算？合并 Clip 怎么决定？",
+    "expected_should_trigger": "应命中铁律 #32 旁白朗读时长公式（中文 0.25s/字 · 英文 0.7s/词 · 拖长韵 1.0s/词）+ 铁律 #33 旁白优先于图片（合并第一性原则）+ references/旁白朗读时长计算.md 详细文档",
+    "expected_reason": "Cat AT 家族 6 韵词算错（按 0.7s/词算 4.2s，实际 1.0s/词 6s）实战教训 · 铁律 #32 + 决策树",
+    "scenario": "Cat 启动第一版切分方案错场景 · 铁律 #32 #33 修复",
+    "difficulty": "标准",
+    "covers": "SKILL.md · 铁律 #32 #33 · references/旁白朗读时长计算.md · 决策树"
   }
 ]
