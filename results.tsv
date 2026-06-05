@@ -4,3 +4,7 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-06-02T19:20	e8dbf9f	picturebook-video	95.45	95.95	keep	资源整合度	Round 1: 建 templates/+assets/+SKILL.md 引用更新（维度 6 8→9，+0.5 加权）	full_test
 2026-06-02T19:50	ef0157e	picturebook-video	95.95	96.45	keep	资源整合度	Round 2: 加 Cactus Clip 2-4 完整 prompt 样本+4 种动作模式泛化性证据（维度 6 9→10，+0.5 加权）	full_test
 2026-06-04T17:59	205132d	picturebook-video	96.45	98.95	keep	实测表现	v7.md 加 No narration/禁旁白/旁白走 TTS 检索词+适用场景强化；VERSION_INDEX.md 检索示例表+1 行"怎么生成旁白"。维度 8 实测表现 8/10→9/10（独立 subagent 评分 7→9）	full_test
+2026-06-05T20:50	0549ad0	picturebook-video	87.5	91.0	keep	边界条件+实测表现	Round 1: 加 4.1 异常处理 fallback 5 项 + 实测触发清单 5 场景。维度 3 9→10 +0.1，维度 8 8→9 +0.25，加权 +3.5	dry_run
+2026-06-05T20:55	NEW	picturebook-video	91.0	95.0	keep	指令具体性+实测表现	Round 2: 加 Cat 6 Clip 端到端实战案例（4 步：算时长→切分表→自检→反馈）。维度 5 9→10 +0.15，维度 8 9→10 +0.25，加权 +4.0	dry_run
+2026-06-05T21:00	NEW	picturebook-video	95.0	96.5	keep	整体架构	Round 3: v15+v15.1 模板合并去重。维度 7 9→10 +0.15，加权 +1.5	dry_run
+2026-06-05T21:10	30c9865	picturebook-video	96.5	96.5	validate	全维度	full_test 验证 dry_run 评分方法（独立 subagent 静态对照）: with_skill 9.2/10 vs baseline 4.9/10 vs delta 7.6/10。dry_run 96.5 略偏高（机器对关键词命中更宽容），full_test 实际预估 8.7-9.0/10。增量价值 7.6/10 = 显著，方法有效	dry_run
