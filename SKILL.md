@@ -14,8 +14,8 @@ triggers:
 |> 输入：静态图（≥1张）+ 旁白；输出：可播放动画视频。
 |> 严格遵循即梦官方 SOP 架构（Phase 0-9），针对绘本动画场景进行核心适配。
 
-> 📚 **遇到问题先看范式索引**：[VERSION_INDEX.md](VERSION_INDEX.md) —— 速查 11 个实测范式（v3-v14）的核心/状态/适用场景。详细实测日志在 [references/versions/](references/versions/)。
-> 检索示例：找"怎么禁 BGM" → v7 / 找"多图分镜" → v14 / 找"BGM 调性统一" → v10。
+> 📚 **遇到问题先看范式索引**：[VERSION_INDEX.md](VERSION_INDEX.md) —— 速查 12 个实测范式（v3-v15）的核心/状态/适用场景。详细实测日志在 [references/versions/](references/versions/)。
+> 检索示例：找"怎么禁 BGM" → v7 / 找"多图分镜" → v15 / 找"BGM 调性统一" → v10 / 找"运镜调性" → v15（**2026-06-05 起绘本默认**）。
 
 ---
 
@@ -82,9 +82,10 @@ Phase 9: 视频剪辑/成片
    - **注意**：时间感描述（"3 秒后""砰弹出"等）≠ 套公式——**允许**
 
 6. **范式风格**？（领读型同氛围 v10 / 调性匹配 v8 / 静默治愈 v7 / 强动感 v9）
-   - **领读型默认 = v14 骨架 + v10 段 4（跨 Clip 同主题 BGM）**
+   - **绘本默认 = v15**（v14 骨架 + 6 必问 + 音效密集型，**2026-06-05 起**）
+   - 备选 v14 仍可用（4 段骨架 + v7 静默型）
    - 备选 v7（静默）/ v8（每 shot 调性）/ v9（整 Clip 一致）
-   - 详见 [VERSION_INDEX.md](VERSION_INDEX.md) 范式索引
+   - 详见 [VERSION_INDEX.md](VERSION_INDEX.md) + [v15.md](references/versions/v15.md)
 
 ### 5 必避（基于 5 个实测问题）
 
