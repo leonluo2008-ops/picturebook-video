@@ -169,9 +169,14 @@ triggers:
 |---|---|
 | 图片加载失败（飞书云盘 token 过期）| 用 `lark-cli` skill 重新刷 token |
 | seedance 模型拒绝生成 | 检查 prompt 长度（>2000 字 = 拆段）+ 关键词触发风控（"血腥/暴力"等）|
-| 网络断开 | `--wait` 改手动 `status <task_id>` 轮询 |
+| 网络断开 / `--wait` 超时 | **不要 `--wait`**：提任务时**不传 `--wait`**，得到 task_id 后用 `status <task_id>` 轮询。Pic2 Clip 1 实测：`--wait` 等 180s 直接 timeout，task 实际 195s 才完成——**改轮询 = 拿得到结果**（详见 references/2026-06-06-pic2-mvp-validation.md）|
+| **轮询脚本模板**（Pic2 Clip 1 验证可复用）| `for i in $(seq 1 25); do sleep 15; result=$(seedance.py status <task_id>); status=$(echo "$result" \| grep '"status"' \| head -1); echo "[$i] $(date +%T) $status"; if echo "$status" \| grep -qE "succeeded\|failed"; then break; fi; done` |
+| 轮询拿到 succeeded 后下载 | **`--wait --download` 已 timeout 拿不到下载链接** → 用 `seedance.py status <task_id>` 拿到 `video_url` → `curl -s -o <output>.mp4 "<video_url>"` 下载 |
 | task 失败 | 不重提！**先查 ark list 端点**（避免 20 元浪费）|
+| **镜头一"拉远未完成"**（角色只露一角 / 场景没建完）| Pic2 Clip 1 实测：镜头一 frame_01 跑出"拉远未完成"状态，角色只露边缘。**根因**：镜头一 2s 太短，模型"拉远"动作没时间完成。**修复**：① 镜头一延长到 2-3s（标准 2-3s）；② 镜头一用"切到全景"代替"拉远到全景"（"切" = 一帧到位，"拉远" = 渐变需要时间）|
+| **角色动作未必 100% 执行**（如 prompt 写"小兔子张开嘴说Please"实际只闭嘴微笑）| Pic2 Clip 1 实测：镜头三 prompt 写"小兔子嘴巴张开礼貌地说出 Please"，实际跑出"闭嘴微笑"——模型**默认不打开角色嘴巴**做说话动作。**修复**：① prompt 改"嘴巴半张开做说话口型"（半张开 > 完全张开）；② 接受"闭嘴微笑"作为礼貌请求的标准表达（绘本调性 = 温柔内敛，不强制张嘴）；③ 复杂口型动作**等效替代**为眼神/手势/表情 |
 | 输出文件不存在 | `ls -lh` 验证（铁律 #30）后再发飞书 |
+| **"视频交付不抽帧"**（最易违反的反模式）| **发视频前先停 3 秒自问**——用户有没有让我抽帧？没让 = 不抽。详见 [references/视频交付工作流-不抽帧.md](references/视频交付工作流-不抽帧.md) v0.7.1 强化版 |
 
 ---
 
@@ -404,9 +409,12 @@ python3 /home/luo/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seeda
 | [references/2026-06-06-pic-real-cases.md](references/2026-06-06-pic-real-cases.md) | **2026-06-06 Pic 绘本 Clip 1 v1 翻车 + v2 修复**（`@图N` 中文别名翻车 + `@Image` 官方语法 + 4 镜头 12s 末帧 5s 一次跑通 + 5 反模式）|
 | [references/2026-06-06-pic-clip2-pitfalls.md](references/2026-06-06-pic-clip2-pitfalls.md) | **Pic 绘本 Clip 2 实战 · V13 范式失败 + 3 修法决策树**（主体外观@Image3 + 场景@Image4 分离实测翻车 · 视觉权重压过文本约束 · A/B/C 修法优先级）|
 | [references/2026-06-06-pic-real-cases-full.md](references/2026-06-06-pic-real-cases-full.md) | **2026-06-06 Pic 绘本端到端 5 Clip 实战**（56.4s · 节奏 2-1-3-5 跨 Clip 一致 · 铁律 #35b + #39 + v3 字保留全命中 · 20 拟声不重复表 + 5 大类节奏模板 + 10 项关键经验 + 6 反模式）|
+| [references/2026-06-06-pic2-mvp-validation.md](references/2026-06-06-pic2-mvp-validation.md) | **2026-06-06 Pic2 绘本 MVP 实测验证报告**（8 张图 Please 绘本 · 5 项 MVP 验证全命中 · 末帧=画面继续微动 · 节奏灵活不机械套 · 标版≠必跑 · 段 4 不写隔离句 · 新增 3 个实测 pitfall：seedance `--wait` 超时 / 镜头一拉远未完成 / 角色动作未必 100% 执行）|
 | [references/2026-06-05-ark-list-rescue.md](references/2026-06-05-ark-list-rescue.md) | ark list 端点救援 SOP（task ID 丢失挽救）|
+| [references/vision-analyze-2pass-pitfall.md](references/vision-analyze-2pass-pitfall.md) | **vision_analyze 2-pass 复核 pitfall**（v1 5/8 图错判 · 简介旁白对齐 + v2 复核 = 必跑 · 2026-06-06 Please 绘本沉淀）|
 | [assets/example-prompts/say-p1-v14-v7.txt](assets/example-prompts/say-p1-v14-v7.txt) | Say Clip 1 实际跑通 prompt 样例 |
-| [assets/example-prompts/good-afternoon-clip1-v15.txt](assets/example-prompts/good-afternoon-clip1-v15.txt) | **Good afternoon Clip 1 跨场景双图合并 v15 标版**（12s · 4 镜头 2-1-4-5 · @Image1+@Image2 官方语法 · 实际跑通 prompt + v1 翻车 3 根因 + 10 项自检全过）|
+| [assets/example-prompts/good-afternoon-clip1-v15.txt](assets/example-prompts/good-afternoon-clip1-v15.txt) | **Good afternoon Clip 1 跨场景双图合并 v15 范式**（12s · 4 镜头 2-1-4-5 · @Image1+@Image2 官方语法 · 实际跑通 prompt + v1 翻车 3 根因 + 10 项自检全过）|
+| [assets/example-prompts/please-clip1-v15.txt](assets/example-prompts/please-clip1-v15.txt) | **Please 绘本 Clip 1 MVP 验证 v15 范式**（10s · 5 镜头 2-1-3-2-2 · 5 项 MVP 验证全命中 · 标准词组 × 1 系数静默 · 末帧画面继续微动）|
 | [references/精简方法论-v0.7.0.md](references/精简方法论-v0.7.0.md) | **SKILL 精简方法论**（v0.7.0 实践 · 2070→264 行 + 达尔文恢复 +9.0，其他 skill 可复用）|
 | [references/达尔文dry_run实践-v0.7.0.md](references/达尔文dry_run实践-v0.7.0.md) | **达尔文 dry_run 实践**（3 轮全 keep · 87.5→96.5，子 agent 不可用时的降级评估参考）|
 
