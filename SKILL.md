@@ -312,6 +312,7 @@ token 用量：Z
 | D 子 agent 全部翻车 | 降级 v0.7.1+pic7 + 报告用户 |
 | 用户中途打断 | 接受中断，保存当前状态 |
 | **绘本原图场景和旁白错位** | **不重做**！接受现状 + Step 5 报告标注（绘本方已发布，强行改 = 不忠于原书） |
+| **遇到 skill 兜不住的问题** | **先查 [references/seedance-official-docs/README.md](references/seedance-official-docs/README.md)** —— 官方 6 个教程已搬入 skill 仓（508K），按"提示词写法/参数功能/端到端流程"分 3 个文件。**判断口诀**：skill references 没有 → 查官方 docs → 都没答案才用 web_search |
 
 ---
 
