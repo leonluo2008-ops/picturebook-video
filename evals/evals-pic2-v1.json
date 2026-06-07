@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "narration_en": "Please, Mama, read!",
+    "narration_zh": "请妈妈读书Please！",
+    "image_index": 1,
+    "image_desc": "室内亲子共读（橙兔+棕兔妈妈坐木椅+米色背景）",
+    "expected_rhythm": "1-1-3-1",
+    "expected_clip_duration": 6,
+    "expected_clip_count_per_clip": 4,
+    "expected_endframe_strategy": "1s 画面微动（小兔子耳朵轻颤+妈妈翻书页+窗外光影流转）"
+  },
+  {
+    "id": 2,
+    "narration_en": "Please, Papa, play!",
+    "narration_zh": "请爸爸玩耍Please！",
+    "image_index": 2,
+    "image_desc": "户外草地（橙兔奔向棕兔爸爸+蓝天下气球+星星）",
+    "expected_rhythm": "1-1-3-1",
+    "expected_clip_duration": 6,
+    "expected_clip_count_per_clip": 4,
+    "expected_endframe_strategy": "1s 画面微动（小兔子停下喘气+爸爸张开双臂+气球飘）"
+  },
+  {
+    "id": 3,
+    "narration_en": "Please, Teacher, sing!",
+    "narration_zh": "请老师唱歌Please！",
+    "image_index": 3,
+    "image_desc": "音乐教室（橙兔+熊老师持乐谱+音符飘落）",
+    "expected_rhythm": "1-1-3-1",
+    "expected_clip_duration": 6,
+    "expected_clip_count_per_clip": 4,
+    "expected_endframe_strategy": "1s 画面微动（老师哼唱+音符继续飘+小兔闭眼聆听）"
+  },
+  {
+    "id": 4,
+    "narration_en": "Please, Friend, share!",
+    "narration_zh": "请朋友分享Please！",
+    "image_index": 4,
+    "image_desc": "草地（橙兔+小鸡持彩虹圈）",
+    "expected_rhythm": "1-1-3-1",
+    "expected_clip_duration": 6,
+    "expected_clip_count_per_clip": 4,
+    "expected_endframe_strategy": "1s 画面微动（彩虹圈闪烁+小鸡转头笑+草地摇摆）"
+  },
+  {
+    "id": 5,
+    "narration_en": "Please, may I play?",
+    "narration_zh": "请问我可以玩吗Please？",
+    "image_index": 5,
+    "image_desc": "玩具房门口（单只橙兔站立门槛+橙红色拼色门+门内玩具）",
+    "expected_rhythm": "1-1-3-1",
+    "expected_clip_duration": 6,
+    "expected_clip_count_per_clip": 4,
+    "expected_endframe_strategy": "1s 画面微动（橙兔望室内+门把手微光）"
+  },
+  {
+    "id": 6,
+    "narration_en": "Please, may I eat?",
+    "narration_zh": "请问我可以吃吗Please？",
+    "image_index": 6,
+    "image_desc": "餐桌（橙兔端盘+丰盛水果+两把高背椅）",
+    "expected_rhythm": "1-1-3-1",
+    "expected_clip_duration": 6,
+    "expected_clip_count_per_clip": 4,
+    "expected_endframe_strategy": "1s 画面微动（橙兔微笑端盘+食物热气升腾）"
+  },
+  {
+    "id": 7,
+    "narration_en": "Please, may I read?",
+    "narration_zh": "请问我可以读吗Please？",
+    "image_index": 7,
+    "image_desc": "书架（橙兔站书架边+两侧彩色书）",
+    "expected_rhythm": "1-1-3-1",
+    "expected_clip_duration": 6,
+    "expected_clip_count_per_clip": 4,
+    "expected_endframe_strategy": "1s 画面微动（橙兔手搭书架+书页微动）"
+  },
+  {
+    "id": 8,
+    "narration_en": "Let's learn to speak together, please.",
+    "narration_zh": "一起学说请Please！",
+    "image_index": 8,
+    "image_desc": "收势页（单只橙兔竖双大拇指+爱心+星空+夕阳）",
+    "expected_rhythm": "2-1-3-5",
+    "expected_clip_duration": 11,
+    "expected_clip_count_per_clip": 5,
+    "expected_endframe_strategy": "4-5s 画面继续微动（橙兔轻收拇指+爱心闪烁+夕阳渐变）+ 短消化"
+  }
+]
