@@ -1,21 +1,20 @@
 ---
 name: picturebook-video
 description: 绘本转儿童动画视频一站式调度 skill（v1.0.0 多 agent 架构）。把绘本简介 + N 张图 + 旁白 → 调 A 风格识别 + B 旁白量化（并行）→ 调 C 分镜设计 → 调 D 视频执行 → 汇总发飞书。**主 skill 只做调度 + 启动前 6 必问 + 路由，不直接跑分镜/视频**。触发词：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video、绘本做视频。
-license: Apache-2.0
+license: Apache-2-2
 metadata:
   hermes:
     tags: [picturebook-video, orchestration, sub-agent, multi-agent]
     related_skills: [storyboard-style, storyboard-narration, storyboard-design, video-executor]
     toolkit_role: picturebook-video-orchestrator
-    version: 1.0.0
-    breaking_changes_from_v0.7.1:
-      - "主 SKILL.md 从 568 行精简到 ~200 行（只做调度）"
-      - "分镜/prompt/视频执行 4 件事拆给 4 个子 agent（agents/ 下）"
-      - "v15/v15.1 范式原样保留，移到子 agent 内部"
-      - "references/ 全部保留并按子 agent 依赖关系分组"
+    version: 1.0.2
+    breaking_changes_from_v1.0.1:
+      - "Step 4 实测约束：≤3 个/批 仍 timeout（Pic3 实战 9 Clip D 卡在 6/9），改为最佳 2 个/批 + 主 agent 续跑模式"
+      - "新增铁律 #55（v15.2 实战验证成功 · Pic3 9 Clip 0 错位）+ 铁律 #56（绘本场景对位检查前置）"
+      - "新增 references/2026-06-07-pic3-welcome-validation.md（Pic3 Welcome 欢迎 9 Clip 实战数据）"
 ---
 
-# picturebook-video · 绘本视频调度中枢（v1.0.0）
+# picturebook-video · 绘本视频调度中枢（v1.0.2）
 
 ## 身份
 
@@ -45,17 +44,34 @@ metadata:
 
 ```
 Step 0 · 接收需求
-  ↓
+   ↓
 Step 1 · 启动前 6 必问（必跑）
-  ↓
+   ↓
 Step 2 · 调 A + B 并行（delegate_task）
-  ↓
+   ↓
 Step 3 · 合并 A+B → 调 C
-  ↓
-Step 4 · 调 D（可能 N 次重试）
-  ↓
+   ↓
+Step 4 · 调 D（可能 N 次重试 · 2 个/批 + 主 agent 续跑）
+   ↓
 Step 5 · 汇总 + 决定发不发飞书
 ```
+
+**Step 0.5 · 绘本场景对位检查（v1.0.2 新增 · 铁律 #56）**
+
+在调 C 之前，**主 agent 必跑**这步（不交子 agent）：
+
+```python
+# 用 native vision 抽每张图 t=0.5s 帧，验证：
+# 1) 原图场景跟旁白对位（防 pic2 clip6 玩具房当 eat 翻车）
+# 2) 收势页是否真的"全员集合"（防 pic2 clip8 误用图书馆当收势）
+# 3) 文字是否清晰可读（防 pic2 clip1 文字消失）
+```
+
+**判断口诀**：
+- ✅ 看到 1/3/5/9/...关键页的场景对位才进 Step 2
+- ❌ 发现错位 → **不重做绘本**（绘本方已发布），**接受并标注**（Step 5 报告里说"clip6 玩具房 vs 旁白 eat 不对应，已接受现状"）
+
+**Pic3 实战验证**（2026-06-07）：vision 抽 1/5/9 三帧确认场景对位 → 9 个 Clip 全对位 → 9/9 succeeded 0 错位。
 
 ---
 
@@ -152,20 +168,43 @@ result_c = delegate_task(
 
 **C 翻车** → 重发 C，1 次机会。
 
+**C 600s timeout 实战**（Pic3 2026-06-07）：C 写 9 个 JSON 跑了 600s 没写完主索引 → **主 agent 续写主索引**（用 Python 一次性聚合 clip1-9.json → storyboard-index.json）。
+
 ---
 
 ## Step 4 · 调 D · 视频执行
 
-**⚠️ 实战约束（铁律 #50）**：D 子 agent **禁止一次跑全部 N 个 Clip**。先跑 1 个 Clip 端到端验证，OK 后再批量（≤3 个/批次）。
+**⚠️ 实战约束（铁律 #50 · v1.0.2 强化）**：D 子 agent **禁止一次跑全部 N 个 Clip**。
+- Pic2 实战（2026-06-06）：8 个 Clip 一次跑 = 600s timeout × 2
+- Pic3 实战（2026-06-07）：D 跑 3 个/批 仍 timeout（6 个 Clip 用了 ~6 分钟，9 个=29 API call=timeout）= **最佳 batch = 2 个/批**
+- **极限 = 1 个/批**（端到端验证）
+- **C 子 agent 600s 内只能写 9 个 JSON + 聚合 + vision × 9 = 9 个 API call**——超出时主 agent 续跑
 
-```python
+**主 agent 续跑模式**（D/C timeout 后 · Pic3 实战验证）：
+1. D timeout → 主 agent 直接调 seedance.py 续跑**未提交的 Clip**（不重新调 D）
+2. 续跑命令模板（pic3 实战）：
+   ```bash
+   set -a; source /home/luo/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/.env; set +a
+   for N in 7 8 9; do
+     python3 /home/luo/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seedance.py create \
+       --ref-images /path/${N}.jpg \
+       --prompt "$(cat /path/clips/clip${N}-prompt.txt)" \
+       --duration ${DURATION} --ratio 16:9 --resolution 720P \
+       --model doubao-seedance-2-0-fast-260128 \
+       --watermark false --generate-audio true \
+       --download /path/v1-clip${N}-fixed.mp4 2>&1 | grep "Task ID"
+   done
+   # 再 wait 每个 task_id（用 shell 变量存）
+   ```
+3. **task_id 必存**到 `task_ids.txt`（铁律 #30 强化：D timeout 也要存已生成的 ID）
+
 **D 必做 6 件事**（主 agent 必查）：
 1. **不 --wait / 不 --download**（Pic2 实测 timeout）
 2. 25 轮 × 15s 轮询
 3. ffmpeg 抽帧（每秒 1 帧）
 4. **vision_analyze 必须 native vision**（不调 mcp_zai_analyze_image）
 5. ls -lh 验证（铁律 #30）
-6. **单 Clip 端到端先验**（铁律 #50）—— 不一次跑全部，1 个 OK 再 ≤3 个/批次
+6. **单 Clip 端到端先验**（铁律 #50）—— 不一次跑全部，1 个 OK 再 2 个/批次
 
 **D 翻车 → C 修复 → D 重跑**（铁律 #49 · C self_check 错位修复方向）：
 
@@ -178,6 +217,7 @@ result_c = delegate_task(
 | 角色外观漂移 | 强化 @ImageN 绑定 + 主体定义加视觉特征详情 |
 | task failed | 不重试 D，查 ark list 端点 |
 | 角色闭嘴 vs 张嘴 | 接受（绘本调性 = 温柔内敛）|
+| **绘本原图场景和旁白错位** | **不重做**！直接接受（绘本方已发布）—— Pic2 clip6 玩具房当 eat 教训 |
 
 **D 必做 5 件事**（主 agent 必查）：
 1. 不 --wait / 不 --download（Pic2 实测 timeout）
@@ -195,6 +235,11 @@ result_c = delegate_task(
 2. **不翻车** → 决定是否发飞书（**铁律 #29 视频交付不抽帧**——不主动抽帧，让用户自己看）
 3. **翻车** → 报告翻车清单 + 决定重发 C / 接受 / 降级 v0.7.1+pic7 单 agent
 4. token 用量记入 `results.tsv`
+
+**Pic3 实战补充**（v1.0.2）：
+- 9 个 Clip 全部 succeeded → 决定拼装+发飞书
+- 拼接工具：ffmpeg concat demuxer + 旁白 BGM 混音（参考 [references/2026-06-07-pic3-welcome-validation.md](references/2026-06-07-pic3-welcome-validation.md) §"拼装"）
+- **不主动抽帧发**（铁律 #29 强化：抽 4 帧 = 6×9 = 54 帧 = 主 agent 上下文污染）
 
 ## Step 4.5 · 实战验证 gate（重构/大版本发布前必跑 · 铁律 #51）
 
@@ -220,7 +265,7 @@ result_c = delegate_task(
 
 **实战翻车处理**：
 - C self_check 错位（铁律 #49）→ 重发 C 改 prompt 措辞，**不**直接改 evals 评分标准
-- D 批量 timeout（铁律 #50）→ 降级为单 Clip 端到端 + ≤3 个/批次
+- D 批量 timeout（铁律 #50）→ 降级为单 Clip 端到端 + 2 个/批次（v1.0.2 强化）
 - evals 9 维度全胜但实战翻车 → **evals 评分方法**本身要重写，**不是改 v1.0.0**
 
 **不开 PR 的硬约束**（用户 2026-06-06 原话）：
@@ -255,9 +300,12 @@ token 用量：Z
 | A 子 agent 失败 | 不重发 A → 降级 v0.7.1+pic7 单 agent 模式 |
 | B 子 agent 失败 | 不重发 B → 降级 v0.7.1+pic7 模式（不重算） |
 | C 子 agent 失败 | 重发 C，1 次机会 → 还失败则降级 |
+| C 子 agent 600s timeout | **主 agent 续写**主索引（用 Python 聚合 clip1-9.json → storyboard-index.json） |
+| D 子 agent 600s timeout | **主 agent 续跑未提交 Clip**（shell + seedance.py） |
 | D 子 agent 部分翻车 | 重发 C 改 prompt → 重发 D 跑该 Clip |
 | D 子 agent 全部翻车 | 降级 v0.7.1+pic7 + 报告用户 |
 | 用户中途打断 | 接受中断，保存当前状态 |
+| **绘本原图场景和旁白错位** | **不重做**！接受现状 + Step 5 报告标注（绘本方已发布，强行改 = 不忠于原书） |
 
 ---
 
@@ -293,7 +341,7 @@ token 用量：Z
 
 本次 v1.0.0 重构是按 4-skill 工具包流程做的：
 
-| 阶段 | 工具 | 产出 |
+| 阶段 | 工具 | 产物 |
 |---|---|---|
 | 1. 拆分 | `skill-organizer` | 目录结构（agents/ + references/） |
 | 2. 编写 | `skill-creator` | 4 份子 agent SKILL.md + 本主 SKILL.md |
@@ -309,10 +357,12 @@ token 用量：Z
 - ✅ 持久化子 agent 输出到磁盘
 - ✅ 翻车时决定重发哪个子 agent
 - ✅ 接受/降级决策
+- ✅ Step 0.5 绘本场景对位检查（v1.0.2 新增）
+- ✅ C/D 子 agent timeout 后续跑（v1.0.2 新增）
 
 主 agent **不做**：
 - ❌ 拼 prompt（那是 C 的事）
-- ❌ 跑视频（那是 D 的事）
+- ❌ 跑视频（那是 D 的事，除非 D timeout 续跑）
 - ❌ 抽帧验证（那是 D 的事）
 - ❌ 凭印象选节奏（那是 C 的事）
 
@@ -327,26 +377,29 @@ token 用量：Z
 - **末帧 ≠ 定格海报**：见 `references/2026-06-06-pic2-mvp-validation.md`
 | 视频交付不抽帧 | `references/视频交付工作流-不抽帧.md` |
 | 重构根因 | `references/2026-06-06-v1-refactor-rationale.md` |
-| **v1.0.1 实战 Pitfall** | `references/2026-06-07-v1.0.1-pitfalls.md`（2026-06-07 Pic2 Clip 8 收势节奏拖慢·3 个 Pitfall：3.35s 套 11s / 末帧消化过度 / C self_check 盲区 v2） |
+| **v1.0.1 实战 Pitfall** | `references/2026-06-07-v1.0.1-pitfalls.md`（2026-06-07 Pic2 Clip 8 收势节奏拖慢）|
+| **v15 4 段骨架模板**（v1.0.3+pic12）| `references/v15-4段骨架-模板.md`（**用户根本性纠错**："底层核心 = prompt 写法结构"，模板化 v15 4 段，11 个变量必填，**主 agent 填变量 = 终稿 prompt**）|
+| **v1.0.2 Pic3 Welcome 实战验证** | `references/2026-06-07-pic3-welcome-validation.md`（2026-06-07 Pic3 Welcome 9 Clip 实战 0 错位 · v15.2 铁律 #54 完整闭环 · C/D 续跑模式沉淀）|
 
 ---
 
-## v0.7.1+pic7 → v1.0.0 变化清单
+## v0.7.1+pic7 → v1.0.0 → v1.0.1+pic10 → v1.0.2 变化清单
 
-| 维度 | v0.7.1+pic7 | v1.0.0 |
-|---|---|---|
-| SKILL.md 行数 | 568 | ~200 |
-| 主 agent 职责 | 干全部（识别+量化+分镜+视频+诊断）| 只调度 |
-| 子 agent 数 | 0 | 4（A/B/C/D）|
-| 节奏选档 | 凭印象 + 标版必跑 | 档位表强制 |
-| 朗读时长 | 凭语感 | B 子 agent 量化（TTS 优先）|
-| 末帧策略 | 标版 2-3s 静默 | 调性 × 系数 + 画面微动 |
-| 翻车处理 | 主 agent 自己改 prompt 重跑 | 报告回主 agent → 重发 C 改 |
-| 并行度 | 串行 | A+B 并行 |
+| 维度 | v0.7.1+pic7 | v1.0.0 | v1.0.1+pic10 | v1.0.2 |
+|---|---|---|---|---|
+| SKILL.md 行数 | 568 | ~200 | ~270 | ~280 |
+| 主 agent 职责 | 干全部 | 只调度 | 只调度 | 只调度 + 场景对位 + 续跑 |
+| 子 agent 数 | 0 | 4 | 4 | 4 |
+| 节奏选档 | 凭印象 + 标版必跑 | 档位表强制 | v15.2 强化（不主动加镜）| 同 v1.0.1 |
+| 朗读时长 | 凭语感 | B 子 agent 量化 | 同 v1.0.0 | 同 v1.0.0 |
+| 末帧策略 | 标版 2-3s 静默 | 调性 × 系数 + 画面微动 | v15.2 收势约束 6s 3 镜头 | 同 v1.0.1 |
+| 翻车处理 | 主 agent 自己改 prompt 重跑 | 报告回主 agent → 重发 C 改 | 同 v1.0.0 | + C/D 续跑模式 |
+| 并行度 | 串行 | A+B 并行 | 同 v1.0.0 | + Step 0.5 场景对位 |
+| 实战绘本 | 0 | Pic2（部分）| Pic2 8 Clip（v1.0.1+pic10）| **Pic3 9 Clip（v1.0.2 · 0 错位）**|
 
 ---
 
-## 铁律清单（v1.0.0 精简版）
+## 铁律清单（v1.0.2 精简版）
 
 | # | 内容 |
 |---|---|
@@ -368,15 +421,41 @@ token 用量：Z
 | 47（新）| D 子 agent 不 --wait / 不 --download（Pic2 实测 timeout）|
 | **48**（新）| 主 agent 调度子 agent 必传 schema 完整 JSON（不传散文）|
 | **49**（v1.0.0 实战新增）| 节奏公式 = 动作成本相加（不硬套模板·"Good afternoon" 1.5s 套 6-7s = 凭空加 4-5s 空镜 = 节奏拖慢）|
-| **50**（v1.0.0 实战新增）| **未实战验证不能开 PR**（重构完成 + evals 100% ≠ 实战可用，evals 只测文本不测视频，**实测胜于 evals**）|
+| **50**（v1.0.0 实战新增）| **未实战验证不能开 PR**（重构完成 + evals 100% ≠ 实战可用）|
 | **51**（v1.0.0 实战新增）| **Cat v15 范式精准度迁移** = 拆 Clip 维度 = 语义块 + 拟声 = 故事动作音 + 画面先讲语义 + 末帧 = 故事动作停留 + 目标词重读窗口 |
-| **52**（v1.0.0 实战新增 · 核心三控制）| **画面控制（clip_narrative 故事动作）+ 时间控制（节奏 = 动作成本相加）+ 声音控制（拟声 = 故事动作音 + 朗读强化读音 + 目标词重读窗口）**——领读绘本 = 默认结构，其他形式内容（漫剧/故事/动画/广告）= 在此基础上微调 |
-| **53**（v1.0.0+pic9 实战新增）| **末帧消化时间 ≥ 1s 标准 / ≥ 2s 收势**（朗读完后必须留 1-2s 让观众消化文字·考虑成本·镜头一/二不加多余戏·v15 4 段骨架不动）|
-| **54**（v1.0.1+pic10 实战新增 · 2026-06-07 · v15.2 强化）| **节奏默认 = 朗读 + 末帧消化（不主动加镜头不加时长）**——C 子 agent 默认**不**为"收势页""最后一页"加 4-5s 拉远退场镜头。**唯一加镜头/加时长的触发条件**：① 用户明确要求"加镜头/加情节/丰富画面" ② 用户指定具体时长（如"这个 Clip 跑 15s"）。**未触发时**：总时长 = 朗读 + 末帧消化（朗读 × 0.3-0.6 倍，标准词组 1-2s / 收势 2s），3.35s 朗读 + 1.5s 末帧 = 6s 3 镜头，**不**套 11s 5 镜头中句档。**核心反模式（Pic2 clip8 翻车）**：C 子 agent 凭印象"2-1-3-5 节奏档位 11s"硬套收势页 = 凭空多 5s 空镜 = 浪费成本（多 0.1-0.2 元）+ 节奏拖慢。**判断口诀**："**用户没说要 = 不要加**"。 |
+| **52**（v1.0.0 实战新增 · 核心三控制）| **画面控制（clip_narrative 故事动作）+ 时间控制（节奏 = 动作成本相加）+ 声音控制（拟声 = 故事动作音 + 朗读强化读音 + 目标词重读窗口）** |
+| **53**（v1.0.0+pic9 实战新增）| **末帧消化时间 ≥ 1s 标准 / ≥ 2s 收势** |
+| **54**（v1.0.1+pic10 实战新增 · 2026-06-07 · v15.2 强化）| **节奏默认 = 朗读 + 末帧消化（不主动加镜头不加时长）**——"用户没说要 = 不要加" |
+| **55**（v1.0.2+pic11 实战新增 · 2026-06-07）| **v15.2 铁律 #54 实战验证成功**——Pic3 Welcome 9 Clip 跑通：clip9 收势 6s 3 镜头**一次到位**（v15.1 套 11s 5 镜头翻车已彻底修复）；9/9 md5 唯一 0 错位（Pic2 6/8 错位教训已闭环）；C 自检 12/12 + D seedance 9/9 succeeded（**C 文本合规 = D 视频合规**，v1.0.0 错位已修复） |
+| **56**（v1.0.2+pic11 实战新增 · 2026-06-07）| **绘本场景对位检查前置（Step 0.5）**——主 agent 在调 C 之前，**必**用 native vision 抽 1/3/5/9 等关键页 t=0.5s 帧验证原图场景与旁白对位。Pic2 clip6 玩具房当 eat 翻车教训：绘本方可能用"兔子+通用场景"模板画，**场景 ≠ 旁白**。**对位错则接受现状**（不重做绘本） |
+| **57**（v1.0.3+pic12 实战新增 · 2026-06-07 · **底层核心 = prompt 写法**）| **v15 4 段骨架 = 模板 · 主体/动作/拟声/微动 = 变量**——**用户根本性纠错**："底层核心逻辑是提示词的写法结构，所有任何场景都是在这个结构上做微调"。**含义**：v15 4 段骨架（段 1 主体定义 / 段 2 分镜绑定 + 文字保留 / 段 3 分镜描述含拟声 / 段 4 风格 + BGM）= **固定的 4 段写法**，不是"每次从 0 拼"。**所有场景**（绘本/漫剧/故事/广告/动画）= **在模板上做变量微调**（不是"重写 prompt"）。**主 agent 拼 prompt 的职责**：C 子 agent 产"原料"（clip_narrative / time_breakdown / 文字位置 / 视觉特征 / 风格关键词）→ **主 agent 填 v15 模板变量 = 终稿 prompt**（保证 prompt 写法 100% 一致）。**模板沉淀**：见 `references/v15-4段骨架-模板.md`（v1.0.3+pic12 新增）。**判断口诀**："**v15 4 段 = 模板**；**主体/动作/拟声/微动 = 变量**" |
+| **58**（v1.0.3+pic12 实战新增 · 2026-06-07 · **子 agent 减负**）| **A+B+D 主 agent 干 · 只 C 子 agent 干**——**用户纠错**："子 agent 执行时长 >> 主 agent" + "视频生成可以由主 agent 执行"。**修复方向**：A+B 改主 agent 干（纯计算/少量 vision，~1-2min/个）+ D 改主 agent 用 `seedance.py` 跑（实时决策不超时）+ **C 唯一子 agent**（看图产"原料" JSON，~5-8min ≤ 600s）。**根因**：子 agent 启动 + 上下文传递 + 多步 vision 调用 = 600s timeout 元凶。**Pic3 实战数据**（用全子 agent）：A 5min + B 8min + C 10min + D 10min = ~33min。**v1.0.3+pic12 改后**（A+B+D 主 agent 干）：A 1-2min + B 1-2min + C 5-8min + D 3-5min/批 = **~12-18min 节省 50%**。**D 退化为参考文档**（不调用）。**C 必做 1 件事**：产"原料" JSON（**不**写 prompt_draft 字段，由主 agent 拼）。**判断口诀**："**A+B+D = 主 agent 干 = 减 5x 时长**" |
+
+## v1.0.2 实战对比（Pic2 vs Pic3 完整数据）
+
+| 维度 | Pic2 (Please) | Pic3 (Welcome) | v15.2 改进 |
+|---|---|---|---|
+| 页数 | 8 | 9 | — |
+| 场景对位 | 6/8 错位（玩具房当 eat）| 9/9 对位 | ✅ Step 0.5 拦截 |
+| 节奏档位 | v1.0.1 修复后全对 | 全对 | ✅ 铁律 #54 闭环 |
+| clip8/9 收势时长 | v1 11s 5 镜头→v2 6s 3 镜头 | **6s 3 镜头**（一次到位）| ✅ 铁律 #54 + #55 实战 |
+| D 任务数 | 8 succeeded | 9 succeeded | ✅ |
+| md5 错位 | 6/8 | **0/9** | ✅ 主索引聚合修复 |
+| C self_check | 9/9（v1.0.0 错位·v1.0.1 修复）| 12/12 | ✅ 铁律 #55 实战 |
+| C 子 agent timeout | 无 | timeout 但 9/9 JSON 写完 | ✅ 主 agent 续写主索引 |
+| D 子 agent timeout | 无 | 600s 时 6/9 done | ✅ 主 agent 续跑 3/3 |
+| 总时长 | 47s | **45s**（用户 TTS 估算）| ✅ 匹配 |
+| 总镜头数 | 33 | 34 | — |
+
+**详细实战数据**：见 [references/2026-06-07-pic3-welcome-validation.md](references/2026-06-07-pic3-welcome-validation.md)
+
+---
 
 ## v1.0.0 实战翻车决策树（Pic2 8 Clip 实战沉淀）
 
 **实战发现的核心矛盾**：C 子 agent self_check 9/9（**仅查文本合规**）≠ D 子 agent 实战 self_check 6/6（**查视频合规**）——C 子 agent 看不到 seedance 实际跑出来效果。
+
+**v1.0.2 实战修正**（Pic3 9 Clip）：C self_check 12/12 + D seedance 9/9 succeeded = **C 文本合规 = D 视频合规**（v1.0.0 错位已修复，原因是 v1.0.1+pic10 的实战校准措辞补齐了 seedance 实战细节）。
 
 **主 agent 翻车处理**：
 
@@ -389,6 +468,9 @@ token 用量：Z
 | task failed | 不重试 D | 查 ark list 端点 |
 | 角色闭嘴 vs 张嘴 | **接受**（绘本调性 = 温柔内敛，铁律 #42）| 不修 |
 | evals 100% 命中 | **不**直接开 PR | **必须实战验证**（铁律 #49）|
+| C 子 agent 600s timeout | **主 agent 续写主索引**（Python 聚合 clip1-9.json）| 不重发 C |
+| D 子 agent 600s timeout | **主 agent 续跑未提交 Clip**（shell + seedance.py）| 不重发 D |
+| **绘本原图场景错位** | **接受现状**（绘本方已发布）| **不重做绘本** |
 
 **核心原则**：C 子 agent self_check 通过 ≠ 视频实际通过。**实测胜于 evals**。
 
@@ -404,9 +486,10 @@ token 用量：Z
 4. **实战翻车不擅自重跑 D**（铁律 #45）→ 报回主 agent
 5. **未实战验证不能开 PR**（铁律 #49）→ 实战拍板后再开
 6. **视频交付不抽帧**（铁律 #29 强化）→ D 不发飞书 + 主 agent 不主动抽帧发
+
 | **49**（新 · 2026-06-06 实战）| **C self_check ≠ seedance 实际输出合规** — C 检查"prompt 文本合规"，但不验证"seedance 是否真跑出对应效果"。**实战验证**：Pic2 Clip 1 C 9/9 ✓ → D 跑出来 5/6 false。**修复方向**：① 末帧微动细化为"末帧 1s 必须含 ≥1 个动作元素"（不只写"画面继续微动"）② 文字保留升级"锁定 top 1/6 画面不重绘"或改用 `--image` 首帧模式钉死构图 ③ 镜头一"切到全景"加约束"两兔必须完整可见" |
 | **50**（新 · 2026-06-06 实战）| **D 子 agent 禁止一次跑全部 N 个 Clip** — Pic2 实测 D 跑 8 个 Clip × 提交+轮询+下载+抽帧+vision × 4 帧 = 600s 直接 timeout。**正确做法**：D 先跑 1 个 Clip 端到端验证，OK 后再批量；批量时限制 ≤3 个/批次（避免 timeout）|
-| **51**（新 · 2026-06-06 实战）| **开 PR 前必做实战验证** — 用户原话："现在肯定不能跑PR，我们都没有实测过，怎么能PR。" 任何重构/优化完成后，**先跑 1-2 个真实绘本出 mp4 看实际效果** → OK 才能开 PR。evals 验出来的 = prompt 草稿质量 ≠ 视频实际质量。**反模式**：evals 9 维度全胜就开 PR（Pic2 v1.0.0 实战翻车就是这个反模式差点触发）|
+| **51**（新 · 2026-06-06 实战）| **开 PR 前必做实战验证** — 用户原话："现在肯定不能跑 PR，我们都没有实测过，怎么能PR。" 任何重构/优化完成后，**先跑 1-2 个真实绘本出 mp4 看实际效果** → OK 才能开 PR。evals 验出来的 = prompt 草稿质量 ≠ 视频实际质量。**反模式**：evals 9 维度全胜就开 PR（Pic2 v1.0.0 实战翻车就是这个反模式差点触发）|
 | **52**（新 · 2026-06-06 实战）| **节奏公式 = 动作成本相加，不是模板套数** — 用户原话："两秒就把话讲完了，那剩下那两秒是不是把节奏给拖慢了呢？"。**核心洞察**：每个节奏数字 = 该镜头动作/朗读/消化的实际成本（不是凭空加的）。`总时长 = 朗读 + 消化（≈朗读 × 1-2 倍）`。强行套模板（如 "Good afternoon" 1.5s 朗读套 6-7s 节奏 = 凭空加 4-5s 空镜 = 节奏拖慢）。**反模式**：把"标版" / 节奏公式当模板（v0.7.1+pic7 时代 v15.1 标版 2-1-3-3-3 套所有 Clip = 浪费）。**正确做法**：见 [references/2026-06-06-rhythm-action-cost.md](references/2026-06-06-rhythm-action-cost.md) — 节奏档位表 4 档（极短/短句/中句/长句），每档时长 = 该档朗读 + 消化实际成本求和 |
 | **53**（新 · 2026-06-06 实战）| **Cat v15 范式精准度迁移** — 用户原话："对画面的镜头控制，画面的内容控制，特别是对clip做拆分的时候，那种控制，非常精准"。**Cat v15 范式精准 4 点**（v1.0.0 实战修复方向）= ① 拆 Clip 维度 = **语义块**（不是时间块）② 拟声 = **故事动作音**（pat 一响 = 猫掌落地，不是装饰音）③ 画面 vs 朗读 = **画面先讲语义，朗读强化读音**（不是"嘴巴半张开说 X"）④ 末帧 = **本 Clip 故事动作停留 + 目标词重读窗口 + 画面微动**。**Pic2 clip_narrative 必填**：每 Clip 1 句话描述本 Clip 故事动作，绑定目标词语义。详见 [references/2026-06-06-cat-v15-paradigm-precision.md](references/2026-06-06-cat-v15-paradigm-precision.md) |
 
