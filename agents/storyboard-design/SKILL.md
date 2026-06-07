@@ -59,65 +59,116 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 
 **前提**：style_report 和 narration_report 都必须是 `status: succeeded` 的合法 JSON。否则**直接报错回主 agent**，不进入分镜设计。
 
-## 输出 schema（结构化 JSON）
+## 输出 schema（结构化 JSON · v1.0.3+pic12 新版 · **不写 prompt_draft**）
+
+> **⚠️ 重要（v1.0.3+pic12 修正）**：C 子 agent **不写 `prompt_draft` 字段**——只产"原料" JSON（11 维：clip_narrative / time_breakdown / characters[].visual_features / text_position / style_keywords / tier / shot_count / total_duration_seconds / rhythm_formula / end_frame_microaction / target_word_emphasis / seedance_visual_checklist / narration_text）。**主 agent 必填 v15 4 段骨架模板**（见 `picturebook-video/references/v15-4段骨架-模板.md`）。
+>
+> **根因**：v15 4 段骨架 = 模板，C 每次从 0 拼 prompt = 写法不一致 + 慢。**C 产"原料" → 主 agent 填 11 变量 = 终稿** = 100% 一致 + 快。
+>
+> **Pic4 No 绘本实战验证**（2026-06-07）：9/9 JSON 不写 prompt_draft 字段，C 跑通 ~8 min，**主 agent 一次填 9 段模板 ~5 min = 总 13 min**（vs v1.0.1 全子 agent 拼 prompt ~25 min = 省 12 min）。
 
 子 agent **必须**按以下 schema 输出：
 
 ```json
 {
   "task": "storyboard-design",
-  "book_title": "Please 请",
-  "image_count": 8,
+  "status": "succeeded",
+  "book_title": "No 不",
+  "image_count": 9,
   "clips": [
     {
       "clip_index": 1,
-      "narration_line_index": 1,
       "image_index": 1,
-      "rhythm_formula": "1-1-3-1",
-      "rhythm_rationale": "< 4s 旁白 → 6s 档 → 4 镜头节奏 = 1-1-3-1（建立 1s + 角色跃入 1s + 朗读 3s + 末帧 1s）>",
-      "镜头数": 4,
-      "total_duration_seconds": 6,
+      "narration_text": {"en": "No!", "zh": "不能No!"},
+      "clip_narrative": "小熊举起双掌做'Stop'拒绝手势·坚定地首次宣布'No'·开篇确立规则守护者姿态",
+      "rhythm_formula": "1-朗读-1",
+      "tier": "极短档",
+      "shot_count": 3,
+      "total_duration_seconds": 3,
       "time_breakdown": [
-        {"镜头": "镜头一", "start": 0, "end": 1, "type": "场景建立", "duration": 1},
-        {"镜头": "镜头二", "start": 1, "end": 2, "type": "角色跃入", "duration": 1},
-        {"镜头": "镜头三", "start": 2, "end": 5, "type": "朗读+静默", "duration": 3, "narration_seconds": 3.15, "silence_seconds": 0},
-        {"镜头": "镜头四", "start": 5, "end": 6, "type": "末帧消化", "duration": 1, "画面_微动": true}
+        {"shot": 1, "type": "scene_establish", "label": "镜头一·场景建立", "start": 0.0, "end": 1.0, "duration": 1.0, "narration_seconds": 0, "sfx": "沙沙一响", "action": "..."},
+        {"shot": 2, "type": "role_enter_and_narration", "label": "镜头二·角色跃入+朗读", "start": 1.0, "end": 2.0, "duration": 1.0, "narration_seconds": 0.7, "narration_text": "No!", "sfx": "咚一响", "action": "..."},
+        {"shot": 3, "type": "narration_silence", "label": "镜头三·朗读+静默消化", "start": 2.0, "end": 3.0, "duration": 1.0, "narration_seconds": 0, "sfx": "叮一响", "action": "..."}
       ],
-      "末帧_strategy": "画面继续微动（小兔子耳朵轻颤+妈妈翻书页+窗外光影流转）",
-      "末帧_rationale": "标准词组 × 1.0 系数 → 1s 静默消化足够（绘本活泼调 + 不需长消化）",
-      "prompt_draft": "主体定义：...\n分镜绑定：...\n镜头一（0-1s ...\n镜头二（1-2s ...\n镜头三（2-5s ...\n镜头四（5-6s ...\n参考图原有的所有文字（...）必须完整保留...\n无任何背景音乐、无旁白人声、无哼唱。\n风格：...",
-      "prompt_format": "v15_4段骨架",
-      "self_check": {
-        "uses_@Image_syntax": true,
-        "角色_指代_对齐子代": true,
-        "无_其他元素不出现_隔离句": true,
-        "末帧_不是_定格海报": true,
-        "末帧_不是_标版_强制": true,
-        "文字_保留_措辞_v3": true,
-        "末帧_静默_跟_朗读_成比例": true,
-        "镜头一_不是_拉远_未完成": true,
-        "节奏_按_档位_选_不是_凭印象": true,
-        "_实战校准_末帧微动_具体动作": true,
-        "_实战校准_文字保留_锁定位置": true,
-        "_实战校准_镜头一_主体完整可见": true
+      "characters": [
+        {
+          "name": "棕熊",
+          "role": "主角·规则守护者",
+          "visual_features": {
+            "feature_1": "深棕色+浅米白色吻部+黑豆眼+三角鼻（纸艺拼贴）",
+            "feature_2": "圆形耳朵+耳朵内侧浅棕填充",
+            "feature_3": "米白色腹部+浅棕肉垫爪心",
+            "action": "双掌举到脸颊两侧掌心向外呈 Stop 拒绝手势",
+            "expression": "眉头微皱+眼睛圆睁直视+嘴巴小而严肃下撇+坚定不悦"
+          }
+        }
+      ],
+      "text_position": {
+        "en_word": "No",
+        "zh_word": "不能",
+        "location": "画面顶部正中央（位于小熊头部的正上方），呈上下两行排列",
+        "en_color": "N=鲜艳红色 / o=橙红色",
+        "zh_color": "不=绿/红/紫彩色碎纸拼贴 / 能=蓝/红/黄彩色碎纸拼贴",
+        "font_style": "粗体圆润无衬线童趣字体，笔画边缘不规整，撕纸拼贴风格",
+        "lock_zone": "顶部 1/6 画面，文字位置和颜色不得改动"
       },
-      "warnings": ["..."]
+      "style_keywords": [
+        "2D paper collage style",
+        "哑光暖色 / matte warm palette",
+        "撕纸毛边纹理 / torn paper edges",
+        "圆润卡通造型 / rounded cartoon shapes"
+      ],
+      "end_frame_microaction": {
+        "duration_seconds": 1.5,
+        "type": "narration_silence",
+        "specific_motion": "末帧 1s 内：小熊耳朵轻颤 2 次（0.4s）+ 眼神从直视镜头下移到注视小朋友方向（0.3s）+ 嘴部微张做留白（0.3s）",
+        "is_static_poster": false,
+        "action_element_count": 3
+      },
+      "target_word_emphasis": {
+        "word": "No",
+        "position": "朗读段(1.0-1.7s)",
+        "duration_seconds": 0.7,
+        "emphasis_window": "0.3s 强重读+0.4s 拖长收尾，让小朋友跟读第一句开篇否定词"
+      },
+      "seedance_visual_checklist": {
+        "frame_01": ["小熊@Image1 主体完整可见于画面下方中央", "双掌 Stop 拒绝手势", "顶部 No/不能 文字完整保留", "..."],
+        "frame_03": ["小熊双掌向镜头轻推", "嘴部开合念出 No!", "..."],
+        "frame_05": ["顶部 No（N=红 / o=橙红）+ 不能（彩色碎纸拼贴）文字完整保留", "文字位置锁定在顶部 1/6 画面", "..."],
+        "frame_06": ["小熊保持双掌举起的 Stop 手势", "耳朵轻颤 2 次", "末帧 1.5s 静默消化时间", "..."]
+      }
     },
     ...
   ],
-  "total_clips": 8,
-  "total_duration_seconds": 53,
+  "total_clips": 9,
+  "total_duration_seconds": 38,
   "rhythm_decision_log": [
-    "Line 1-7: 每句 ~3s → < 4s 档 → 6s Clip 节奏 1-1-3-1",
-    "Line 8: ~3.95s + 收势调性 → 11s Clip 节奏 2-1-3-5（4 镜头退场感）"
+    "Line 1: 1 词 No! → 极短档 3s 3 镜头",
+    "Line 2-7: 3 词 No, no, X! → 短句档 4s 4 镜头（节奏一致）",
+    "Line 8: 4 词 No, no, not safe! → 中句档 5s 4 镜头",
+    "Line 9: 5 词收势句 → 长句档(收势) 6s 4 镜头（不套 11s 5 镜头）"
   ],
-  "warnings": [...],
+  "warnings": [
+    "未提供 TTS 音频,使用兜底公式 1.4 词/秒儿童领读型(±30% 误差)",
+    "总时长 38s 比 pic3 Welcome 45s 短 7s（No 绘本警示向紧凑节奏）"
+  ],
   "downstream_hints_for_D": {
-    "submission_strategy": "8 个独立 seedance 任务（不批量）",
+    "submission_strategy": "9 个独立 seedance 任务（不批量）· 2 个/批 + 主 agent 续跑模式",
     "polling_template": "for i in $(seq 1 25); do sleep 15; ..."
   }
 }
 ```
+
+**❌ 旧版 prompt_draft 字段（v1.0.0-pic11 · 已废弃）**：
+
+```json
+{
+  "prompt_draft": "主体定义：...\n分镜绑定：...\n镜头一（0-1s ...",  // ← ❌ v1.0.3+pic12 后 C 不再写
+  "prompt_format": "v15_4段骨架"
+}
+```
+
+**红线**（参见本文底部"红线 #9"）：**C 子 agent 必不写 `prompt_draft` 字段**。主 agent 拿到 C 的 11 维原料后，**用 `picturebook-video/scripts/fill_v15_template.py` 填 v15 4 段模板 = 终稿 prompt**，写到 `clips/clipN-prompt.txt`。
 
 ## 决策规则
 
@@ -361,61 +412,120 @@ result = delegate_task(
 2. **验证** 每个 prompt_draft 通过 self_check（不通过 → 重发 C，1 次机会）
 3. **持久化** prompt_draft 到磁盘（D 子 agent 只读不写）
 
-## 示例：Please 请 绘本 Line 1-8
+## 示例：No 不 绘本 Line 1（v1.0.3+pic12 新版 · **不写 prompt_draft**）
 
 **输入 brief**（节选）：
 ```json
 {
-  "book_title": "Please 请",
-  "image_count": 8,
-  "style_report": { "tone": "活泼", "rhythm_tendency": "快", "style_anchor": "2D paper collage style..." },
+  "book_title": "No 不",
+  "image_count": 9,
+  "style_report": { "tone": "严肃警示", "rhythm_tendency": "紧凑", "style_anchor": "2D paper collage style..." },
   "narration_report": {
     "lines": [
-      { "index": 1, "duration_seconds": 3.15, "complexity": "标准词组", "silence_recommendation_seconds": 3.15 },
-      { "index": 8, "duration_seconds": 3.95, "complexity": "标准词组", "silence_recommendation_seconds": 4.0 }
+      { "index": 1, "duration_seconds": 0.7, "complexity": "极短档", "silence_recommendation_seconds": 2.0, "tier": "极短档", "shot_count": 3 },
+      { "index": 9, "duration_seconds": 3.6, "complexity": "长句档(收势)", "silence_recommendation_seconds": 2.5, "tier": "长句档(收势)", "shot_count": 4, "is_closure": true }
     ]
   }
 }
 ```
 
-**输出 JSON**（节选 Clip 1）：
+**输出 JSON**（v1.0.3+pic12 新版 · 节选 Clip 1，**无 prompt_draft 字段**）：
+
 ```json
 {
+  "task": "storyboard-design",
+  "status": "succeeded",
+  "book_title": "No 不",
+  "image_count": 9,
   "clips": [
     {
       "clip_index": 1,
-      "narration_line_index": 1,
       "image_index": 1,
-      "rhythm_formula": "1-1-3-1",
-      "rhythm_rationale": "Line 1 旁白 3.15s → < 4s 档 → 6s Clip 节奏 1-1-3-1（4 镜头）",
-      "镜头数": 4,
-      "total_duration_seconds": 6,
+      "narration_text": {"en": "No!", "zh": "不能No!"},
+      "clip_narrative": "小熊举起双掌做'Stop'拒绝手势·坚定地首次宣布'No'·开篇确立规则守护者姿态",
+      "rhythm_formula": "1-朗读-1",
+      "tier": "极短档",
+      "shot_count": 3,
+      "total_duration_seconds": 3,
       "time_breakdown": [
-        {"镜头": "镜头一", "start": 0, "end": 1, "type": "场景建立", "duration": 1},
-        {"镜头": "镜头二", "start": 1, "end": 2, "type": "角色跃入", "duration": 1},
-        {"镜头": "镜头三", "start": 2, "end": 5, "type": "朗读+静默", "duration": 3, "narration_seconds": 3.15, "silence_seconds": 0},
-        {"镜头": "镜头四", "start": 5, "end": 6, "type": "末帧消化", "duration": 1, "画面_微动": true}
+        {"shot": 1, "type": "scene_establish", "label": "镜头一·场景建立", "start": 0.0, "end": 1.0, "duration": 1.0, "narration_seconds": 0, "sfx": "沙沙一响", "action": "暖橙红拼贴底从四周向中央渐显聚焦,小熊@Image1 主体完整可见于画面下方中央,双掌举到脸颊两侧掌心向外呈 Stop 拒绝手势,眉头微皱表情严肃坚定"},
+        {"shot": 2, "type": "role_enter_and_narration", "label": "镜头二·角色跃入+朗读", "start": 1.0, "end": 2.0, "duration": 1.0, "narration_seconds": 0.7, "narration_text": "No!", "sfx": "咚一响", "action": "小熊双掌向镜头轻推 1 次(坚定拒绝姿态),嘴部开合念出 No!,眼睛圆睁直视镜头,背景色块呼吸式明暗交替"},
+        {"shot": 3, "type": "narration_silence", "label": "镜头三·朗读+静默消化", "start": 2.0, "end": 3.0, "duration": 1.0, "narration_seconds": 0, "sfx": "叮一响", "action": "小熊保持双掌举起的 Stop 手势,耳朵轻颤 2 次,眼神从直视镜头下移到注视小朋友方向(模拟蹲下来跟小朋友平视),嘴部微张做留白"}
       ],
-      "末帧_strategy": "画面继续微动（小兔子耳朵轻颤 + 妈妈手轻抚书页 + 窗外光影流转），末帧 1s 静默消化",
-      "末帧_rationale": "活泼调 + 标准词组 × 1.0 系数 → 1s 静默足够",
-      "prompt_draft": "主体定义：奶白色小兔子@Image1（橙白拼贴 + 耳朵竖立 + 双手捧黄色小书 + 仰头望向大兔子），深棕色兔子妈妈@Image1（端坐木椅 + 双手捧打开的橘红色书 + 低头阅读 + 慈爱微笑）；\n分镜绑定：@Image1 作为唯一参考帧；\n镜头一（0-1s · 场景建立）：镜头切到两只兔子全景室内阅读空间，纸艺拼贴纹理清晰可见，\"沙沙\"一响，窗帘轻微摆动；\n镜头二（1-2s · 角色跃入）：小兔子探出半个身子望向妈妈，鼻子轻嗅空气，\"咚\"一响，小兔子在椅子上坐稳；\n镜头三（2-5s · 朗读+静默）：镜头推到小兔子面部特写，它双手捧书仰头望向妈妈，奶白色脸颊泛红期待的眼神，\"叮\"一响，小兔子嘴巴半张开做说话口型礼貌地说出 Please（朗读 3.15s）；\n镜头四（5-6s · 末帧消化）：镜头切回两只兔子全景，妈妈抬头对小兔子微笑回应，\"叮咚\"一响，小兔子靠着妈妈肩膀一同望向书页，画面继续微动（小兔子耳朵轻颤 + 妈妈手轻抚书页 + 窗外光影流转）让观众感受呼吸和温馨，末帧 1s 静默消化时间；\n参考图原有的所有文字（顶部彩色英文 \"Please\" 和中文\"请\"字）必须完整保留作为画面元素，模型不得删除或替换这些文字，让文字自然融入场景；\n无任何背景音乐、无旁白人声、无哼唱。\n风格：2D paper collage style, 儿童绘本纸艺拼贴风，柔和哑光色，浅米色纸张背景，柔光无强烈阴影，温馨可爱调性。",
-      "prompt_format": "v15_4段骨架",
-      "self_check": {
-        "uses_@Image_syntax": true,
-        "角色_指代_对齐子代": true,
-        "无_其他元素不出现_隔离句": true,
-        "末帧_不是_定格海报": true,
-        "末帧_不是_标版_强制": true,
-        "文字_保留_措辞_v3": true,
-        "末帧_静默_跟_朗读_成比例": true,
-        "镜头一_不是_拉远_未完成": true,
-        "节奏_按_档位_选_不是_凭印象": true
+      "characters": [
+        {
+          "name": "棕熊",
+          "role": "主角·规则守护者",
+          "visual_features": {
+            "feature_1": "深棕色+浅米白色吻部+黑豆眼+三角鼻（纸艺拼贴）",
+            "feature_2": "圆形耳朵+耳朵内侧浅棕填充",
+            "feature_3": "米白色腹部+浅棕肉垫爪心",
+            "action": "双掌举到脸颊两侧掌心向外呈 Stop 拒绝手势",
+            "expression": "眉头微皱+眼睛圆睁直视+嘴巴小而严肃下撇+坚定不悦"
+          }
+        }
+      ],
+      "text_position": {
+        "en_word": "No", "zh_word": "不能",
+        "location": "画面顶部正中央（位于小熊头部的正上方），呈上下两行排列",
+        "en_color": "N=鲜艳红色 / o=橙红色",
+        "zh_color": "不=绿/红/紫彩色碎纸拼贴 / 能=蓝/红/黄彩色碎纸拼贴",
+        "font_style": "粗体圆润无衬线童趣字体,笔画边缘不规整,撕纸拼贴风格",
+        "lock_zone": "顶部 1/6 画面,文字位置和颜色不得改动"
       },
-      "warnings": []
+      "style_keywords": ["2D paper collage style", "哑光暖色 / matte warm palette", "撕纸毛边纹理 / torn paper edges", "圆润卡通造型 / rounded cartoon shapes"],
+      "end_frame_microaction": {
+        "duration_seconds": 1.5,
+        "type": "narration_silence",
+        "specific_motion": "末帧 1s 内:小熊耳朵轻颤 2 次(0.4s) + 眼神从直视镜头下移到注视小朋友方向(0.3s) + 嘴部微张做留白(0.3s)",
+        "is_static_poster": false,
+        "action_element_count": 3
+      },
+      "target_word_emphasis": {
+        "word": "No", "position": "朗读段(1.0-1.7s)", "duration_seconds": 0.7,
+        "emphasis_window": "0.3s 强重读+0.4s 拖长收尾,让小朋友跟读第一句开篇否定词"
+      },
+      "seedance_visual_checklist": {
+        "frame_01": ["小熊@Image1 主体完整可见于画面下方中央", "双掌 Stop 拒绝手势", "顶部 No/不能 文字完整保留"],
+        "frame_03": ["小熊双掌向镜头轻推", "嘴部开合念出 No!"],
+        "frame_05": ["顶部 No(N=红 / o=橙红)+ 不能(彩色碎纸拼贴)文字完整保留", "文字位置锁定在顶部 1/6 画面"],
+        "frame_06": ["小熊保持双掌举起的 Stop 手势", "耳朵轻颤 2 次", "末帧 1.5s 静默消化时间"]
+      }
     }
-  ]
+  ],
+  "total_clips": 9,
+  "total_duration_seconds": 38,
+  "rhythm_decision_log": [
+    "Line 1: 1 词 No! → 极短档 3s 3 镜头",
+    "Line 2-7: 3 词 No, no, X! → 短句档 4s 4 镜头（节奏一致）",
+    "Line 8: 4 词 No, no, not safe! → 中句档 5s 4 镜头",
+    "Line 9: 5 词收势句 → 长句档(收势) 6s 4 镜头（不套 11s 5 镜头）"
+  ],
+  "warnings": [
+    "未提供 TTS 音频,使用兜底公式 1.4 词/秒儿童领读型(±30% 误差)",
+    "总时长 38s 比 pic3 Welcome 45s 短 7s（No 绘本警示向紧凑节奏）"
+  ],
+  "downstream_hints_for_D": {
+    "submission_strategy": "9 个独立 seedance 任务（不批量）· 2 个/批 + 主 agent 续跑模式",
+    "polling_template": "for i in $(seq 1 25); do sleep 15; ..."
+  }
 }
 ```
+
+**主 agent 后续动作**（不归 C 子 agent 负责）：
+
+```bash
+# 1. 跑 picturebook-video/scripts/fill_v15_template.py 把 9 个 clipN.json → 9 个 clipN-prompt.txt
+python3 /home/luo/.hermes/profiles/huiben/skills/creative/picturebook-video/scripts/fill_v15_template.py \
+  --clips-dir /home/luo/huiben-projects/<日期-项目>/clips
+
+# 2. 验证 9 个 prompt.txt 都写出 + 4 段结构齐全
+ls -la /home/luo/huiben-projects/<日期-项目>/clips/clip*-prompt.txt
+
+# 3. 调 D（主 agent 干 · ≤2/批 + 续跑）
+```
+
+**为什么 C 不写 prompt_draft？** 见本文底部"红线 #9" + picturebook-video 主 SKILL.md 铁律 #57。
 
 ## 红线
 
