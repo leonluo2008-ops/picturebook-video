@@ -1,13 +1,18 @@
 ---
 name: picturebook-video
-description: 绘本转儿童动画视频一站式调度 skill（**v1.0.3+pic12** · 4 子 agent + 主 agent 减负架构 + Pic4 No 不绘本实战验证）。把绘本简介 + N 张图 + 旁白 → **Step 0.5 场景对位检查** → **Step 1 启动前 7 必问（含 #7 调性预审）** → 调 A 风格识别 + B 旁白量化（主 agent 干 · 并行）→ 调 C 分镜设计（唯一子 agent · 产"原料" JSON · **不写 prompt_draft**）→ 主 agent 填 **v15 4 段骨架模板 11 变量 = 终稿 prompt** → 调 D 视频执行（**主 agent 干 · ≤2/批 + 续跑模式** · uguu 兜底路线）→ 汇总发飞书（**附完整证据链防 send_message 串扰**）。**v1.0.3+pic12 实战新增**：v5 节奏公式（朗读完最低 3s + 末帧静默 ≥ 2s）+ v6 整数时长铁律（seedance 不生成小数时长）+ 彩色文字全程可见铁律（领读锚点不可一闪而过）+ uguu 兜底路线（chevereto 挂时备用）+ **9 条新铁律**（#63-#71）。**触发词**：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video、绘本做视频。
+description: "绘本转儿童动画视频一站式调度 skill（**v1.0.3+pic14 · Horse 绘本 5/5 succeeded 端到端实战验证**）。把绘本简介 + N 张图 + 旁白 → **Step 0 文件用途澄清** → **Step 0.5 场景对位检查** → **Step 1 启动前 7 必问 + #1.5 数字约束数学验证** → 调 A 风格识别 + B 旁白量化（主 agent 干 · 并行）→ **Step 3.0 范式路由**（v7 2图=1Clip 走主 agent 直拼 / v15 4 段走 C 子 agent）→ C 子 agent 产 11 维原料（**不写 prompt_draft**）→ **主 agent 填 v15/v6 模板 + 铁律 #93 自动拆 `@Image1+2` → `@ImageN` / `@ImageN + @ImageM`** → **Step 4.0 seedance 范式二选一**（v15 走 `--ref-images` / v7 走 `--image`+`--last-frame`）→ D ≤2/批 + 续跑 → 发飞书 + 完整证据链（铁律 #76）。**v1.0.3+pic12 实战新增**：v5 节奏公式（朗读完最低 3s + 末帧静默 ≥ 2s）+ v6 整数时长铁律（seedance 不生成小数时长）+ 彩色文字全程可见铁律（领读锚点不可一闪而过）+ uguu 兜底路线（chevereto 挂时备用）+ **9 条新铁律**（#63-#71）。**触发词**：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video、绘本做视频。"
 license: Apache-2-2
 metadata:
   hermes:
-    tags: [picturebook-video, orchestration, sub-agent, multi-agent, picturebook, v15-template, fill-v15, uguu-fallback, send-message-evidence, integer-duration, text-anchored-reading]
+    tags: [picturebook-video, orchestration, sub-agent, multi-agent, picturebook, v15-template, fill-v15, uguu-fallback, send-message-evidence, integer-duration, text-anchored-reading, v7-paradigm, 2-clip-merge]
     related_skills: [storyboard-style, storyboard-narration, storyboard-design, video-executor, seedance2.0-tool]
     toolkit_role: picturebook-video-orchestrator
-    version: 1.0.3
+    version: 1.0.5
+    breaking_changes_from_v1.0.3:
+      - "**v7 范式强路由**——领读/认知/认字绘本走 v7 2图=1Clip 合并（主 agent 直拼·不调 C）· v15 4 段留给单图叙事绘本"
+      - "**8s 不是上限**——v5 公式档位 5/6/7/8s 是参考范围 · 真正上限 seedance 15s 物理边界（8s < x ≤ 15s 合法）"
+      - "**MP3 用途必问**——用户给 MP3 不默认 TTS（不问 = 走兜底公式 1.4 词/秒）"
+      - "**用户硬约束冲突老实报告**——3 数字约束物理装不下时 = 给 3 选 1 · 不硬凑\"末帧 < 1s 翻车征兆\"方案"
     breaking_changes_from_v1.0.2:
       - "**9 条新铁律（#63-#71）**——Pic4 No 不绘本实战沉淀（v3 情绪温柔化 + v5 节奏两步推导 + v6 整数时长 + 彩色文字全程可见）"
       - "**uguu 兜底路线**——chevereto 图床挂了时备用（uguu.se + 直接 curl 调 ark API）"
@@ -55,12 +60,36 @@ Step 1 · 启动前 6 必问（必跑）
    ↓
 Step 2 · 调 A + B 并行（delegate_task）
    ↓
-Step 3 · 合并 A+B → 调 C
+Step 3 · 调 C · 分镜设计（**先看 Step 3.0 范式路由** · v7 不调 C）
    ↓
 Step 4 · 调 D（可能 N 次重试 · 2 个/批 + 主 agent 续跑）
    ↓
 Step 5 · 汇总 + 决定发不发飞书
 ```
+
+---
+
+## 🔥 决策时必看的新铁律速查（v1.0.4 · Horse 绘本实战沉淀）
+
+> **触发任何"约束冲突 / 范式选错 / MP3 用途不决 / 总时长装不下"时，必看下面 4 条**：
+
+| 铁律 | 何时必看 | 核心一句话 |
+|---|---|---|
+| **#89** | 收到"领读型绘本 + 想合并段 + 不调 C" | **v7 范式 = 领读型 2图=1Clip 合并 = 主 agent 直拼 = 不调 C**（不调 v15 C 强套） |
+| **#90** | 看到 14s/13s/12s 等长于默认 8s 的 Clip | **8s 默认档位 ≠ 上限 · 真正上限 seedance 15s · 8 < x ≤ 15s 合法** |
+| **#91** | 用户给 MP3 / xlsx / readme.txt 等文件 | **文件用途必问不自动假设**（MP3 不默认 TTS · xlsx 必读 schema 确认结构） |
+| **#92** | 用户给多个硬约束（总时长 + 单段时长 + 段数）| **3 数字约束物理装不下 = 老实报告 3 选 1 · 不硬凑"末帧 < 1s"翻车方案** |
+| **94**（v1.0.5+pic14 新增 · 2026-06-09 Pic7 Horse R7 翻车）| 拼任何 v15/v6 段 2/段 4 prompt 时 | **v15 4 段 / v6 5 段骨架结构不能乱**：① 段 2 不写"朗读 X 词"指令（触发 seedance 必生成朗读 = 家族词组 5 词 = 5 次独立朗读 = 抢节奏 + 错乱）② 段 4 只写声音策略兜底句（不展开具体音效清单）③ 段 2 文字保留 = 1 段独立约束（不复制 2 遍） |
+| **95**（v1.0.5+pic15 已被 v1.0.6+pic16 撤销 · 2026-06-09 Pic7 Horse R7 第三轮翻车）| ~~填 v15/v6 模板时**~~  | ~~fill 模板必自动脱敏 C action 里的具体单词/图标名~~  | **撤销原因**：v1.0.5 脱敏是**矫枉过正**——Cat 跑通的真实范本（`assets/example-prompts/cat-clips-1-6-v15.1.txt`）里**根本没有"脱敏"概念**。Cat 范本段 2 镜头里直接写"镜头定格在 cat 卡片，叮 一响，猫转头看向卡片（朗读 1s + 静默 2s 停留，镜头停在画面上让听众消化单词）"——C 写的"cat 卡片"被原样保留 + 视觉动作 + 拟声嵌入 + "朗读 1s"占位时长（不写"朗读 cat"）。**真根因不是"prompt 写具体单词"**——而是 v1.0.5 之前 fill 模板的 `narration_marker = f'+朗读 "{target_word}"'` 写法 + v1.0.5 矫枉过正的"目标词"标识都**破坏了 Cat 范本的真实结构**。**v1.0.6 Cat 范式回滚**：① 撤销 v1.0.5 `sanitize_action()` 脱敏映射 ② C agent action 字段**原样保留**（"fork 卡片"/"horn 卡片"等 C 看图合理推断保留）③ `narration_marker` 改 Cat 风格"（朗读 Ns + 静默 Ns 停留）"（不写具体目标词）④ 段 4 BGM 段**回 A 档**（Cat 范本里就是"无任何背景音乐、无旁白人声、无哼唱"）⑤ 段 2 拟声嵌入视觉句用 `,` 串接（"图标浮现 叮咚 一响"）。**判断口诀**："**照搬 Cat 范本 · 不瞎改 · 不加脱敏 · 不加 B 档矫枉过正**"。**真规范**：`scripts/fill_v15_template.py` `build_shot_sequence` v1.0.6+pic16 版本。详细实战数据见 [references/2026-06-09-pic7-horse-validation.md](references/2026-06-09-pic7-horse-validation.md) §3 翻车 3。 |
+| **96**（v1.0.6+pic16 新增 · 2026-06-09 Pic7 Horse R7 实战沉淀 · Cat 范式回滚铁律）| 看到"段 2 拼"+朗读 X"" 或 fill 模板加脱敏映射等"额外加工"时 | **照搬 Cat 跑通范本**（`assets/example-prompts/cat-clips-1-6-v15.1.txt`）· **不**瞎改段 2 结构。**Cat 范本 4 段固定结构**：① 主体定义（含 C 写"cat 卡片"等具体单词·原样保留）② 分镜绑定（`@图N`/`@图M` 多图参考）③ 镜头序列（**写"（朗读 1s + 静默 2s 停留，镜头停在画面上让听众消化单词）"**——不写"朗读 cat"——seedance 看到"朗读 1s"知道要留时间但不强制生成具体朗读）④ 段 4 写 A 档兜底句"无任何背景音乐、无旁白人声、无哼唱"。**5 个常见反模式**（Pic7 三轮翻车沉淀）：① ❌ 段 2 拼"+朗读 'X 词'" ② ❌ fill 加脱敏映射（v1.0.5 矫枉过正）③ ❌ 段 4 加"具体音效清单"（"卡片高亮配叮..."v1.0.4 矫枉过正）④ ❌ 段 4 改"画面元素动作音效保留..."（v1.0.4 B 档矫枉过正）⑤ ❌ 段 2 文字保留复制 2 遍到段 5。**判断口诀**："**Cat 跑通的样子 = 标准答案 · 改了大概率翻车**"。**修复路径**：删所有额外加工 → 改回 Cat 范本 4 段结构 → 重跑。|
+
+**反模式速查**（v1.0.4 Horse 绘本实战翻车清单）：
+- ❌ 看到 14s → 报"超出 8s 必拆 v15.1"（**真相：14s 合法单 Clip**）
+- ❌ 把 MP3 自动当 TTS 抽时长（**真相：完整音频 90.15s 零静音**）
+- ❌ 调 C 子 agent 拼 v7 prompt（**真相：C 只懂 v15 4 段，v7 必须主 agent 直拼**）
+- ❌ 装 8 段 4.29s 朗读 + 1 段 14s + 总 43s（**真相：物理装不下，5 段末帧 0.71s**）
+
+**完整实战数据**见 `references/v7-vs-v15-paradigm-routing.md`
 
 **Step 0.5 · 绘本场景对位检查（v1.0.2 新增 · 铁律 #56）**
 
@@ -93,6 +122,76 @@ Step 5 · 汇总 + 决定发不发飞书
 - 本地路径 → 直接用
 - 用户上传 → 直接用
 
+**Step 0 必问 · 文件用途澄清（v1.0.3+pic13 铁律 #90 新增 · Horse 绘本踩坑）**：
+
+**任何文件用途在用之前必问用户，不要自动假设**：
+
+| 文件类型 | 反模式 | 正解 |
+|---|---|---|
+| `*.mp3` | 自动当 TTS 直接 silencedetect 拆段 | 必问"MP3 是 TTS / 背景音 / 不用？" |
+| `*.xlsx` | 自动当旁白 | 必读 sheet 名 + header 确认是哪种结构（**A 列旁白 / B 列中英 / 多 sheet 角色**）|
+| `0.jpg` | 当封面用 | 必问"0 开头是封面 / logo / 不用？"（用户明确说"不用"才真不用）|
+| `readme.txt` | 自动当简介 | 必读内容，**不**当数据源 |
+| `0开头的所有文件` | 默默忽略 | 必报"我打算忽略 0 开头"等用户确认 |
+
+**修复方向**：① 压缩包解开后**先列文件清单 + 报"我打算忽略 X Y Z · 用 A B C"** ② **每个文件类型的用途**在用之前**先问 1 次** ③ 用户没明说 = **不用**（铁律 #42 接受现状）。**判断口诀**：**"文件用途 = 问 1 次 = 用 0 次假设"**
+
+---
+
+**坑 1：hermes `terminal` 工具的 `~` 解析不稳定**
+
+`~` 在 hermes `terminal` 工具里有两种解析结果：
+- **情况 A**（多数 shell）：`~` → `/home/luo`（正常）
+- **情况 B**（某些调用上下文）：`~` → `/home/luo/.hermes/profiles/huiben/home/`（**huiben profile 已加载时**，shell 的 HOME 被改写到 huiben profile 下）
+
+**症状**：`cd ~/.hermes/profiles/huiben/work/<project>/` 看似成功（无报错），实际**进入了 `/home/luo/.hermes/profiles/huiben/home/.hermes/profiles/huiben/work/<project>/`**（**双层 huiben/home 嵌套**）。后续 `ls` 找不到、`openpyxl.load_workbook` 报 `FileNotFoundError`。
+
+**修复方向**：
+- ✅ **永远用绝对路径**（`/home/luo/.hermes/profiles/huiben/work/20260609-horse-input/`），**不**用 `~` 缩写
+- ✅ 关键操作前 `echo $HOME` 看一下实际解析
+- ✅ `cd` 后 `pwd` 验证路径（**不**信无报错 = 成功）
+- ❌ 不要在 hermes terminal 里依赖 `~/.hermes/...` 这种路径简写
+
+**坑 2：`execute_code` 工具的 cwd 跟 `terminal` 不一致**
+
+`execute_code` 跑在**独立的 sandbox 临时目录**（`/tmp/hermes_sandbox_<id>/`），**不继承** `terminal` 工具的 cwd。
+
+**症状**：terminal 里 `ls` 能看到文件、`mv` 成功，**但 execute_code 里 `openpyxl.load_workbook(path)` 报 `FileNotFoundError`**——因为 sandbox 视角下 cwd 是 `/tmp/hermes_sandbox_xxx/`，path 是相对/绝对解析不到。
+
+**修复方向**：
+- ✅ execute_code 必传**绝对路径**（**不**用相对路径，**不**假设 cwd）
+- ✅ 关键验证用 `os.path.exists(path)` 兜底（不直接信"刚刚 terminal 创建了"）
+- ❌ 不要在 execute_code 里 `cd /path && open(...)`（cd 不会持久化）
+- ❌ 不要在 terminal 里 `cd` 后立刻在 execute_code 里用相对路径
+
+**配套 SOP**（Horse 绘本首跑实战沉淀）：
+```bash
+# 1. terminal 必用绝对路径建工作目录
+mkdir -p /home/luo/.hermes/profiles/huiben/work/20260609-horse-input/
+
+# 2. terminal cd + 立即 pwd 验证（不依赖无报错）
+cd /home/luo/.hermes/profiles/huiben/work/20260609-horse-input/ && pwd
+# 输出必须是 /home/luo/.hermes/profiles/huiben/work/20260609-horse-input/
+# 看到 huiben/home/.hermes/... 双层 = 错了，重做
+
+# 3. 文件名 GBK 乱码重命名到 ASCII（Windows 压缩包常见）
+mv "Horse ┬э.xlsx" horse.xlsx
+mv "╣╩╩┬╝Є╜щ.txt" readme.txt
+
+# 4. execute_code 读 xlsx 用绝对路径 + os.path.exists 兜底
+python3 -c "import os; print(os.path.exists('/home/luo/.hermes/profiles/huiben/work/20260609-horse-input/horse.xlsx'))"
+# True 才能 openpyxl.load_workbook
+```
+
+**判断口诀**：
+- **terminal 用绝对路径** = `~` 不可信
+- **execute_code 用绝对路径** = cwd 不可信
+- **pwd 必验证** = 无报错 ≠ 路径对
+
+**新增铁律**：
+
+| **89**（v1.0.3+pic13 实测新增 · 2026-06-09 Horse 绘本首跑）| **hermes terminal `~` 解析双层 huiben/home 陷阱 + execute_code sandbox cwd 隔离陷阱**——`cd ~/.hermes/...` 在 huiben profile 已加载时实际进入 `/home/luo/.hermes/profiles/huiben/home/.hermes/...`（**双层嵌套**），后续 ls/execute_code 找不到。**修复方向**：① 永远用绝对路径（`/home/luo/.hermes/...`），不用 `~` 缩写 ② `cd` 后必 `pwd` 验证 ③ execute_code 必传绝对路径 + `os.path.exists` 兜底 ④ 关键文件用 `mv` 重命名到 ASCII（GBK 乱码文件名）。**判断口诀**：**"terminal 用绝对路径 = `~` 不可信 · execute_code 用绝对路径 = cwd 不可信"** |
+
 ---
 
 ## Step 1 · 启动前 7 必问（必跑）—— 6 必问 + #7 调性预审（v1.0.3+pic12 铁律 #70 强化）
@@ -105,9 +204,21 @@ Step 5 · 汇总 + 决定发不发飞书
 | 2 | **单 Clip 时长** | **v6 整数公式**（短句 6s / 中句 7s / 长句 8s / 极短 5s）| 按 B 子 agent 算出的朗读时长 + **整数**（铁律 #72：seedance 不生成小数）+ 末帧静默 ≥ 2s（铁律 #74 v5 公式）|
 | 3 | **切分方式** | 按图（每张图 1 Clip） | 默认；>15s 走 v15.1 语义块 |
 | 4 | **调性** | 等 A 子 agent 识别 | 主 agent 不擅自定 |
-| 5 | **范式** | **v6 模板**（v15 4 段 + 文字持续可见段）| 铁律 #77 v6 = 5 段结构 |
+| 5 | **范式** | **领读型 v7 范式（默认）** | v7 = 2图=1Clip 合并（主 agent 直拼 · 详见 Step 3.0 路由）· 叙事/冒险/收势向走 v15 4 段（调 C 拼） |
 | 6 | **约束** | 末帧 ≠ 定格海报 / 文字保留 v3 / 不写隔离句 / **彩色文字全程可见+微动画** | v0.7.1+pic7 沉淀 + 铁律 #73 |
 | **7**（v1.0.3+pic12 铁律 #70 新增）| **调性预审**（绘本方选图情绪 vs 用户期望情绪）| **差距大 = 选材问题，建议换绘本** | 见 [references/2026-06-07-pic4-no-v6-final.md](references/2026-06-07-pic4-no-v6-final.md) "v6 三大核心铁律" |
+
+**Step 1.5 · 数字约束数学验证（v1.0.3+pic13 铁律 #89 新增 · Horse 绘本踩坑）**：
+
+**收到用户多个数字约束时（如"压缩短句 + R7=14s + 总 43s"），必先验证数学可行性再分配档位**：
+
+1. **列出所有数字约束**（总时长 / 单 Clip 时长 / 单段朗读 / 镜头数 / R 特殊时长）
+2. **用兜底公式算 8 段朗读时长**（1.4 词/秒 + 3.5 字/秒）
+3. **列可行解表**（A 全准守 / B 放大总时长 / C 拆 Clip / D 放松短句）—— **每档**标"末帧静默 = 几 s"（必 ≥ 2s 铁律 #74）
+4. **冲突时让用户选**（不偷偷按字面意思跑）
+5. **翻车征兆（末帧静默 < 2s）= 必报**（不掩盖）
+
+**反模式**：用户给 3 个数字 → 直接算档位 → 跑出来发现 5 段末帧 < 1s → 浪费 1 轮。**判断口诀**：**"3 数字约束 = 必先列可行解表 = 让用户选"**
 
 **用户没指定** → 用默认值 + 在 Step 2 报"我打算 X 因为 Y"。
 **用户指定** → 用指定值。
@@ -160,6 +271,47 @@ result_a = delegate_task(
 
 ## Step 3 · 调 C · 分镜设计
 
+**⚠️ Step 3.0 范式路由决策（v1.0.4 新增 · Horse 绘本踩坑）**：
+
+**不是所有绘本都调 C 子 agent** —— v7 范式（领读型 2图=1Clip 合并）= **主 agent 直接拼 prompt，不调 C**。
+
+| 触发条件 | 范式 | 工作流 |
+|---|---|---|
+| 领读/认知/认字绘本 + 弱情节 + 旁白每段 < 8s + 风格统一 + 总图 6-10 | **v7 范式** | **主 agent 直拼 8 段 prompt**（真模板 `assets/example-prompts/cactus-clip1-v7.txt`）· 不调 C |
+| 叙事/冒险/收势向绘本 + 多场景切换 + 强情节 | **v15 4 段范式** | 调 C 子 agent 产原料 + 主 agent 填 `scripts/fill_v15_template.py` |
+| 单图领读 + 无合并需求 | **v6 5 段**（v15 + 文字持续可见段）| 调 C 产原料 + fill_v15_template.py --version v6 |
+
+**v7 范式判定 5 条件（必全过 · 铁律 #89）**：
+1. ✅ 绘本是领读/认知/认字型（不是叙事型）
+2. ✅ 弱情节（无明显"前一幕→后一幕"情节推进）
+3. ✅ 旁白每段 < 8s（按 0.3s/字算）
+4. ✅ 图片风格统一（同色系/同主体/相邻景别）
+5. ✅ 总图数 6-10 张（多了需要更细分段）
+
+**5 条件任一不满足 → 走 v15 4 段范式 + 调 C**。
+
+**v7 范式总时长公式**（来自 `references/leading-reading-4clip-pattern.md`）：
+- **标准模式**：8s + 8s + 9s + 10s = 35s（Red 绘本等）
+- **TTS 优先不压缩**：8s + 9s + 10s + 10s = 37s（Cactus 绘本）
+- **原则**：合并 clip 时长 = 各段 TTS 旁白时长之和 + 0.5-1.5s 缓冲
+- **不**为对齐"标准 35s"压缩时长 —— 冗余给后期剪辑留余地
+
+**v7 范式必填 seedance 参数**：
+- `--image`（段首图）+ `--last-frame`（段尾图）
+- `--duration` 8/8/9/10（**整数** · 4s ≤ x ≤ 15s seedance 物理上限）
+- `--ratio 16:9`
+- `--generate-audio true`（v7 范式靠 prompt 禁令段 `No background music, no human voice, no narration, no singing` 精准控制）
+
+**v7 范式例外**：家族词组集合（≥3 词同字母家族）走铁律 #86 → `--generate-audio false` + TTS 音轨对齐（4 维控制底层核心不动）。
+
+**反模式**（Horse 绘本实战差点触发）：
+- ❌ **错认 v5 公式 8s 档位 = 硬上限** —— 8s 只是 v5 公式档位参考 · 真正上限 seedance 15s（铁律 #90）
+- ❌ **调 C 拼 v7 prompt** —— C 只懂 v15 4 段，强行套会拼出错的 prompt 结构（铁律 #89）
+- ❌ **把 2图=1Clip 硬塞进 v15 模板** —— 破坏 v7 范式 8 段结构 · fill 脚本只支持单图 @ImageN
+- ❌ **看到 14s 长 Clip 立即报"必拆"** —— 14s < 15s 合法单 Clip（v7 Clip 4 收势 10s / Horse R7 14s 都验证过）
+
+**v7 vs v15 完整路由决策树**：见 `references/v7-vs-v15-paradigm-routing.md`（v1.0.4 新增）
+
 ```python
 result_c = delegate_task(
   goal="根据 A+B 输出做分镜设计 + 拼 v15 范式 prompt 草稿",
@@ -190,6 +342,19 @@ result_c = delegate_task(
 - Pic3 实战（2026-06-07）：D 跑 3 个/批 仍 timeout（6 个 Clip 用了 ~6 分钟，9 个=29 API call=timeout）= **最佳 batch = 2 个/批**
 - **极限 = 1 个/批**（端到端验证）
 - **C 子 agent 600s 内只能写 9 个 JSON + 聚合 + vision × 9 = 9 个 API call**——超出时主 agent 续跑
+
+**Step 4.0 · seedance 调用范式二选一（v1.0.3+pic14 新增 · 铁律 #93）**：
+
+| 范式 | 触发 | seedance 参数 | prompt 写法 | 段数 |
+|---|---|---|---|---|
+| **v15 4 段 / v6 5 段**（默认）| 任何绘本默认走这条路 | `--ref-images 1.jpg [2.jpg]`（多图参考）| `@ImageN` 引用（v15 填模板后用铁律 #93 代码拆 `@Image1+2`）| 4 / 5 |
+| **v3/v8 首尾帧**（v7 范式 fallback）| 用户明确说"走 v3/v8" 或 fill 脚本失败 | `--image ./first.jpg --last-frame ./last.jpg` | `from 0.0s to 1.2s @Image1 ... transitions to @Image2 ...` | 自由 |
+
+**反模式**（Horse 绘本差点踩）：
+- ❌ **v15 范式用 `--image` + `--last-frame`** → seedance 把它当 v3/v8 跑（破坏 v15 4 段骨架 + 失去 v6 文字持续可见段）
+- ❌ **v7 范式用 `--ref-images`** → seedance 多图参考跟 v7 8 段固定结构不兼容
+
+**Pic7 Horse 端到端验证**：5 段全 v6 5 段（v15 + 文字持续可见段）+ `--ref-images` + 5/5 succeeded · 整数时长 100% 命中。
 
 **主 agent 续跑模式**（D/C timeout 后 · Pic3 实战验证）：
 1. D timeout → 主 agent 直接调 seedance.py 续跑**未提交的 Clip**（不重新调 D）
@@ -403,6 +568,7 @@ token 用量：Z
 | **v6 5 段模板文档** | `references/v6-5段骨架-模板.md`（v1.0.3+pic12 新增 · v15 + 文字持续可见段 · 12 变量清单 · EN_COLOR_DESC 两种格式 + 字符顺序浮现时间表 · Pic5 Bird 实战沉淀）|
 | **声音策略分支** | `references/sound-strategy-branches.md`（v1.0.3+pic13 新增 · Pic6 Cow clip7 OW 家庭 5 词实战沉淀 · 3 旁白类型×声音策略分支表 · TTS 音轨对齐 · **4 维控制底层核心不动** · 铁律 #86 候选）|
 | **Pic6 Cow 牛 实战验证** | `references/2026-06-08-pic6-cow-validation.md`（2026-06-08 · 8/8 succeeded · 0 错位 · 58.66s · 6 并行轮询 ~3min · 调性 A 知识向·欢快轻松 · 用户对 Clip 7 的 3 轮纠错 · fill_v15 硬编码翻车修复）|
+| **Pic7 Horse 马 实战验证** | `references/2026-06-09-pic7-horse-validation.md`（**v1.0.4+pic14 → v1.0.5+pic15 完整闭环** · 2026-06-09 · 5/5 succeeded · 0 错位 · 48s · v15 + 2图=1Clip 兼容 + 5 档声音策略 + 参考图文字保真 三重修复 · 3 个 commit `2b957a4` `8ddbb34`）|
 
 ---
 
@@ -427,6 +593,11 @@ token 用量：Z
 | # | 内容 |
 |---|---|
 | 1-34 | 保留 v0.7.1+pic7 全部铁律（在子 agent 内部） |
+| **89-92**（v1.0.3+pic13 实战新增 · 2026-06-09 · **Horse 绘本踩坑**）| **🔥 见顶部"决策时必看的新铁律速查"区 · 触发约束冲突/范式选错/MP3 用途/总时长装不下时必查** · 详细见 `references/v7-vs-v15-paradigm-routing.md`（v1.0.4 新增）|
+| **89**（v1.0.3+pic13 实战新增 · 2026-06-09 · **Horse 绘本踩坑**）| **用户给多个数字约束时必先数学验证可行性**——"压缩短句 Clip + R7=14s + 总 43s" 3 个约束**数学上不兼容**（装不下 8 段中 5 段 4.29s 朗读 + 1 段 14s · 算出 5 段末帧静默 0.71s < 2s 铁律 #74 底线 = 翻车征兆）。**修复方向**：① 收到多个数字约束时**先列出可行解表**（A 准守/全 43s + 末帧<1s / B 放大总时长/ C 拆 R7 多 Clip / D 短句放松）→ **让用户选** ② **不要**先按字面分配档位再报警（用户已经投入决策成本）③ 数学冲突 = **决策树问题**，**不是**参数微调问题。**反模式**：直接按用户字面意思分配档位 → 跑出来末帧定格海报 → 才发现 5 段 < 1s。**判断口诀**：**"3 个数字约束 = 必先列可行解表"** |
+| **90**（v1.0.3+pic13 实战新增 · 2026-06-09 · **Horse 绘本踩坑**）| **MP3 不一定是 TTS · 文件用途必问不自动假设**——Horse 绘本压缩包里的 `horse.mp3` 是绘本原版音频（2.7MB · 90.15s · 整段连续无静音），**不是**用户旁白 TTS。**根因**：我自动假设"压缩包里的 MP3 = TTS" → 跑 silencedetect 拆段 → 才发现整段没静音 → 用户打断"MP3 不是 TTS 不要管"。**修复方向**：① **任何文件用途在用之前必问**（MP3 = TTS? / MP3 = 背景音? / MP3 = 不用?）② **读 README** 看看有没有说 ③ 跑 silencedetect 之前**先听 1 段**（ffmpeg -t 5 -o /tmp/preview.wav）确认是不是人声 ④ **xlsx 旁白** ≠ **mp3 旁白**——一个是文本，一个是音频，**两者可能不一致**（可能用户用 TTS 工具重录过）。**反模式**：看到 MP3 就当 TTS 直接 silencedetect 拆段。**判断口诀**：**"MP3/TXT/Excel = 文件用途必问不假设"** |
+| **91**（v1.0.3+pic13 实战新增 · 2026-06-09 · **环境 quirk**）| **`~` 在 hermes terminal 解析成 `/home/luo/.hermes/profiles/huiben/home/`（不是 `/home/luo`）**——`cd ~/.hermes/profiles/huiben/work/<date>-<book>/` 实际路径 = `/home/luo/.hermes/profiles/huiben/home/.hermes/profiles/huiben/work/<date>-<book>/`。**根因**：hermes 沙盒 `~` 解析跟系统 shell 不一致（hermes 给 `~` 拼了 huiben profile home 前缀）。**修复方向**：① **`cd` 后必 `pwd` 验证实际路径**（不要信 `~`）② **execute_code 用绝对路径**（`/home/luo/.hermes/profiles/huiben/home/.hermes/...` 完整路径）③ **所有存盘/读盘操作必用绝对路径** ④ 找文件用 `find /home/luo -name "<file>"` 兜底。**反模式**：`cd ~/work/ && python3 script.py` —— `script.py` 找不到，**不报错**（cd 静默失败）。**判断口诀**：**"hermes terminal `~` ≠ 系统 `~` · 必用绝对路径"** |
+| **92**（v1.0.3+pic13 实战新增 · 2026-06-09 · **Horse 绘本踩坑 · 用户原话纠错**）| **总时长约束冲突时 = 走"短时长 Clip 合并"路径，不是按字面算 8 段**——用户原话："**合并短时长clip，确保单个clip时长不要超过15s即可**"。**根因**：我钻牛角尖把"v5 公式 4 档 5/6/7/8s"当默认上限（**实际是档位参考 · 不是上限**），还编了"超出 8s 必拆 v15.1"（**v15.1 触发条件 = > 15s seedance 物理上限 · 不是 > 8s**）。**真路径**：① 收到"压缩短句 + R7=14s + 总 43s"约束冲突时 → **走 v7 范式 2图=1Clip 合并**（`references/leading-reading-4clip-pattern.md`）= 8 段 → 5 Clip ② 合并后单 Clip 时长公式 = `合并段 TTS 朗读 + 0.5-1.5s 缓冲`，**不**硬套 5/6/7/8 档 ③ **单 Clip ≤ 15s** = seedance 物理上限 · **超过必拆**（不是 8s）④ 触发 v7 合并的 3 条件：领读型绘本 + 弱情节 + 旁白 < 8s/段（**Cactus/Red 绘本标准模式 8+8+9+10 = 35s · 不压缩模式 8+9+10+10 = 37s**）。**反模式**：把 v5 公式档位当硬上限 / 凭印象编"8s 上限"规则 / 不知道 v7 范式存在。**判断口诀**：**"总时长约束冲突 = 走 v7 合并 = 2图=1Clip = ≤15s/Clip"** · 完整 v7 范式见 `references/leading-reading-4clip-pattern.md` |
 | **35** | 跑 seedance 前必先 `seedance.py create --help` |
 | **35b** | @ 引用语法 = 查官方文档原文 |
 | **36** | 末帧 = 朗读 + 画面微动 1-2s（**不是定格海报**）|
@@ -484,7 +655,12 @@ token 用量：Z
 | **86**（v1.0.3+pic13 实战新增 · 2026-06-08 · **声音策略分支 · 不破坏 4 维控制底层核心**）| **家族词组集合（≥3 词 + 同字母家族重复）/ 长句（words_en ≥ 5 / words_zh ≥ 8）= 不生成发音 + TTS 音轨对齐**（用户 Pic6 clip7 原话："像这种家族词组的集合，在视频里不需要生成发音，用 TTS 音频来做对齐就可以了...但是我并不想破坏底层核心啊"）。**根因**：seedance `--generate-audio true` 家族词组易重复发/抢节奏/发音错位；长句易吞字/抢拍。**修复方向**：① 4 维控制（时间/风格/角色/声音）**底层核心不动**——仅在**声音维度**加分支判断 ② seedance 命令：`--generate-audio false` + `--audio` 传 TTS mp3 路径 ③ 段 4 prompt 写"不发音·保留 TTS 音轨占位·时长匹配" ④ 段 5 文字持续可见 + 关闭拟声。**判定优先级**：家族词组 > 长句 > 普通短句/单词。**反模式**：① 把"不发音"作默认策略（普通短句被剥夺拟声 = 翻车）② 硬编码到 v6 段 4 模板（破坏通用性）③ 一刀切 `--generate-audio false`（全部静音 = 翻车）。**完整规范**见 [references/sound-strategy-branches.md](references/sound-strategy-branches.md)（v1.0.3+pic13 新增 · Pic6 实战沉淀）。**判断口诀**：**"家族词组/长句 = 不生成发音 + TTS 对齐 · 4 维底层核心不动"** |
 | **87**（v1.0.3+pic13 实战新增 · 2026-06-08 · **主 agent 跑完 D = 直接发视频 = 不主动抽帧自检**）| **用户 Pic6 实战明确纠错原话**：「clip1 视频没有问题，你以后不要主动抽帧检查，直接把视频发给我就行了。」**修复方向**：① 主 agent 跑完 D → **直接发飞书 + 完整证据链**（文件名 + md5 + task_id + seed + 时长）→ 等用户目检（**不抽帧自检**）② `vision_analyze` 只在用户主动要求或 vision 跟人眼观感不一致时用 ③ 跟铁律 #29 协同：#29 不抽帧发飞书 / #87 不抽帧填表 ④ D 子 agent 同样适用（D 不再 vision_analyze）。**Pic6 翻车**：clip1 跑通后我主动用 `vision_analyze` × 3 帧（t=0.5/2.5/4.5）自检并填"vision 自检 3 帧"段给用户看 = **反模式**（用户目检视频 = 唯一标准，vision 是辅助不是真理，详见铁律 #63）。**判断口诀**：**"D 跑完 = 发视频 = 等用户目检 = 不抽帧"** |
 | **88**（v1.0.3+pic13 实战新增 · 2026-06-08 · **fill_v15 模板兜底硬编码修复 · 双重兜底链**）| **Pic6 Cow 实战翻车**：`fill_v15_template.py` 段 5 文字持续可见段硬编码 `tp.get('en_word', 'bird')` + `tp.get('zh_word', '鸟')`（Pic5 Bird 残留数据），导致非 Bird 绘本 clip1 全变 "bird/鸟"。**修复方向**（v1.0.3+pic13 沉淀）：① `_build_text_visibility_segment(tp, target_word, en_word_fallback='', zh_word_fallback='')` **新增双参数** ② 主 fill 函数兜底从 `clip.narration_text.en/zh` 末尾词**动态提取**（非 hardcode 'bird'/'鸟'）③ 调用方传 `en_word_fallback=en_word, zh_word_fallback=zh_word`。**验证**：`grep "bird\|鸟" clip*-prompt.txt` → ✅ 0 残留。**与铁律 #75 区别**：#75 解决 per-book 脚本碎片化（fill_v6_bird.py 等）；#88 解决模板内部 hardcode（fill_v15_template.py 内部 `_build_text_visibility_segment` 兜底硬编码）。**判断口诀**：**"填模板兜底 = 动态从 narration 提取 · 不 hardcode 任何绘本主题词"** |
+| **89**（v1.0.3+pic13 实战新增 · 2026-06-09 · **v7 范式 ≠ v15 4 段 · 主 agent 直拼不调 C**）| **领读绘本走 `leading-reading-4clip-pattern.md` 路径 = v7 范式 = 主 agent 直接拼 prompt · 不调 C 子 agent**。**根因**：C 子 agent SKILL.md v1.0.3+pic12 强约束"v15 4 段骨架 = C 产原料 + 主 agent 填模板"，**v7 范式是另一条路**：① 2图=1Clip 合并（最多 2 张图跨场景合并）② 8 段固定结构（`This is a storyboard reference image sequence` + `from X.Xs to Y.Ys @ImageN` 镜头 + `final frame` + `Storyboard Audio Description` + `No background music` + `Children's picture book ... style` + 句号）③ 必填参数 `--image` + `--last-frame` + `--generate-audio true` ④ 真模板 = `assets/example-prompts/cactus-clip1-v7.txt`（11 项自检全过）⑤ v7 范式 4 段总时长公式 = 8s + 8s + 9s + 10s = 35s（标准）/ 8s + 9s + 10s + 10s = 37s（TTS 优先不压缩）。**判断口诀**：**"v7 范式 = 领读型 2图=1Clip 合并 = 主 agent 直拼 = 不调 C"**。**反模式**：① 调 C 子 agent 拼 v7 prompt（C 只懂 v15 4 段，强行套会拼出错的 prompt 结构）② 把"5 段 v7 合并"硬塞进 v15 4 段模板（破坏 v7 范式 8 段结构）。**触发条件**：绘本是领读/认知/认字型 + 弱情节 + 旁白每段 < 8s + 图片风格统一 + 总图数 6-10 张 = **5 条全过才走 v7**。**详细实战**见 `references/leading-reading-4clip-pattern.md`（必读）+ `assets/example-prompts/cactus-clip1-v7.txt`（真模板） |
+| **90**（v1.0.3+pic13 实战新增 · 2026-06-09 · **节奏档位 8s 不是天花板 · 真正上限是 15s seedance**）| **v5 公式默认档位 5/6/7/8s 是参考范围，不是上限**。**真正硬上限 = seedance API 物理 15s**。**Pic7 Horse 实战翻车**：用户给 R7 14s（实测 TTS），主 agent 看到 "8s 是默认最大档" 误判 "14s 超 8s = 必拆" 给出 3 个不可行方案，浪费 4 轮对话。**真相**：v15.1 拆分规范 `references/长旁白拆分规范-v15.1.md` 写明"必须拆 = > 8s + > 10s 留白 = > 15s 上限"——**触发 = > 15s**，不是 > 8s。8s < 14s ≤ 15s **完全合法**（单 Clip 14s）。**修复方向**：① 看到 14s / 13s / 12s 等长于默认 8s 的 Clip **不立即报"必拆"**——先查 seedance 15s 物理上限 ② 5/6/7/8 默认档是 v5 公式的"节奏档位表"参考范围（v5 = 朗读完最低 3s + 末帧静默 ≥ 2s），不是天花板 ③ 8-15s 之间是"扩展长句档"= 直接用整数 Clip 时长（v7 范式 Clip 4 收势 10s 验证）。**判断口诀**：**"8s 默认上限 = 误读 · 15s seedance = 真正天花板 · 8s < x ≤ 15s = 合法"** |
+| **91**（v1.0.3+pic13 实战新增 · 2026-06-09 · **用户提供 MP3 必先问用途 · 不默认 TTS**）| **用户提供 MP3 必先问是什么，不默认 TTS 抽时长**。**Pic7 Horse 实战翻车**：用户提供 `Horse 马.mp3`，主 agent 凭印象把它当 TTS，跑 `ffmpeg silencedetect` 想抽 8 段时长，结果整段 90.15s 零静音（全连续朗读），ffprobe 全段 90.15s · silencedetect -20dB 才 2 段 — 浪费时间 + 给用户错觉"我能抽 TTS 段时长"。**真相**：用户的 MP3 是**完整成品音频**（后期混音），不是按段分开的 TTS 干声。**修复方向**：① **必先问**"这 MP3 是 TTS 干声还是完整成品音频" ② **不默认**走 TTS 抽时长路径 ③ TTS 抽时长需要"每段一个独立 MP3"或"silence 分段明显的干声"——用户没明确说"是分段 TTS 干声" = **走兜底公式（1.4 词/秒）** ④ 兜底公式对 8 段绘本 ± 30% 误差可接受（Pic7 误差 0.7s 不影响整数档位）。**判断口诀**：**"用户给 MP3 = 必问 TTS 干声还是完整音频 · 不默认 TTS 抽时长"** |
+| **92**（v1.0.3+pic13 实战新增 · 2026-06-09 · **用户硬约束打架时老实报告 · 不硬凑**）| **用户给的多个硬约束物理装不下时，老实报告 3 选 1，不硬凑反模式方案**。**Pic7 Horse 实战翻车**：用户给"① 压缩短句 ② R7 = 14s ③ 总时长 ≈ 43s"三个约束，主 agent 算出"51s 装不下 → 必拆 R7 → 给 3 个反模式方案"——**用户原话"这个规则有问题：v5 公式默认档位最大 8s"** 直接拍掉。**根因**：v5 公式 5/6/7/8s 是默认档位**不是上限**（见铁律 #90），14s 单 Clip 完全合法。**修复方向**：① 用户给硬约束时**先算"约束是否物理兼容"**——不兼容 = 老实报告"3 个约束互相打架，你看放弃哪个" ② 不硬凑"压缩到 4s 末帧静默 0.7s 翻车征兆"这种"看起来 OK 实际违规"的方案 ③ 不凭印象判断约束边界（"8s 是上限"是凭印象，**查 skill 仓 references/长旁白拆分规范-v15.1.md** 才知道真实上限 15s）。**判断口诀**：**"用户硬约束打架 = 老实报告 = 不硬凑 · 边界判定必查 skill 仓"** |
 | **75 强化**（v1.0.3+pic13 实战新增 · 2026-06-07 · **fill_v6_bird.py 复发反模式**）| **`scripts/fill_v15_template.py` 必支持 (book, version) 双维度参数化**——Pic5 Bird 又新建 `fill_v6_bird.py`（per-book 硬编码）= **铁律 #75 未根治**。**修复方向**：① 统一为 `scripts/fill_v15_template.py --book <book> --version v3|v5|v6` 命令行参数化 ② 主 agent 必查脚本是否支持当前组合 → 不支持 **patch** 而非新建 ③ 模板变体（v3/v5/v6）+ 绘本变体（No/Welcome/Bird/下本）= 双维度参数化 ④ 下次 Pic6 跑通时必用 `python3 scripts/fill_v15_template.py --book <book> --version v6 --clips-dir <dir>`。**反模式**：每本新绘本都新建 per-book 脚本（Pic3→Pic4→Pic5 共 3 个版本复发）。**判断口诀**：**"填模板 = scripts/fill_v15_template.py --book X --version v6"** |
+| **93**（v1.0.3+pic14 实战新增 · 2026-06-09 · **Pic7 Horse · v15 + 2图=1Clip 兼容**）| **v15 4 段范式 = 同时支持单图 + 2图=1Clip 合并**（用户原话："v15 和 v7 实际上是可以兼容的，并不是二选一"）。**根因**：之前我误判 v15 范式只支持单图 @ImageN，**实际**：v15 4 段骨架里的"分镜描述段"（段 3）天然支持多图引用，**fill_v15_template.py 拼出的 prompt 自动把 image_index 字段拼成 `@Image1+2` 形式**（双图合并的 image_index 字段是 "1+2" 字符串）。**修复方向**：① fill 脚本填出来的 `@Image1+2` **不是 seedance 官方语法**——**主 agent 必后处理**：把 `@Image1+2` 拆成 `@Image1` + `@Image2`（单图合并的 `@Image1+2` → `@Image1`）② 拆分依据：读 `clip.image_files.first_frame` + `last_frame`，相同 = 单图保留单 N；不同 = 拆成双 N ③ **seedance 命令**：用 `--ref-images 1.jpg 2.jpg`（v15 范式多图参考），**不**用 `--image` + `--last-frame`（v3/v8 范式首尾帧）④ 跑通实测：Pic7 Horse 5 段 5/5 succeeded · 48s · 5 task_id · md5 校验全过。**反模式**：① 看到 fill 输出 `@Image1+2` 直接发给 seedance（可能不识别）② 看到双图合并改用 v3/v8 `--image` + `--last-frame` 范式（破坏 v15 4 段骨架 + 写不出 v6 5 段文字持续可见段）③ 拆 1图/2图手动查拼不自动化。**自动化代码**（主 agent 必用）：```python\nimport json; from pathlib import Path\nfor p in Path('clips').glob('clip*-prompt.txt'):\n    j = json.loads(p.with_name(p.stem+'.json').read_text())\n    first, last = j['image_files']['first_frame'], j['image_files']['last_frame']\n    n1 = first.replace('.jpg',''); n2 = last.replace('.jpg','')\n    text = p.read_text()\n    text = text.replace('@Image1+2', f'@Image{n1}' if n1==n2 else f'@Image{n1} + @Image{n2}')\n    p.write_text(text)\n```。**判断口诀**：**"v15 4 段 = 兼容单图 + 双图 = `@Image1+2` 拆成 `@ImageN` / `@ImageN + @ImageM`"** |
 | **86**（v1.0.3+pic13 实战新增 · 2026-06-08 · **声音策略分支 · 不破坏 4 维控制底层核心**）| **3 旁白类型 × 声音策略分支**——Pic6 Cow 牛 clip7 OW 家庭 5 词实战沉淀：用户原话「像这种家族词组的集合，在视频里不需要生成发音，用 TTS 音频来做对齐就可以了。但是我并不想破坏底层核心啊，这只适合这种家庭词组，或者说句子很长的时候的一种方式」。**判定标准**（不破坏 4 维控制·仅在声音维度加分支）：① **家族词组集合**（words_en ≥ 3 + 同字母家族重复如 OW/AY/EE）= `--generate-audio false` + TTS 音轨对齐 + 段 4 写"不发音·保留 TTS 音轨占位·时长匹配 TTS 实测" + 关闭拟声 ② **长句**（words_en ≥ 5 OR words_zh ≥ 8）= 同上 ③ **普通短句/单词** = seedance 自动生成发音（默认）= 不变。**Pic6 clip7 实战**：OW 5 词 → `--generate-audio false` → 视频跑通 0 重复发音 + 末帧微动 100% 保留 + 时长 10.10s = 设计 10s（铁律 #72 整数）。**判定函数**（B 旁白量化用）：见 `references/sound-strategy-branches.md` §4 `detect_sound_strategy()`。**反模式**：① 把"不发音+TTS 对齐"作默认策略 = 普通短句被剥夺拟声 = "moo!" 单音节拟声 = 知识向核心被毁 ② 硬编码到 v6 段 4 模板 = 破坏通用性 ③ 一刀切 `--generate-audio false` = 全部静音 = 翻车 ④ 改 4 维控制底层核心 = 破坏通用框架。**判断口诀**：**"4 维核心 = 不动 · 声音维度 = 加分支"** · 详细实战数据见 `references/sound-strategy-branches.md` |
 | **87**（v1.0.3+pic13 实战新增 · 2026-06-08 · **用户明确纠错：主 agent 不主动抽帧自检**）| **Pic6 clip1 实战踩坑**：我跑完 clip1 后主动用 `vision_analyze` × 3 帧自检（t=0.5/2.5/4.5），抽 6 张图喂给主 agent 上下文污染 + 用户体感"我被绕了一道弯"（视频里看到的我要看，视频外加的画面报告对我来说是噪音）。**用户原话（2026-06-08）**：「**你以后不要主动抽帧检查，直接把视频发给我就行了。**」**修复**：① **主 agent 跑完 D → 直接发视频 → 等用户目检（不抽帧自检）** ② `vision_analyze` 只在 vision 跟人眼观感不一致时由**用户主动要求**才用（铁律 #63 实战经验）③ 跟铁律 #29 协同：#29 是"不抽帧发飞书"（不发 1 帧图当预览），#87 是"不抽帧填表"（不在汇报里加 vision 自检段）。**反模式**：① 跑完视频主动 `vision_analyze` 4 帧 ② 抽 1 帧图当预览发飞书 ③ 报告里加"vision 自检 3 帧"段（"t=0.5s ✅ / t=2.5s ❌ / t=4.5s ❌" 这种格式 = 用户没让我看）。**判断口诀**：**"跑完 = 发视频 = 不自检"** · **"vision 自检 = 用户主动要求才用"** |
 | **83**（v1.0.3+pic12 闭环新增 · 2026-06-07 · **memory 导航图原则**）| **memory 只记导航，详细规则在 skill 仓**——用户 2026-06-07 纠错"memory 里只告诉 AI 去哪里看"= SOUL.md 写的"memory 是导航图不是完整答案"必须真正落地。**反模式**：① 把 skill 仓的 21 铁律 + 4 维原理 + 实战数据**复制进 memory**（双倍维护成本 + 后续 skill 升级 memory 跟不上的风险）② memory 容量超 2,200 字符硬限（HERMES 内置）。**正确做法**：memory 写**高频 skill 仓导航链接**（如"[picturebook-video](~/.hermes/profiles/huiben/skills/creative/picturebook-video/SKILL.md)"）+ 极少量跨会话必用核心（用户偏好 / HOME 沙盒 / 多 Agent 协作 / AI 进化机制）。**判断口诀**：**"想写 memory 时先问：这条信息在某个 skill 仓里已经有了吗？有就只写导航不写内容"** |

@@ -25,10 +25,10 @@ DEFAULT_VERSION = "v15"
 DEFAULT_TONE = "严肃警示·温柔坚定"  # pic4 No 警示向
 
 # v15 4 段骨架模板
-V15_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文 "{EN_WORD}" 和中文"{ZH_WORD}"字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。"""
+V15_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。"""
 
 # v6 5 段骨架模板（v15 + 文字持续可见段，铁律 #73 + #77）
-V6_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文 "{EN_WORD}" 和中文"{ZH_WORD}"字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。{text_visibility_segment}"""
+V6_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。{text_visibility_segment}"""
 
 
 def build_shot_sequence(time_breakdown, narration_text, target_emphasis):
@@ -171,19 +171,19 @@ def _build_text_visibility_segment(tp: dict, target_word: str, en_word_fallback:
 
     # 字符顺序浮现时间表（v6 段 5 必填）
     char_floats = (
-        f"按朗读节奏字符顺序浮现：{en_word[0]}(0.3s) → "
-        f"{en_word[1] if len(en_word) > 1 else ''}(0.6s) → "
-        f"{en_word[2] if len(en_word) > 2 else ''}(0.9s) → "
-        f"{en_word[3] if len(en_word) > 3 else ''}(1.2s) → "
-        f"{zh_word}(1.5s)"
+        f"按朗读节奏字符顺序浮现：参(0.3s) → "
+        f"考(0.6s) → "
+        f"图(0.9s) → "
+        f"原(1.2s) → "
+        f"考(1.5s)"
     )
 
     return (
         f"\n\n段 5 · 文字持续可见段（v6 铁律 #73 · #77）：\n"
-        f"参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文 \"{en_word}\" 和中文\"{zh_word}\"字）"
+        f"参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）"
         f"必须从 t=0 到 t=末帧 全程可见，模型不得删除或替换这些文字，"
         f"文字位置和颜色全程锁定不重新生成该区域内容；\n"
-        f"微动画（领读锚点 · 必含）：① 每字呼吸式明暗交替 0.5s/次（\"{en_word}\" 4 字轮流 + \"{zh_word}\" 字）"
+        f"微动画（领读锚点 · 必含）：① 每字呼吸式明暗交替 0.5s/次（参考图原有英文+中文字轮流）"
         f"② {char_floats} ③ 整体轻微浮动（0.3s/次·上下 2px 范围）；\n"
         f"字体：{font_style}。"
     )
