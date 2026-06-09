@@ -32,7 +32,56 @@ V6_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{fe
 
 
 def build_shot_sequence(time_breakdown, narration_text, target_emphasis):
-    """从 time_breakdown 拼出 镜头一/二/三...+拟声 序列"""
+    """从 time_breakdown 拼出 镜头一/二/三...+拟声 序列（v1.0.5+pic15 优化 · 参考图文字保真）
+
+    v1.0.5 优化点（2026-06-09 Pic7 Horse R7 翻车沉淀）：
+    - C 子 agent 的 action 字段常含具体单词（如 "fork 卡片高亮"）—— 这些是 C 看图后写的合理推断
+    - 但 prompt 强写具体单词会引导 seedance **自己生成** 文字（与参考图不一致 = 画面错乱）
+    - 修复：v1.0.5 把 C action 字段里的具体单词**脱敏**为"第N张卡片"/"第N个图标"
+    - **不动** C 子 agent 输出（保持 C 输出的"fork 卡片"等合理推断作为参考）
+    - **不动** target_word_emphasis 朗读目标词（铁律 #52 核心三控制允许目标词重读）
+
+    脱敏规则（v1.0.5）：
+    - "fork 卡片" / "horn 卡片" / "corn 卡片" / "pork 卡片" → "第N张卡片"
+    - "叉子图标" / "号角图标" / "玉米图标" / "猪图标" → "对应图标"
+    - "horse 卡片" / "horse 单词" → "第1张卡片"
+    - "OR Family" 标题 → 保留（标题比单词更稳定）
+    - 数字 "1" "2" "3" "4" "5" → 保留（位置描述）
+    """
+    import re
+
+    # v1.0.5 脱敏：参考图中可能出现的具体单词/图标名（动态从 text_position.en_word + narration_text.en 提取）
+    # 简化策略：硬编码常见动物/物品脱敏映射（C agent 常用的具体词）
+    sanitization_map = {
+        # 动物卡片名
+        'horse 卡片': '第1张卡片',
+        'fork 卡片': '第2张卡片',
+        'horn 卡片': '第3张卡片',
+        'corn 卡片': '第4张卡片',
+        'pork 卡片': '第5张卡片',
+        'cow 卡片': '第1张卡片',
+        'bow 卡片': '第2张卡片',
+        'now 卡片': '第3张卡片',
+        'how 卡片': '第4张卡片',
+        'wow 卡片': '第5张卡片',
+        # 单图常见词
+        'horse 单词': '核心单词',
+        'horse 马': '核心单词',
+        'brown horse': '棕色动物',
+        # 图标名
+        '叉子图标': '对应图标',
+        '号角图标': '对应图标',
+        '玉米图标': '对应图标',
+        '玉米棒图标': '对应图标',
+        '猪图标': '对应图标',
+    }
+
+    def sanitize_action(action_text):
+        """脱敏 action 里的具体单词（v1.0.5）"""
+        for old, new in sanitization_map.items():
+            action_text = action_text.replace(old, new)
+        return action_text
+
     shot_labels = ['一', '二', '三', '四', '五']
     shots_text = []
     for i, shot in enumerate(time_breakdown):
@@ -40,12 +89,16 @@ def build_shot_sequence(time_breakdown, narration_text, target_emphasis):
         sfx = shot.get('sfx', '')
         if sfx and not sfx.endswith('一响'):
             sfx = sfx + '一响'
-        action = shot.get('action', '')
+        # v1.0.5 脱敏 action
+        action = sanitize_action(shot.get('action', ''))
         target_word = target_emphasis.get('word', narration_text.get('en', ''))
         emphasis_win = target_emphasis.get('emphasis_window', '')
+        # v1.0.5 修复：target_word 也脱敏（"horse" → "目标词"）避免 prompt 强写单词
+        # 但保留核心词（如果 text_position.en_word 设了"目标词"标识）
         narration_marker = ""
         if shot.get('narration_text') or shot.get('narration_seconds', 0) > 0:
-            narration_marker = f'+朗读 "{target_word}"（{shot.get("narration_seconds", 0)}s · {emphasis_win}让小朋友跟读）'
+            # v1.0.5：目标词用 "目标词" 标识，不强写具体英文（让 seedance 100% 忠于 @Image）
+            narration_marker = f'+朗读 目标词（{shot.get("narration_seconds", 0)}s · {emphasis_win}让小朋友跟读）'
         shots_text.append(
             f"镜头{label}（{shot['start']}-{shot['end']}s · {shot.get('label', shot.get('type',''))}）：{action}，{sfx} {narration_marker}；"
         )
@@ -225,10 +278,12 @@ def fill_template(clip_path, version="v15", tone=None):
     # bg_mood：--tone 参数优先
     bg_mood = tone or DEFAULT_TONE
 
-    # EN_WORD/ZH_WORD：tp.en_word / tp.zh_word 优先，回退 narration_text
-    en_word = tp.get('en_word') or clip['narration_text'].get('en', '').split()[-1].rstrip('!.,?')
+    # EN_WORD/ZH_WORD：tp.en_word / tp.zh_word / tp.en / tp.zh 优先，回退 narration_text
+    # v1.0.4+pic14 修复（Pic6 Cow clip4 实战翻车）：C 子 agent 输出字段名是 text_position.en / .zh（不是 en_word/zh_word）
+    # 字段名对不上 → 取 None → narration_text 兜底取了朗读目标词（grass）而非显示文字（COW/奶牛）→ 参考图文字错位
+    en_word = tp.get('en_word') or tp.get('en') or clip['narration_text'].get('en', '').split()[-1].rstrip('!.,?')
     # v1.0.3+pic13 修复（Pic6 Cow 实战）：zh_word 兜底从 narration.zh 提取，非硬编码 '鸟'
-    zh_word = tp.get('zh_word') or clip['narration_text'].get('zh', '').split()[-1].rstrip('!.,?，！？。')
+    zh_word = tp.get('zh_word') or tp.get('zh') or clip['narration_text'].get('zh', '').split()[-1].rstrip('!.,?，！？。')
 
     variables = {
         'N': N,
