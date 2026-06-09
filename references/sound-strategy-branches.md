@@ -36,30 +36,48 @@
 
 ---
 
-## 2. 3 旁白类型 × 声音策略分支表
+## 2. **3 维度 × 多档** 声音策略分支表（v1.0.4+pic14 优化 · 2026-06-09 Pic7 实战沉淀）
 
-| 旁白类型 | 判定标准 | 声音策略 | 段 4 BGM 段写法 | 段 5 文字持续可见 | 拟声 |
+> **v1.0.4 优化点**：之前只分 3 档（普通 / 家族词组 / 长句）太粗，**音效全关**导致画面动态没声音匹配。**改为 3 维度独立控制**（**朗读** / **拟声 + 画面音效** / **环境音**）—— **每一维度都有开关**。
+>
+> **Pic7 实战教训**（2026-06-09 R7 OR 家族 Clip 4）：之前 3 档让家族词组走"拟声关闭"= 卡片高亮 + 5 词切换 + 标题呼吸 **全无声音** = 画面动态没匹配音效 = **不自然**。**用户反馈**："音效要配合画面进行动态匹配"。
+>
+> **优化方向**（用户元偏好 2026-06-09 沉淀）：**"优化 = 取好的方法 + 提供更多可选项"**——**不是"取消 #86"**，是**让 #86 兜底更精细**。
+
+| 旁白类型 | 朗读 | 拟声 + 画面音效 | 环境音 | 段 4 BGM 段写法 | 段 5 文字持续可见 |
 |---|---|---|---|---|---|
-| **普通短句/单词** | words_en ≤ 2 且 words_zh ≤ 4 | seedance **自动生成**发音（prompt 引导）| "无任何背景音乐、无旁白人声、无哼唱" | 全程可见 + 微动画 | 自由发挥 |
-| **家族词组集合** | words_en ≥ 3 且 含同字母家族重复（OW/AY/EE 等） | **不生成发音** + TTS 音轨对齐 | 加"不发音·保留 TTS 音轨占位·时长匹配" | 全程可见 + 微动画 | **关闭** |
-| **长句** | words_en ≥ 5 OR words_zh ≥ 8 | **不生成发音** + TTS 音轨对齐 | 加"不发音·保留 TTS 音轨占位·时长匹配" | 全程可见 + 微动画 | **关闭** |
+| **A. 普通短句/单词** | ✅ 自动生成 | ✅ 自动生成（拼贴风 ambient + 拟声）| ✅ 自动生成 | "无任何背景音乐、无旁白人声、无哼唱" | 全程可见 + 微动画 |
+| **B. 家族词组集合** ⭐ 优化 | ❌ TTS 后期对齐 | ✅ **必保留**（卡片高亮音效 + 拟声）| ✅ **必保留** | **"画面元素动作音效保留（卡片高亮/图标切换/标题呼吸），不发完整朗读，TTS 后期对齐"** | 全程可见 + 微动画 |
+| **C. 长句** ⭐ 优化 | ❌ TTS 后期对齐 | ✅ **必保留**（动作音 + 拟声）| ✅ **必保留** | **"动作音效保留（脚步声/翻页/物体移动），不发完整朗读，TTS 后期对齐"** | 全程可见 + 微动画 |
+| **D. 长句纯静默**（新）| ❌ | ❌ | ✅ 极弱 | "仅保留最弱环境音（绘本页风），其余全静默·强调 TTS 后期" | 全程可见 + 微动画 |
+| **E. 全关**（特殊测试）| ❌ | ❌ | ❌ | 全部不写 | 视情况 |
 
 **判定优先级**（从高到低）：
-1. 家族词组集合（即使 < 5 词也算，如 AY 三词）
-2. 长句
-3. 普通短句/单词
+1. 家族词组集合（即使 < 5 词也算，如 AY 三词）→ B 档
+2. 长句（words_en ≥ 5 OR words_zh ≥ 8）→ C 档
+3. **用户显式要求纯静默**（如"这页不要声音"）→ D 档
+4. 普通短句/单词 → A 档
+5. **测试/对比场景** → E 档
+
+**Pic7 实战坑 1**：之前家族词组走"拟声关闭"（第 4 列"关闭"）= 卡片高亮 + 5 词切换 + 标题呼吸全无声音 = 不自然。**修复**：B 档"拟声 + 画面音效必保留"——卡片高亮配"叮"音效、叉子图标配"叮咚"、号角配"呜"。
+
+**Pic7 实战坑 2**：段 4 BGM 段"无任何背景音乐、无旁白人声、无哼唱"对 B/C 档是**全静音兜底**——导致画面动态没音效。**修复**：B/C 档段 4 改写"画面元素动作音效保留 + 不发完整朗读 + TTS 后期对齐"。
 
 ---
 
-## 3. seedance 命令差异
+## 3. seedance 命令差异（v1.0.4 优化）
 
 | 旁白类型 | `--generate-audio` | `--audio` 参数 | 段 4 prompt 写法 |
 |---|---|---|---|
-| 普通短句/单词 | `true` | 不传 | 引导拟声 + 单音节朗读 |
-| 家族词组集合 | `false` | 传 TTS mp3 路径 | "不发音·保留 TTS 音轨占位·5 词顺序朗读·时长匹配 TTS 实测" |
-| 长句 | `false` | 传 TTS mp3 路径 | "不发音·保留 TTS 音轨占位·完整朗读·时长匹配 TTS 实测" |
+| A. 普通短句/单词 | `true` | 不传 | 引导拟声 + 单音节朗读 |
+| **B. 家族词组集合** ⭐ 优化 | **`true`**（不再是 false）| 传 TTS mp3 路径（后期对齐）| **"画面元素动作音效保留（卡片高亮/图标切换），不发完整朗读，TTS 后期对齐"** |
+| **C. 长句** ⭐ 优化 | **`true`**（不再是 false）| 传 TTS mp3 路径（后期对齐）| **"动作音效保留（脚步声/翻页），不发完整朗读，TTS 后期对齐"** |
+| D. 长句纯静默 | `true` | 传 TTS mp3 路径 | "仅保留最弱环境音，其余全静默" |
+| E. 全关 | `false` | 不传 | 全部不写 |
 
-**Pic6 clip7 实战**：家族词组（cow, bow, now, how, wow 5 词）= `--generate-audio false` + 段 4 prompt 写"无任何背景音乐" → 视频跑通无重复发音 ✅
+**Pic6 clip7 实战（v1.0.3 旧）**：家族词组（cow, bow, now, how, wow 5 词）= `--generate-audio false` + 段 4 prompt 写"无任何背景音乐" → 视频跑通无重复发音 ✅（但**没验证音效在不在**——Pic7 才暴露问题）
+
+**Pic7 clip4 实战（v1.0.4 修复）**：家族词组 OR 5 词（horse/fork/horn/corn/pork）= `--generate-audio true` + 段 4 prompt 写"画面元素动作音效保留（卡片高亮/图标切换），不发完整朗读，TTS 后期对齐" → 视频跑通 0 重复发音 + **卡片高亮 + 5 词切换 + 标题呼吸**全部有匹配音效 ✅（待实战验证）
 
 ---
 
@@ -79,31 +97,63 @@
 }
 ```
 
-**枚举值**：
+**枚举值**（v1.0.3 旧 · 3 档）：
 - `single_word`：普通单词（COW! / moo! / bow!）
 - `short_phrase`：普通短句（"A black and white cow."）
 - `family_word_set`：家族词组集合（cow, bow, now, how, wow）
 - `long_sentence`：长句（>5 词 / >8 字）
 
+**枚举值**（v1.0.4 新 · 5 档 · 对应上表 A/B/C/D/E）：
+- `A_standard`：普通短句/单词（默认 · 朗读+拟声+环境音 全开）
+- `B_family_set`：家族词组集合（朗读关 · 拟声+画面音效+环境音 必保留）⭐ 优化
+- `C_long_sentence`：长句（朗读关 · 拟声+环境音 必保留）⭐ 优化
+- `D_silent_only`：长句纯静默（朗读+拟声 关 · 极弱环境音 · TTS 后期对齐）
+- `E_mute_all`：全关（特殊测试 · `--generate-audio false`）
+
 **判定逻辑**（B 子 agent / 主 agent 干 B 时必跑）：
 ```python
-def detect_sound_strategy(words_en, words_zh, en_text):
-    # 1. 家族词组集合判定
-    if words_en >= 3:
-        # 检测同字母家族重复（OW/AY/EE/AR 等）
-        import re
-        # 简单规则：3+ 词共用相同 2 字母结尾（如 -ow, -ay, -ee）
-        words = [w.rstrip('!.,?') for w in en_text.lower().split(',')]
+def detect_sound_strategy_v104(words_en, words_zh, en_text, user_force_silent=False):
+    """
+    v1.0.4+pic14 优化 · 5 档声音策略判定
+    
+    Parameters
+    ----------
+    words_en : int
+    words_zh : int
+    en_text : str
+        英文文本（用于家族词组结尾检测）
+    user_force_silent : bool
+        用户是否显式要求"这页不要声音"（→ D 档）
+    
+    Returns
+    -------
+    strategy : str
+        A_standard / B_family_set / C_long_sentence / D_silent_only / E_mute_all
+    rationale : str
+        判定理由
+    """
+    # 1. 用户显式要求纯静默 → D 档
+    if user_force_silent:
+        return 'D_silent_only', '用户显式要求纯静默（"这页不要声音"）'
+    
+    # 2. 家族词组集合判定（v1.0.4 优化：3+ 词共用相同 2 字母结尾）
+    if words_en >= 3 and ',' in en_text:
+        # OR/OW/AY/EE/AR 等家族结尾检测
+        words = [w.rstrip('!.,?').lower() for w in en_text.split(',')]
         suffixes = [w[-2:] for w in words if len(w) >= 2]
+        # v1.0.4 优化：≥3 词共用相同 2 字母结尾 OR 同字母家族重复
         if len(suffixes) >= 3 and len(set(suffixes)) == 1:
-            return 'family_word_set'
-    # 2. 长句判定
+            return 'B_family_set', f'家族词组集合（{len(words)} 词 · 共同 2 字母结尾 {suffixes[0]}）· B 档：朗读关 + 拟声+画面音效+环境音 必保留'
+    
+    # 3. 长句判定 → C 档
     if words_en >= 5 or words_zh >= 8:
-        return 'long_sentence'
-    # 3. 普通短句/单词
+        return 'C_long_sentence', f'长句（words_en={words_en} OR words_zh={words_zh}）· C 档：朗读关 + 拟声+环境音 必保留'
+    
+    # 4. 普通短句/单词 → A 档
     if words_en <= 2 and words_zh <= 4:
-        return 'single_word'
-    return 'short_phrase'
+        return 'A_standard', f'普通短句/单词（words_en={words_en} words_zh={words_zh}）· A 档：默认全开'
+    
+    return 'A_standard', f'中等短句（words_en={words_en} words_zh={words_zh}）· A 档：默认全开'
 ```
 
 ---
