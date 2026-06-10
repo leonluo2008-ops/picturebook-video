@@ -2,16 +2,16 @@
   {
     "id": 1,
     "prompt": "我想做一个绘本动画，输入 8 张图 + 旁白，应该用什么范式？怎么启动？",
-    "expected_should_trigger": "SKILL.md 应引导用户跑 v15 启动前 7 必问（不是已废的 6 必问）+ 调度 5 步流程（Step 0 接收 → Step 1 7 必问 → Step 2 A+B 并行 → Step 3 v15 6 段骨架 → Step 4 D 视频执行 3 并发 → Step 5 证据链 + 飞书），并指出 v15 导演思维版是唯一范式（v1.2.0+pic22 起）",
-    "expected_reason": "v15 范式是当前默认 → 5 步调度流程是入口 → 7 必问（不是 6 必问）= v1.2.0+pic22 修正",
-    "scenario": "绘本启动场景 · 5 步调度 + 7 必问入口",
+    "expected_should_trigger": "SKILL.md 应引导用户跑 v15 启动前 7 必问（不是已废的 6 必问）+ 调度 6 步流程（Step 0 接收 → Step 1 7 必问 → Step 2 主 agent native vision 视觉识别 → Step 3 调 B+BC 并行 → Step 4 调 C+P 串行 → Step 5 D 3 并发 → Step 6 4 步对账 + 发飞书），并指出 v15 导演思维版是唯一范式（v1.2.0+pic22 起）+ v1.2.0+pic25 6 步调度（不是 5 步）",
+    "expected_reason": "v15 范式是当前默认 → 6 步调度流程是入口 → 7 必问（不是 6 必问）= v1.2.0+pic22 修正 + v1.2.0+pic25 6 步升级",
+    "scenario": "绘本启动场景 · 6 步调度 + 7 必问入口",
     "difficulty": "标准",
-    "covers": "SKILL.md · 5 步调度 · 7 必问（v1.2.0+pic22）· v15 唯一范式"
+    "covers": "SKILL.md · 6 步调度 · 7 必问（v1.2.0+pic22）· v15 唯一范式 · v1.2.0+pic25 升级"
   },
   {
     "id": 2,
     "prompt": "我有 1 张图，但旁白特别长（10s+），还包含 6 个 AT 韵词，怎么拆 Clip？",
-    "expected_should_trigger": "应引导走 v15director §1.3 时长档位 + 语义块拆分（不是已废的 v15.1 老节奏公式 2-1-3-3-3）。时长 = 朗读秒数 + 静默 2-2.5s 选整数档（5/6/7s）。**不再用 v15.1 节奏公式 2-1-3-3-3（v1.2.0+pic20 净化 = 已废）**",
+    "expected_should_trigger": "应引导走 v15director §1.3 时长档位 + 语义块拆分（不是已废的 v15.1 老节奏公式 2-1-3-3-3）。时长 = 朗读秒数 + 静默 2-2.5s 选整数档（5/6/7/8/14s）。**不再用 v15.1 节奏公式 2-1-3-3-3（v1.2.0+pic20 净化 = 已废）** · 5+ 词词族 = 14s 档位（v1.2.0+pic23 B1 修复）",
     "expected_reason": "v15.1 老节奏公式已废 · v1.2.0+pic22 改为'按动作步骤数 1-3 镜/段'（不固定 3 镜）· 不按秒数硬切（官方 doc2 §1.3 红线）",
     "scenario": "长旁白单图拆分场景 · 4 步原则（v22）",
     "difficulty": "复杂",
@@ -20,7 +20,7 @@
   {
     "id": 3,
     "prompt": "切分方案跑出来 5 个 Clip，但 prompt 写完发现漏了 1 张图 + 漏了 1 个子 Clip，怎么办？",
-    "expected_should_trigger": "应引导跑 Step 0.5 场景对位检查（铁律 #56）+ 调度流程 5 步 + 末帧'在小朋友心中沉淀'静默沉淀段落（v1.2.0+pic22）+ 4 步原则'看图 → 推断 → 写动作 → 留静默'。**不是已废的'铁律 #38 切分表必查清单 4 项'**（# 编号已删）",
+    "expected_should_trigger": "应引导跑 Step 0.5 场景对位检查（铁律 #56）+ 调度流程 6 步 + 末帧'在小朋友心中沉淀'静默沉淀段落（v1.2.0+pic22）+ 4 步原则'看图 → 推断 → 写动作 → 留静默'。**不是已废的'铁律 #38 切分表必查清单 4 项'**（# 编号已删）",
     "expected_reason": "旧铁律 #38 = # 编号格式，v1.2.0+pic22 已删。规则本身在 Step 0.5 场景对位检查 + 4 步原则里。**禁止用'铁律 #N'引用方式**——改用主题编号或章节引用",
     "scenario": "完整跑通后连环错场景 · Step 0.5 场景对位 + 4 步原则",
     "difficulty": "复杂",
@@ -37,8 +37,8 @@
   },
   {
     "id": 5,
-    "prompt": "8 段旁白有时长差异（'A cute hamster.' 3 词 vs 'A happy hamster eats.' 4 词 vs 'I see a hamster.' 4 词 vs 'Find the hamster!' 3 词），怎么决定每个 Clip 的时长档位（5/6/7s）？",
-    "expected_should_trigger": "应命中 v15director §1.3 时长档位（5/6/7s 整数档，seedance ceiling 7.04s）+ 总镜头数 ≤ 时长 ÷ 1.5s + 看图推断 1-3 镜/段（不固定 3 镜）。**不**命中已废的'铁律 #32 #33 旁白朗读公式'（# 编号已删 + 0.25s/字 / 0.7s/词 等公式不在 v15director）。**实际公式**在算旁白朗读时长时临时算（1.4 词/秒 + 3.5 字/秒 兜底），不强求文档固定",
+    "prompt": "8 段旁白有时长差异（'A cute hamster.' 3 词 vs 'A happy hamster eats.' 4 词 vs 'I see a hamster.' 4 词 vs 'Find the hamster!' 3 词），怎么决定每个 Clip 的时长档位（5/6/7/14s）？",
+    "expected_should_trigger": "应命中 v15director §1.3 时长档位（5/6/7/8/14s 整数档，seedance ceiling 15s）+ 总镜头数 ≤ 时长 ÷ 1.5s + 看图推断 1-3 镜/段（不固定 3 镜）+ 5+ 词词族 = 14s 档位（v1.2.0+pic23 B1 修复）。**不**命中已废的'铁律 #32 #33 旁白朗读公式'（# 编号已删 + 0.25s/字 / 0.7s/词 等公式不在 v15director）。**实际公式**在算旁白朗读时长时临时算（1.4 词/秒 + 3.5 字/秒 兜底），不强求文档固定",
     "expected_reason": "v15director §1.3 时长档位表 + 4 步原则 = 真实权威。0.25s/字 / 0.7s/词 等具体公式 = 实战记忆（**不在文档里**）。**禁止引用不存在的 references 文件**——脚本会查不到",
     "scenario": "时长档位选择场景 · v15director §1.3 + 4 步原则",
     "difficulty": "标准",
@@ -83,11 +83,11 @@
   {
     "id": 10,
     "prompt": "8 个 Clip 怎么用 3 并发跑？多任务并发时文件路径怎么避免互相覆盖？",
-    "expected_should_trigger": "应命中 SKILL.md Step 4 D 视频执行 + seedance2.0-tool/SKILL.md line 210 红线：① **3 并发**（官方推荐上限 = picturebook-workflow.md 铁律）② 每个任务用独立 download 路径（--download /path/clip1.mp4 各自不同），**不**用同路径（否则 seedance.py 直接当文件名用，不拼接 task_id，会覆盖）",
+    "expected_should_trigger": "应命中 SKILL.md Step 5 D 视频执行 + seedance2.0-tool/SKILL.md line 210 红线：① **3 并发**（官方推荐上限 = picturebook-workflow.md 铁律）② 每个任务用独立 download 路径（--download /path/clip1.mp4 各自不同），**不**用同路径（否则 seedance.py 直接当文件名用，不拼接 task_id，会覆盖）",
     "expected_reason": "Pic10 Hamster 5 段串行 18 分钟 → 3 并发 7 分 18 秒（节省 11 分钟）。picturebook-workflow.md line 79-81 铁律'所有 Clip 一次性并行提交，不串行'",
     "scenario": "Pic10 Hamster 3 并发 D 视频执行",
     "difficulty": "标准",
-    "covers": "SKILL.md Step 4 · seedance2.0-tool/SKILL.md line 210 · 3 并发 · 文件路径独立 · picturebook-workflow.md 铁律"
+    "covers": "SKILL.md Step 5 · seedance2.0-tool/SKILL.md line 210 · 3 并发 · 文件路径独立 · picturebook-workflow.md 铁律"
   },
   {
     "id": 11,
@@ -102,7 +102,7 @@
     "id": 12,
     "prompt": "v1.2.0+pic24 新增了 6 条主 agent 行为铁律（A1 发飞书对账报告/A2 交付不抽帧/A3 跑完必发视频 + C1 禁元术语/C2 段4兜底句-Cat原话/C3 StepA强制化），请解释这 6 条新铁律分别在什么场景下触发？",
     "expected_should_trigger": "应命中 6 条新铁律（v1.2.0+pic24 · 2026-06-10 Dog 绘本事故后新增）：① **`agent.发飞书对账报告`**（错位发视频）② **`agent.交付不抽帧`**（用户红线）③ **`agent.跑完必发视频`**（硬闭环）④ **`prompt.禁元术语`**（Pic10 v3 修复元教训）⑤ **`prompt.段4兜底句-Cat原话`**（Cat 6/6 跑通）⑥ **`prompt.StepA强制化`**（5 种画面状态对应 5 种运镜）",
-    "expected_reason": "v1.2.0+pic24 = 主题编号铁律 13 → 19 条 · A+C 6 类 = 元教训级 · 之前 v1.2.0+pic23 撞 100% 撞成幻觉天花板 = 因为 0 个 test-prompt 测这 6 条新铁律",
+    "expected_reason": "v1.2.0+pic24 = 主题编号铁律 13 → 19 条 · A+C 6 类 = 元教训级 · 之前 v1.2.0+pic23 撞 100% = 幻觉天花板 = 因为 0 个 test-prompt 测这 6 条新铁律",
     "scenario": "v1.2.0+pic24 新增 6 条铁律 · 触发场景",
     "difficulty": "复杂",
     "covers": "v1.2.0+pic24 · 6 条新铁律 · A1+A2+A3+C1+C2+C3 全部覆盖"
@@ -132,7 +132,7 @@
     "expected_reason": "A3 元教训 = '跑完'语义必须重定义 = '视频文件已发出'（**不**仅'已下载到本地'）。违反 = 用户从没见过视频 = 严重事故",
     "scenario": "A3 跑完不发视频事故 · 必发视频附件",
     "difficulty": "标准",
-    "covers": "agent.跑完必发视频 · SKILL.md Step 5 · 视频交付工作流-不抽帧.md §正模式 · v1.2.0+pic24"
+    "covers": "agent.跑完必发视频 · SKILL.md Step 6 · 视频交付工作流-不抽帧.md §正模式 · v1.2.0+pic24"
   },
   {
     "id": 16,
@@ -151,5 +151,32 @@
     "scenario": "C2 段 4 兜底句错版 · Cat 范式回滚",
     "difficulty": "复杂",
     "covers": "prompt.段4兜底句-Cat原话 · sound-strategy-branches.md §2 · Cat 范式回滚 · v1.2.0+pic24"
+  },
+  {
+    "id": 18,
+    "prompt": "v1.2.0+pic25 改成了 6 步调度 + 4 子 agent 架构（删 A 风格识别 + 新增 BC 节奏时长 + 重写 C 纯分镜 + 新增 P 提示词编写）。为什么要这么改？",
+    "expected_should_trigger": "应命中 v1.2.0+pic25 5 关键改动：① **删 A 风格识别子 agent**（风格 = 主 agent native vision 视觉识别的一部分）② **新增 BC 节奏/时长子 agent**（拆分原 C 子 agent 的节奏职能）③ **重写 C 子 agent = 纯分镜脚本**（不拼 prompt）④ **新增 P 提示词编段子 agent**（专门写 v15 范式 prompt）⑤ **5 步 → 6 步调度**（Step 2 主 agent vision 独立）",
+    "expected_reason": "v1.2.0+pic25 根因 = 2026-06-10 Dog 流程梳理用户拍板：① 不需要单独 A 风格 agent（主 agent vision 已锁风格）② C 子 agent = 3 件事上下文污染（v0.7.1+pic7 时代主 agent 翻车教训）③ P 独立 = prompt 写得更专更准",
+    "scenario": "v1.2.0+pic25 5 关键改动 · 6 步调度 + 4 子 agent 架构",
+    "difficulty": "标准",
+    "covers": "v1.2.0+pic25 · 5 关键改动 · 6 步调度 · 4 子 agent 架构"
+  },
+  {
+    "id": 19,
+    "prompt": "Step 2 主 agent native vision 视觉识别具体要做什么？为什么不调 A 子 agent？",
+    "expected_should_trigger": "应命中 v1.2.0+pic25 Step 2 关键决策：① **主 agent native vision**（MiniMax-M3 / 当前 model 自带 vision）一次性 vision_analyze 8 张图 ② **同时输出 3 件事**：① 画面描述（每张图有什么 · 给分镜用）② 风格锚定（Eric Carle paper collage 等 · 给 prompt 用）③ 5 种画面状态（静态/动态/特写/全景/细节 · 给运镜用）③ **不调 A 子 agent** = 风格已经在视觉识别里 = 不需要单独 agent ④ 节省子 agent 调度开销 + 避免上下文污染",
+    "expected_reason": "v1.2.0+pic25 视觉识别 = 主 agent native vision 一步到位 · 不调子 agent · 避免 8 张图 vision 在子 agent 和主 agent 之间传递 = 信息丢失 + 上下文污染",
+    "scenario": "Step 2 主 agent native vision · 视觉识别 + 风格锁定 + 5 种画面状态",
+    "difficulty": "标准",
+    "covers": "v1.2.0+pic25 Step 2 · 主 agent native vision · 3 件事一次输出 · 删 A 子 agent 理由"
+  },
+  {
+    "id": 20,
+    "prompt": "P 提示词编段子 agent 和 C 分镜设计子 agent 怎么分工？为什么 P 要独立？",
+    "expected_should_trigger": "应命中 v1.2.0+pic25 P vs C 分工：① **C 子 agent = 纯分镜脚本**（末帧策略 + 镜头描述 4 逻辑齐全）= **不**拼 prompt ② **P 子 agent = 写完整 v15 范式 prompt 草稿**（消费 C 输出 + Step 2 风格 + Step 3 节奏）= **专门**写 prompt ③ **P 独立原因**：v1.0.0 旧版 C = 节奏+分镜+prompt 3 件事 = 上下文污染 · P 独立 = 各自 prompt 模板更专更准 ④ 配合 v1.2.0+pic24 6 新铁律 = prompt 写法专门化",
+    "expected_reason": "v1.2.0+pic25 拆分 C/P = 粒度更细 · 1 个萝卜 1 个坑 · 各自 prompt 模板/工具更专 = 提升质量",
+    "scenario": "P 提示词编写独立 vs C 分镜脚本 · 分工与配合",
+    "difficulty": "复杂",
+    "covers": "v1.2.0+pic25 · C/P 分工 · P 独立原因 · 粒度更细"
   }
 ]
