@@ -1,6 +1,6 @@
 ---
 name: picturebook-video
-description: "绘本转儿童动画视频一站式调度 skill（**v1.2.0+pic22** · v7 范式彻底删除 + 运镜/音效/镜头名 3 个 Step 决定规则 + 主题编号铁律 13 条）。v15 导演思维版 = **唯一**分镜规范（`references/分镜设计规范-v15director.md`）· v7 + 首尾帧 = **禁用** · 默认'中景拉远+微风+建立场景'模板 = **禁用**（Pic10 6/6 段 100% 套用 = 翻车）· 3 并发 D 视频执行 = picturebook-workflow.md 铁律。绘本 + N 张图 + 旁白 → Step 0 用途澄清 → Step 0.5 场景对位 → Step 1 启动前 7 必问 + #1.5 数字约束 → 调 A 风格 + B 旁白（并行）→ 主 agent 写 6 段 prompt（§1 + §7.6 3 个 Step + `references/分镜设计-模板化反模式-2026-06-10.md`）→ 3 并发 D → 发飞书 + 完整证据链。**v1.2.0 净化**：15 个 v7 专有文件全删。**触发词**：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video。"
+description: "绘本转儿童动画视频一站式调度 skill（**v1.2.0+pic25** · 主 agent native vision 视觉识别 + 4 子 agent 调度 = B 旁白量化 / BC 节奏时长 / C 分镜设计（不拼 prompt）/ P 提示词编写（独立）/ D 视频执行）。v1.2.0+pic24 = 6 新铁律（A1+A2+A3+C1+C2+C3）+ 17 test-prompts 真覆盖率 100%。v15 导演思维版 = **唯一**分镜规范（`references/分镜设计规范-v15director.md`）· v7 + 首尾帧 = **禁用** · 默认'中景拉远+微风+建立场景'模板 = **禁用**（Pic10 6/6 段 100% 套用 = 翻车）· 3 并发 D 视频执行 = picturebook-workflow.md 铁律。绘本 + N 张图 + 旁白 → Step 0 接收 → Step 1 7 必问 + #1.5 数字约束 → Step 2 主 agent native vision 视觉识别（同时锁风格 + 5 种画面状态）→ Step 3 调 B+BC 并行 → Step 4 调 C+P 串行 → Step 5 D 3 并发跑 → Step 6 4 步对账 + 发飞书必附视频附件。**v1.2.0+pic25 关键改动**：① 删 A 风格识别子 agent（风格 = 主 agent native vision 视觉识别一部分）② 拆 C 子 agent = 纯分镜脚本（不拼 prompt）③ 新增 P 提示词编写子 agent（独立）④ 新增 BC 节奏/时长子 agent ⑤ 5 步 → 6 步调度。**v1.2.0 净化**：15 个 v7 专有文件全删。**触发词**：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video。"
 license: Apache-2-2
 metadata:
   hermes:
@@ -155,33 +155,53 @@ metadata:
 
 **4 个子 agent**（不直接调，记下来即可）：
 
-| Agent | 职责 | Skill |
-|---|---|---|
-| **A · 风格识别** | 调性 + 节奏倾向 + 风格锚定词 | `storyboard-style` |
-| **B · 旁白量化** | 朗读时长 + 复杂度 + 静默推荐 | `storyboard-narration` |
-| **C · 分镜设计** | 节奏公式 + 镜头表 + v15 prompt 草稿 | `storyboard-design` |
-| **D · 视频执行** | seedance 跑 + ffmpeg 抽帧 + vision 自检 | `video-executor` |
+| Agent | 职责 | Skill | 状态 |
+|---|---|---|---|
+| ~~**A · 风格识别**~~ | ~~调性 + 节奏倾向 + 风格锚定词~~ | ~~`storyboard-style`~~ | ❌ **v1.2.0+pic25 已废 · 删**（风格 = 主 agent native vision 视觉识别的一部分 · 2026-06-10 Dog 流程梳理用户拍板"不需要单独 agent"）|
+| **B · 旁白量化** | 朗读时长 + 复杂度 + 静默推荐 | `storyboard-narration` | ✅ 保留 |
+| **BC · 节奏/时长划分**（合并 B+C 节奏部分）| 时长档位 + 节奏公式 + 镜头数 | `storyboard-rhythm` | ✅ **v1.2.0+pic25 新增**（2026-06-10 Dog 流程梳理用户拍板）|
+| **C · 分镜设计**（重定义·不拼 prompt）| 末帧策略 + 镜头描述（不带 prompt） | `storyboard-design`（重写）| ✅ **v1.2.0+pic25 改**（拆分 prompt 编写职能）|
+| **P · 提示词编写**（独立·新增）| 完整 v15 范式 prompt 草稿 | `storyboard-prompt-writer` | ✅ **v1.2.0+pic25 新增**（2026-06-10 Dog 流程梳理用户拍板"提示词编写专门 agent"）|
+| **D · 视频执行** | seedance 跑 + ffmpeg 抽帧 + vision 自检 | `video-executor` | ✅ 保留 |
+
+**v1.2.0+pic25 调度原则**（2026-06-10 Dog 流程梳理沉淀）：
+1. **视觉识别 = 主 agent native vision**（**不**调子 agent · 避免上下文污染）
+2. **时长/节奏/分镜/prompt = 各自独立子 agent**（**不**在主 agent 凭印象算）
+3. **每个子 agent = 单一职责**（Pic 5 实战沉淀：v0.7.1+pic7 时代主 agent 同时承担 4 件事 = 上下文污染）
 
 **子 agent 详细规范**：见 `agents/<agent>/SKILL.md`
 
-## 调度流程（5 步 · v1.2.0+pic21 · v15 唯一路径）
+## 调度流程（5 步 · v1.2.0+pic25 · 主 agent 视觉识别 + 4 子 agent 调度）
 
 ```
-Step 0 · 接收需求
+Step 0 · 接收需求（素材 + 旁白）
    ↓
 Step 1 · 启动前 7 必问（必跑）+ #1.5 数字约束数学验证
    ↓
-Step 2 · 调 A 风格识别 + B 旁白量化（并行 · B 主 agent 干）
+Step 2 · 主 agent native vision 视觉识别（**不调子 agent**）
+   · 8 张图一次性 vision_analyze（同时输出 3 件事）：
+     ① 画面描述（每张图有什么 · 给分镜用）
+     ② 风格锚定（Eric Carle paper collage 等 · 给 prompt 用）
+     ③ 5 种画面状态（静态/动态/特写/全景/细节 · 给运镜用）
+   · **关键决策**：风格识别**不**调子 agent · 合并到视觉识别
    ↓
-Step 3 · 分镜设计 · **v15 导演思维版 6 段骨架**（**唯一路径**）：
-   看 [`分镜设计规范-v15director.md`](./references/分镜设计规范-v15director.md)
-   主 agent 按 6 段骨架写 prompt（**不调 C 拼老 v15 4 段/v6 5 段**）
+Step 3 · 调 B 旁白量化 + BC 节奏/时长划分（并行）
+   · B 子 agent 量化旁白（TTS 实测优先 / 字数×0.15s 兜底）
+   · BC 子 agent 算每个 Clip 时长档位 + 节奏公式 + 镜头数
+   · 消费 Step 2 主 agent 视觉识别输出
    ↓
-Step 4 · 调 D · **seedance 必传 --ref-images**（**禁用 --image + --last-frame**）
+Step 4 · 调 C 分镜设计（**不拼 prompt**）+ P 提示词编写（独立·串行）
+   · C 子 agent 输出末帧策略 + 镜头描述（不带 prompt）
+   · P 子 agent 消费 C 输出 + Step 2 风格锚定 + Step 3 节奏公式
+   · P 子 agent 输出完整 v15 范式 prompt 草稿
+   ↓
+Step 5 · 调 D · **seedance 必传 --ref-images**（**禁用 --image + --last-frame**）
    · **状态查询走 execute_code + urllib 直查 REST API**（见 ⭐状态铁律）
    · **3 个/批 + 主 agent 续跑**（picturebook-workflow.md 铁律 · v1.2.0+pic22 升级 · subprocess.Popen 异步提交 3 个/批）
    ↓
-Step 5 · 汇总 + 发飞书（必附 md5 + task_id + seed + 时长证据链，见 #76）
+Step 6 · 汇总 + 发飞书（必附 4 步对账报告：stat + md5 + 身份 + 证据链）
+   · **A1 必走 4 步对账**（v1.2.0+pic24 新铁律）
+   · **A3 必发视频附件**（v1.2.0+pic24 新铁律）
 ```
 
 **v15 导演思维版调度示例**（Rabbit newclip1 v2 · 验证通过）：
