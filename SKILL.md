@@ -157,11 +157,13 @@ Step 1 · 启动前 6 必问（必跑）
    ↓
 Step 2 · 调 A + B 并行（delegate_task）
    ↓
-Step 3 · 调 C · 分镜设计（**先看 Step 3.0 范式路由** · v7 不调 C）
+Step 3 · 分镜设计 · **范式分流**：
+   ├─ **v7 范式**（领读/认知/认字）→ **主 agent 直拼 8 段 prompt**（**不调 C**）
+   └─ **v15/v6 范式**（叙事/冒险/收势）→ 调 C 拼 v15 4 段 prompt
    ↓
-Step 4 · 调 D（可能 N 次重试 · 2 个/批 + 主 agent 续跑）
+Step 4 · 调 D（v7 必传 --image + --last-frame + --generate-audio true）· **状态查询走 execute_code + urllib 直查 REST API**（见 ⭐状态铁律）· 2 个/批 + 主 agent 续跑
    ↓
-Step 5 · 汇总 + 决定发不发飞书
+Step 5 · 汇总 + 发飞书（必附 md5 + task_id + seed + 时长证据链，见 #76）
 ```
 
 
