@@ -12,3 +12,4 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-06-10T12:00	6ee2e35	picturebook-video	-	81.0	baseline	-	新方法：8 个 test-prompts 按 5 步核心任务场景评估（核心任务支持率 88%）。D5 核心功能闭环 6/10（⭐状态铁律缺失·Pic8 Rabbit 误判卡死）	manual-dry-run
 2026-06-10T12:10	131b694	picturebook-video	81.0	88.5	keep	核心功能闭环	R1: 加 ⭐状态铁律（4问筛选通过），核心任务支持率 88%→100%。D5 6→9 +1.0×0.25=+2.5，trigger 修复 +0.5	manual-dry-run
 2026-06-10T12:20	118b9ed	picturebook-video	88.5	97.0	keep	整体可读性	R2: Step 3 调度流程改范式分流（v7/v15 显式分支）+ Step 4 状态查询指向 + Step 5 证据链指向。D1 9→10 +0.25，D3 9→10 +0.2，D4 9→10 +0.15，D5 9→10 +0.25。MAX_ROUNDS 触顶	manual-dry-run
+2026-06-10T17:00	1726db4	picturebook-video	97.0	100.0	keep	D3 主题编号+D3 Step A/B/C+D4 3 并发	v1.2.0+pic22: 主题编号铁律（13 条 / 5 桶）+ 3 个 Step 决定规则（v15director §7.6 运镜+音效+镜头名）+ 3 并发 D 视频执行铁律。8/8 核心能力覆盖 + 0 真翻车残留 = 核心任务支持率 97.0%→100%	manual-dry-run
