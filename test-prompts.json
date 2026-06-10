@@ -97,5 +97,59 @@
     "scenario": "Pic10 Hamster Clip1 静态中央 · Step A 不拉远",
     "difficulty": "标准",
     "covers": "v15director §7.6 Step A · 静态中央 = 固定中景 · 禁默认拉远 · v22 新增"
+  },
+  {
+    "id": 12,
+    "prompt": "v1.2.0+pic24 新增了 6 条主 agent 行为铁律（A1 发飞书对账报告/A2 交付不抽帧/A3 跑完必发视频 + C1 禁元术语/C2 段4兜底句-Cat原话/C3 StepA强制化），请解释这 6 条新铁律分别在什么场景下触发？",
+    "expected_should_trigger": "应命中 6 条新铁律（v1.2.0+pic24 · 2026-06-10 Dog 绘本事故后新增）：① **`agent.发飞书对账报告`**（错位发视频）② **`agent.交付不抽帧`**（用户红线）③ **`agent.跑完必发视频`**（硬闭环）④ **`prompt.禁元术语`**（Pic10 v3 修复元教训）⑤ **`prompt.段4兜底句-Cat原话`**（Cat 6/6 跑通）⑥ **`prompt.StepA强制化`**（5 种画面状态对应 5 种运镜）",
+    "expected_reason": "v1.2.0+pic24 = 主题编号铁律 13 → 19 条 · A+C 6 类 = 元教训级 · 之前 v1.2.0+pic23 撞 100% 撞成幻觉天花板 = 因为 0 个 test-prompt 测这 6 条新铁律",
+    "scenario": "v1.2.0+pic24 新增 6 条铁律 · 触发场景",
+    "difficulty": "复杂",
+    "covers": "v1.2.0+pic24 · 6 条新铁律 · A1+A2+A3+C1+C2+C3 全部覆盖"
+  },
+  {
+    "id": 13,
+    "prompt": "我跑完 1 个 Clip，本地有 clip1.mp4 (1.4MB)、clip2.mp4 (2.8MB)、clip7.mp4 (5.6MB)。用户问'已提交的任务要下载视频'。我怎么知道该下载哪个？错位发视频会怎样？",
+    "expected_should_trigger": "应命中 **`agent.发飞书对账报告`** v1.2.0+pic24 新铁律 4 步：① **stat 校验**（文件大小 + mtime）② **md5 校验**（与本地源文件 hash 一致）③ **身份校验**（clip1.mp4 必须是 p1 内容，**不**是 p2/3/7）④ **4 步对账报告**（md5 短码 + task_id + seed + 时长 + 档位 + 范式）· Dog 18:10 事故：发 clip1/2/3 帧目检报告当成 clip7 = 错位发视频 = 错位 = 用户红线",
+    "expected_reason": "A1 元教训 = 错位发视频 = 严重事故。修复 = 4 步对账必走 + 必附对账报告。违反 = 必然错位发视频",
+    "scenario": "A1 错位发视频事故 · 4 步对账必走",
+    "difficulty": "复杂",
+    "covers": "agent.发飞书对账报告 · stat + md5 + 身份校验 + 4 步对账报告 · v1.2.0+pic24"
+  },
+  {
+    "id": 14,
+    "prompt": "我跑完 1 个 Clip 后想抽 4 帧 + vision_analyze 写'4 帧验证报告'给用户。用户原话'不要抽帧，我自己看'。我应该怎么改？",
+    "expected_should_trigger": "应命中 **`agent.交付不抽帧`** v1.2.0+pic24 新铁律：① ❌ 禁止跑完视频后自动 ffmpeg -ss 抽 4 帧 + vision_analyze 给用户看 ② ❌ 禁止抽帧后写'4 帧验证'报告 ③ ❌ 禁止 vision_analyze 后写文字版画面描述 ④ ✅ 直接发视频（send_message + MEDIA:path）让用户自己看。诊断阶段（v1 翻车修复/翻车复盘）可抽，但加 ⚠️ 警告",
+    "expected_reason": "A2 元教训 = 用户红线 = 0 例外。交付阶段 = 0 抽帧。诊断阶段可抽（标红字警告）。**A1 vs A2 冲突** = 旧 `agent.任务完成度自检` 铁律 step ② '抽帧 + native vision 视觉目检' 必须加红字警告'仅诊断阶段使用 · 交付阶段禁止'",
+    "scenario": "A2 主动抽帧自检事故 · 交付不抽帧",
+    "difficulty": "复杂",
+    "covers": "agent.交付不抽帧 · 视频交付工作流-不抽帧.md · 诊断 vs 交付 边界 · v1.2.0+pic24"
+  },
+  {
+    "id": 15,
+    "prompt": "我跑完 1 个 Clip，发了'跑完啦'文字消息给用户，**没有发视频附件**。用户说'我仍然没有收到视频文件'。我应该怎么改？",
+    "expected_should_trigger": "应命中 **`agent.跑完必发视频`** v1.2.0+pic24 新铁律：① 主 agent 跑完 1 个 Clip = 必发视频附件到飞书 ② `send_message` + `MEDIA:/path/to/clip.mp4` 是硬闭环 ③ **不**仅发文字报告 ④ Dog 18:25 事故：跑完 1.5 小时 = 用户从没见过任何 mp4 文件",
+    "expected_reason": "A3 元教训 = '跑完'语义必须重定义 = '视频文件已发出'（**不**仅'已下载到本地'）。违反 = 用户从没见过视频 = 严重事故",
+    "scenario": "A3 跑完不发视频事故 · 必发视频附件",
+    "difficulty": "标准",
+    "covers": "agent.跑完必发视频 · SKILL.md Step 5 · 视频交付工作流-不抽帧.md §正模式 · v1.2.0+pic24"
+  },
+  {
+    "id": 16,
+    "prompt": "我写 prompt 时习惯在中段写'旁白朗读：XXX'。用户说视频里出现了'莫名人声'。为什么？应该怎么改？",
+    "expected_should_trigger": "应命中 **`prompt.禁元术语`** v1.2.0+pic24 新铁律：① ❌ 严禁'朗读/旁白朗读/TTS/音轨占位/朗读时长'等元术语 ② ✅ 直接写'声音/音效'或干脆不写 ③ Pic10 v3 修复元教训：元术语触发 seedance 激活人声生成路径 ④ 末尾约束段顺序必须严格按官方原话（无字幕/无水印/无 Logo/无人声/无歌唱/无配音/无朗读）",
+    "expected_reason": "C1 元教训 = Pic10 v3 修复已经过验证（md5 1d5a6466），但 Dog prompt 4/4 段全写了'旁白朗读：XXX' = 埋雷。修复 = 严禁元术语",
+    "scenario": "C1 元术语埋雷 · prompt 严禁朗读",
+    "difficulty": "复杂",
+    "covers": "prompt.禁元术语 · seedance-prompt-翻车修复方法论-2026-06-10.md · Pic10 v3 验证 · v1.2.0+pic24"
+  },
+  {
+    "id": 17,
+    "prompt": "我写末尾约束段时用了 4 项'无人声、无歌唱、无配音、无朗读'，但用户说视频里还是生成了 BGM。Cat 范本的兜底句原话是什么？为什么要用 Cat 原话？",
+    "expected_should_trigger": "应命中 **`prompt.段4兜底句-Cat原话`** v1.2.0+pic24 新铁律：① 段 4 兜底句必须用 Cat 范本原话'**无任何背景音乐、无旁白人声、无哼唱**'（3 项 · Cat 6/6 Clip 跑通）② **不**用 v22 我改写的'无人声/无歌唱/无配音/无朗读'（4 项·漏无BGM）③ 段 2 拟声嵌入要 `<>` 包裹（官方 doc2 特殊字符表）④ `--generate-audio true` 必加（**不**改 false · Pic7 翻车 1 教训）",
+    "expected_reason": "C2 元教训 = Cat 范式回滚（v1.0.6+pic16 沉淀）+ 用户怒吼'照搬 Cat 那一版'。修复 = 段 4 兜底句改回 Cat 原话。v22 改错了 = 4 项漏'无BGM' = 必然出 BGM",
+    "scenario": "C2 段 4 兜底句错版 · Cat 范式回滚",
+    "difficulty": "复杂",
+    "covers": "prompt.段4兜底句-Cat原话 · sound-strategy-branches.md §2 · Cat 范式回滚 · v1.2.0+pic24"
   }
 ]

@@ -100,17 +100,30 @@ metadata:
 ### prompt 写法（2 条）
 
 | 铁律 ID | 铁律（短句）| references 详细 |
+### prompt 写法（2 条 → 升级为 5 条 v1.2.0+pic24）
+
+| 铁律 ID | 铁律（短句）| references 详细 |
 |---|---|---|
 | **`prompt.末尾约束4词`** ⭐ 2026-06-10 HAMSTER | **末尾约束段必须用官方原话 4 词"无人声/无歌唱/无配音/无朗读"**（v1.2.0+pic21 v3 修复验证通过）——Pic10 v2→v3 修复核心：v2 翻车"莫名说话声" / v3 用户目检修复通过 | [references/分镜设计规范-v15director.md](./references/分镜设计规范-v15director.md) §1[4] + §8 TL;DR + [references/2026-06-10-hamster-v15-end-to-end-validation.md](./references/2026-06-10-hamster-v15-end-to-end-validation.md) §8 |
 | **`prompt.减法>加法`** | **修复翻车 ≠ 加新东西，照搬 Cat 范本 = 减所有额外加工**（减法 > 加法）| Pic7 5 轮迭代 |
+| **`prompt.段4兜底句-Cat原话`** ⭐ 2026-06-10 DOG | **段 4 兜底句必须用 Cat 范本原话 3 项**："**无任何背景音乐、无旁白人声、无哼唱**"（Cat 6/6 Clip 跑通 = 金标准）—— v1.2.0+pic22 我自己改写 4 项版"无人声/无歌唱/无配音/无朗读" **漏"无BGM"** = **Dog 4/4 段全出 BGM 元凶**（2026-06-10 18:35 用户反馈"大部分视频生成了BGM"）· **正模式**：写新版本前**先翻 Cat 范本原话**（`assets/example-prompts/cat-clips-1-6-v15.1.txt`）= 不要擅自改原话 = 改了就跑通不了 | [references/分镜设计规范-v15director.md](./references/分镜设计规范-v15director.md) §1[4] v1.2.0+pic24 + [references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md](./references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md) C2 |
+| **`prompt.禁元术语`** ⭐ 2026-06-10 DOG | **prompt 严禁"朗读/旁白朗读/TTS/音轨占位/朗读时长"等元术语**——"朗读"是元术语 = 触发 seedance 激活人声生成路径（**Pic11 Dog clip1 莫名人声元凶** · 用户 2026-06-10 18:35 反馈）· **正模式**：直接写"声音"或"音效"或干脆不写 · 末尾约束段顺序必须严格按官方原话（无字幕/无水印/无Logo/无人声/无歌唱/无配音/无朗读）· **不**打乱顺序 | [references/分镜设计规范-v15director.md](./references/分镜设计规范-v15director.md) §1[4] v1.2.0+pic24 + [references/seedance-prompt-翻车修复方法论-2026-06-10.md](./references/seedance-prompt-翻车修复方法论-2026-06-10.md) + [references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md](./references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md) C1 |
+| **`prompt.StepA强制化`** ⭐ 2026-06-10 DOG | **主 agent 跑分镜时必走 v22 Step A 看图决定景别 + 运镜**——5 种画面状态对应 5 种运镜（**不**凭印象套）· **触发场景**：任何新绘本 prompt 编写前必走 Step A/B/C 决策表 · 写完 prompt 后**自检 3 问**：① 景别是不是按参考图实际状态定的？② 音效是不是按参考图实际场景定的？③ 镜头名是不是用"动作+状态"命名？· **违反案例**：Dog 4 段运镜单一（clip1 固定中景 / clip2 中景拉远 / clip3 正面平视 / clip7 5 镜都"正面近/中景"）= 用户 2026-06-10 18:35 反馈"运镜设计 6 分" | [references/分镜设计规范-v15director.md](./references/分镜设计规范-v15director.md) §7.6 Step A/B/C + §1.3 反模式区 + §8 TL;DR v1.2.0+pic24 + [references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md](./references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md) C3 |
 
-### 主 agent 行为（3 条）
+### 主 agent 行为（3 条 + 1 条新铁律 → 升级为 6 条 v1.2.0+pic24）
 
 | 铁律 ID | 铁律（短句）| references 详细 |
 |---|---|---|
 | **`agent.不主动抽帧`** | **主 agent 跑完 = 发视频 = 不主动抽帧自检**（vision 是辅助不是真理） | Pic6 用户原话 |
 | **`agent.查状态用urllib`** ⭐ | **主 agent 查 seedance task 状态走 execute_code + python urllib 直查 REST API**（不走 shell 管道 + seedance.py status） | Pic8 Rabbit qg6cg/r7vxs 误判卡死教训 |
 | **`agent.发飞书证据链`** | **发飞书视频附件 = 必附完整证据链**（md5 + task_id + seed + 时长） | Pic4 串扰教训 |
+| **`agent.任务完成度自检`** ⭐ 2026-06-10 Dog | **任何汇报"已跑完/已下载/已目检/已通过"前必走 4 步对账**（v1.2.0+pic23 新铁律 · Dog 绘本错位发视频事故后新增）：① **ffprobe 元数据校验**（时长/文件大小/分辨率 — 跟期望档位对比）② **抽帧 + native vision 视觉目检**（看帧内容 = 跟原图期望对比）③ **校验文件名 vs 内容身份一致**（clip7.mp4 必须是 p7 的内容，**不**是 clip1/2/3）④ **抽帧后写"对账报告"**（原图期望 vs 实际帧内容 + 差异分析）· **违反 = 必然错位发视频 / 幻觉成功**（Dog 18:10 事故：发 clip1/2/3 帧目检报告当成 clip7 = 错位发视频）| [references/任务完成度自检流程-2026-06-10.md](./references/任务完成度自检流程-2026-06-10.md) |
+| **`agent.发飞书对账报告`** ⭐ 2026-06-10 DOG | **发飞书视频附件前必走 md5 + stat 4 步对账**（v1.2.0+pic24 新铁律 · 4 问审查 = 元教训级）：① stat 元数据（文件大小/修改时间）② md5 校验 ③ 对比文件路径与文件名 ④ 写证据链（md5/task_id/seed/时长）· **违反 = 必然错位发视频** | [references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md](./references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md) A1 |
+| **`agent.跑完必发视频`** ⭐ 2026-06-10 DOG | **主 agent 跑完每个 Clip = 必发 MEDIA 附件到飞书 = 不可选**——"跑完"语义 = "视频文件已发出"（**不**仅"已下载到本地"）· 4 问审查 = 元教训级（修复翻车的元原则：用户原话"我仍然没有收到视频文件" = 视频文件 ≠ 报告）| [references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md](./references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md) A3 |
+| **`agent.交付不抽帧`** ⭐ 2026-06-10 DOG | **交付阶段 = 禁止任何 vision_analyze 自动抽帧自检**（v1.2.0+pic24 与 `agent.不主动抽帧` 合并强化）——用户原话"**在我没有明确要求你使用视觉识别的情况下，你不要主动对已生成的视频进行抽帧检查，这个是不必要的，你直接把视频文件发送给我就可以了**"· 4 问审查 = 元教训级 · **诊断阶段 vs 交付阶段边界**（v0.7.1 强化）：v1 翻车修复/MVP 实测标版验证/用户明确要求 = 允许；交付阶段 = 禁止 | [references/视频交付工作流-不抽帧.md](./references/视频交付工作流-不抽帧.md) + [references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md](./references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md) A2 |
+| **`agent.发飞书对账报告`** ⭐ 2026-06-10 Dog | **发飞书视频附件前必走 4 步对账 + 必附对账报告**（v1.2.0+pic24 新铁律 · Dog 错位发视频事故后新增）：① **stat 校验**（文件大小 + mtime）② **md5 校验**（与本地源文件 hash 一致）③ **身份校验**（clip1.mp4 必须是 p1 内容，**不**是 p2/3/7）④ **4 步对账报告**（md5 短码 + task_id + seed + 时长 + 档位 + 范式）· 违反 = 必然错位发视频 | [references/send-message-evidence-chain.md](./references/send-message-evidence-chain.md) |
+| **`agent.交付不抽帧`** ⭐ 2026-06-10 Dog | **交付阶段（跑通 1 个 Clip 发给用户）= ❌ 禁止抽帧 + vision_analyze**——让人眼看，不是机器看（v1.2.0+pic24 新铁律 · 用户 2026-06-10 红线"不要抽帧，我自己看"）| [references/视频交付工作流-不抽帧.md](./references/视频交付工作流-不抽帧.md) |
+| **`agent.跑完必发视频`** ⭐ 2026-06-10 Dog | **主 agent 跑完 1 个 Clip = 必发视频附件到飞书**（v1.2.0+pic24 新铁律 · Dog 18:25 事故"我仍然没有收到视频文件"后新增）——`send_message` + `MEDIA:/path/to/clip.mp4` 是硬闭环，**不**仅发文字报告 | [references/视频交付工作流-不抽帧.md](./references/视频交付工作流-不抽帧.md) §正模式 |
 
 ### 净化（3 条）
 
@@ -480,6 +493,46 @@ for n, p, t0 in procs:
 - ✅ **每个 task_id / seed / md5 都记**到 `task_ids.txt`（铁律 #76 证据链）
 - ❌ **不**用 shell 管道 `&` 或 `wait`（难解析 task_id · 应该走 subprocess.Popen）
 
+**Step 4.7 · 任务完成度自检（铁律 `agent.任务完成度自检` · 必跑 · v1.2.0+pic23 新增）**：
+
+**触发条件**：D 跑完 → 主 agent 准备汇报"已跑完/已下载/已通过" → **必走 4 步对账**：
+
+```python
+# Step 4.7.1 · ffprobe 元数据校验
+ffprobe -v error -show_entries format=duration,size,bit_rate -show_entries stream=width,height \
+  -of default=noprint_wrappers=1 clip7.mp4
+# 校验：duration ≈ 14s（B 方案）/ size ≈ 5.4MB / 分辨率 1280x720
+# 跟期望档位对比 — 不一致 = 任务失败
+
+# Step 4.7.2 · 抽帧 + native vision 视觉目检
+ffmpeg -y -i clip7.mp4 -vf "fps=1" clip7-frame-%02d.png
+# 然后 native vision 看首帧/中段/末帧 3 张关键帧（**不**用 mcp_zai_analyze_image）
+
+# Step 4.7.3 · 校验文件名 vs 内容身份一致
+# clip7.mp4 必须是 p7 的内容（OG 家族 5 词卡片墙）
+# 拿 vision 看到的首帧内容跟 p7 原图（7.jpg）对比
+# 不匹配 = 错位发视频风险 → 立即停止汇报 + 查任务 ID 是不是 clip7 真实的
+
+# Step 4.7.4 · 写"对账报告"
+# 原图期望：p7 = 6 格卡片墙 = 5 词（dog/log/frog/jog/fog）+ 1 装饰格
+# 实际首帧：<vision 看到的>
+# 差异分析：<符合/扩写/偏离>
+```
+
+**反模式**（Dog 18:10 事故 · 用户原话"你发的根本就不是生成的Clip7，发错了"）：
+- ❌ 汇报"已跑完"前**不** ffprobe → 不知道视频真实身份
+- ❌ 汇报"v22 修复成功"前**不**真测 → 幻觉成功
+- ❌ 汇报"已目检"前**不** vision 视觉对比原图 → 把任何帧当成"目检通过"
+- ❌ **错位发视频**（把 clip1/2/3 的某帧当成 clip7 目检报告发给用户 = 用户 18:15 拍板"你发的根本就不是生成的Clip7，发错了"）
+
+**根因** = **"用户问 → 我答"模式** = **跳过验证直接汇报** = 4 个必走步骤全跳 = 必然错位发视频
+
+**判断口诀**：
+- ✅ **汇报"已跑完"前** = 必 ffprobe
+- ✅ **汇报"已通过"前** = 必 vision 视觉对比原图
+- ✅ **汇报"已目检"前** = 必校验文件名 vs 内容身份一致
+- ✅ **汇报"已发飞书"前** = 必写"对账报告"
+
 **Step 4.0 · seedance 调用范式（v1.2.0+pic21 · 唯一路径）**：
 
 | 范式 | 触发 | seedance 参数 | prompt 写法 | 段数 |
@@ -709,6 +762,9 @@ token 用量：Z
 | **分镜设计规范 · v15 导演思维版** ⭐ 2026-06-10 Rabbit 验证 v1.0.0 | `references/分镜设计规范-v15director.md`（**任何 seedance 2.0 绘本 prompt 写法的单一权威入口**· 6 段骨架 + 镜头数算法 + 4 逻辑 + 运镜术语库 + 动作量化 + Rabbit newclip1 v2 验证模板· **v6 旧版"整段不分镜"是翻车坑，新规范要求多镜头时间线分镜**）|
 | **绘本导演思维 · 4 步原则实战库** ⭐ 2026-06-10 Hamster 强纠错后 | `references/绘本-导演思维-prompt写法-2026-06-10.md`（**用户强纠错**："镜头设计不连续"4 步原则（看图推断 + 不固定 3 镜 + 末帧真正静默）· Hamster 8 段实战 + 7 个反模式库 + Clip 1 v1 vs v2 对比）|
 | **seedance prompt 翻车修复方法论** ⭐ 2026-06-10 Pic10 v2→v3 沉淀 | `references/seedance-prompt-翻车修复方法论-2026-06-10.md`（**prompt 写翻车后怎么修**——5 步法（分症状 A 画面/B 音频/C 角色/D 时长 / 走诊断树 / 改对应段 / 单 Clip 端到端先验 / 沉淀到 skill）+ 4 个实战案例：Pic10 v2→v3 修复"莫名说话声" / Pic10 v1→v2 修复镜头死板 / Pic8 v1→v2 修复完全静默 / Rabbit newclip1 v1→v2 修复镜头过密 + 翻车修复优先级表（最高频 = B 类元数据术语触发人声）· 用户原话"这次修复了音频问题"后固化）|
+| **任务完成度自检流程** ⭐ 2026-06-10 Dog 错位发视频事故 | `references/任务完成度自检流程-2026-06-10.md`（**v1.2.0+pic23 新铁律详细**· Dog 18:15 错位发视频事故复盘 · 4 步对账流程必走 = ① ffprobe 元数据校验 ② 抽帧 + native vision 视觉目检 ③ 校验文件名 vs 内容身份一致 ④ 写"对账报告" · **元教训级铁律 = 任何汇报"已完成"前必走** · 第二次犯"幻觉成功"教训）|
+| **Dog 4 段 11 个元教训汇总** ⭐ 2026-06-10 DOG | `references/2026-06-10-dog-v1.2.0+pic24-元教训汇总.md`（**v1.2.0+pic24 升级依据** · 11 个问题 = A 类 3 个流程型（错位发视频/主动抽帧/跑完不发视频）+ B 类 5 个规划型（v22 规范漏洞）+ C 类 3 个质量型（莫名人声/出BGM/运镜 6 分）· 8/11 = "之前 skill 仓已有约束 · 主 agent 又违反" = 强制化失败 + 6 条新铁律修复方向）|
+| **Pic10 Hamster v3 翻车修复方法论** ⭐ 2026-06-10 HAMSTER | `references/seedance-prompt-翻车修复方法论-2026-06-10.md`（**prompt 写翻车后怎么修**——5 步法（分症状 A 画面/B 音频/C 角色/D 时长 / 走诊断树 / 改对应段 / 单 Clip 端到端先验 / 沉淀到 skill）+ 4 个实战案例：Pic10 v2→v3 修复"莫名说话声" / Pic10 v1→v2 修复镜头死板 / Pic8 v1→v2 修复完全静默 / Rabbit newclip1 v1→v2 修复镜头过密 + 翻车修复优先级表（最高频 = B 类元数据术语触发人声）· 用户原话"这次修复了音频问题"后固化）|
 | **Rabbit v6→v15 翻车实战链** ⭐ 2026-06-10 Rabbit 8 Clip 验证 | `references/Rabbit-v6-v15-翻车实战链-2026-06-10.md`（**v6 简化版"整段不分镜"= 7 个垃圾视频 = 用户强烈纠错**的完整实战链：Pic4 v2 14s IT 家族特例 OK → 当通用 v6 范本错套 7 Clip → 全部死板推镜头 → 读官方 doc2 §分镜时序+§运镜红线+§特殊字符 → 写分镜设计规范 v1.0.0 → newclip1 v2 通过 → 8/8 Clip 跑通 49.28s）|
 | **Hamster 仓鼠 · v15 唯一入口实战** ⭐ 2026-06-10 本 session 验证 | `references/2026-06-10-hamster-v15-end-to-end-validation.md`（**v1.2.0+pic21 净化后首本绘本实战**：8 段平行句式领读型 · 8 Clip · 45s 总时长 · Clip 1 单测端到端 3 分 33 秒 + seed 23741 + md5 0e0cf2 跑通 · 6 个新发现 + 10 条反模式库 + 复用模板）|
 
