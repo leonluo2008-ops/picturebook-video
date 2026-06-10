@@ -2,46 +2,100 @@
   {
     "id": 1,
     "prompt": "我想做一个绘本动画，输入 8 张图 + 旁白，应该用什么范式？怎么启动？",
-    "expected_should_trigger": "SKILL.md 应引导用户跑 v15 启动前 6 必问（比例/时长/切分 + 3 默认 = 运镜/范式/规则），并指出 v15 是绘本默认范式（2026-06-05 起）",
-    "expected_reason": "v15 范式是当前默认（v0.7.0 精简版核心）→ 启动前 6 必问 = 铁律体系 + 切分决策树入口",
-    "scenario": "Cat 绘本启动场景 · v15 范式入口",
+    "expected_should_trigger": "SKILL.md 应引导用户跑 v15 启动前 7 必问（不是已废的 6 必问）+ 调度 5 步流程（Step 0 接收 → Step 1 7 必问 → Step 2 A+B 并行 → Step 3 v15 6 段骨架 → Step 4 D 视频执行 3 并发 → Step 5 证据链 + 飞书），并指出 v15 导演思维版是唯一范式（v1.2.0+pic22 起）",
+    "expected_reason": "v15 范式是当前默认 → 5 步调度流程是入口 → 7 必问（不是 6 必问）= v1.2.0+pic22 修正",
+    "scenario": "绘本启动场景 · 5 步调度 + 7 必问入口",
     "difficulty": "标准",
-    "covers": "SKILL.md · v15 4 大件 · 6 必问 · 3 默认"
+    "covers": "SKILL.md · 5 步调度 · 7 必问（v1.2.0+pic22）· v15 唯一范式"
   },
   {
     "id": 2,
     "prompt": "我有 1 张图，但旁白特别长（10s+），还包含 6 个 AT 韵词，怎么拆 Clip？",
-    "expected_should_trigger": "应引导走 v15.1 长旁白单图多 Clip 拆分规范：触发公式（朗读 + 单词数×2.5s > 15s）+ 语义块拆分（3+3+1）+ 节奏公式（2-1-3-3-3）+ 末帧 = 朗读+静默",
-    "expected_reason": "Cat 4a v3 标版实战案例 · 触发公式 + 语义块 + 节奏公式 + 末帧铁律 #36 #37",
-    "scenario": "Cat AT 家族单图拆分场景 · v15.1 标版入口",
+    "expected_should_trigger": "应引导走 v15director §1.3 时长档位 + 语义块拆分（不是已废的 v15.1 老节奏公式 2-1-3-3-3）。时长 = 朗读秒数 + 静默 2-2.5s 选整数档（5/6/7s）。**不再用 v15.1 节奏公式 2-1-3-3-3（v1.2.0+pic20 净化 = 已废）**",
+    "expected_reason": "v15.1 老节奏公式已废 · v1.2.0+pic22 改为'按动作步骤数 1-3 镜/段'（不固定 3 镜）· 不按秒数硬切（官方 doc2 §1.3 红线）",
+    "scenario": "长旁白单图拆分场景 · 4 步原则（v22）",
     "difficulty": "复杂",
-    "covers": "SKILL.md · v15.1 · 铁律 #36 #37 · references/长旁白拆分规范-v15.1.md"
+    "covers": "v15director §1.3 时长档位 · §7 4 步原则 · 禁 v15.1 老公式"
   },
   {
     "id": 3,
     "prompt": "切分方案跑出来 5 个 Clip，但 prompt 写完发现漏了 1 张图 + 漏了 1 个子 Clip，怎么办？",
-    "expected_should_trigger": "应引导跑铁律 #38 切分表必查清单 4 项：1. 切分表列全了吗 2. 收势图含了吗 3. 拆分子 Clip 列了吗 4. 跑前 vs 跑后对齐了吗",
-    "expected_reason": "Cat 漏图 2+漏图 8+缺 4b 实战教训 · 铁律 #38 是 4 项自检清单",
-    "scenario": "Cat 完整跑通后连环错场景 · 铁律 #38 自检",
+    "expected_should_trigger": "应引导跑 Step 0.5 场景对位检查（铁律 #56）+ 调度流程 5 步 + 末帧'在小朋友心中沉淀'静默沉淀段落（v1.2.0+pic22）+ 4 步原则'看图 → 推断 → 写动作 → 留静默'。**不是已废的'铁律 #38 切分表必查清单 4 项'**（# 编号已删）",
+    "expected_reason": "旧铁律 #38 = # 编号格式，v1.2.0+pic22 已删。规则本身在 Step 0.5 场景对位检查 + 4 步原则里。**禁止用'铁律 #N'引用方式**——改用主题编号或章节引用",
+    "scenario": "完整跑通后连环错场景 · Step 0.5 场景对位 + 4 步原则",
     "difficulty": "复杂",
-    "covers": "SKILL.md · 铁律 #38 · 切分表自检清单"
+    "covers": "Step 0.5 场景对位检查 · 4 步原则 · 禁 # 编号引用 · 改主题编号"
   },
   {
     "id": 4,
     "prompt": "末帧我想让画面定格，但用户反馈说'朗读完画面就结束，没有呼吸'，怎么改？",
-    "expected_should_trigger": "应命中铁律 #36：末帧 = 朗读+静默（不是 0.5s 收势），末帧镜头时长 = 朗读 1s + 静默 2-3s，'画面定格'标签应该删",
-    "expected_reason": "Cat 4a v3 标版实测反馈 · 末帧铁律 #36 沉淀",
-    "scenario": "Cat 4a v1/v2 末帧错场景 · 铁律 #36 修复",
+    "expected_should_trigger": "应命中 v15director §1.3 末帧铁律：① 末帧 = 朗读+静默（30-40% 整段时长）② 末帧写'画面不再动 · 让 XX 在小朋友心中沉淀'（真正静默）③ ❶ 禁写'画面继续微动'（Pic10 v1 翻车 = 模型理解为定格）④ 禁写'画面定格'标签（应写'留出呼吸感静默'）。**不是已废的'铁律 #36'**（# 编号已删）",
+    "expected_reason": "旧铁律 #36 = # 编号格式已删。规则本身在 v15director §1.3 + §7 4 步原则 + §7.6 静默沉淀段落里。**用户真实反馈'没有呼吸' = 末帧没有静默**——不是 0.5s 收势，而是要 30-40% 整段时长",
+    "scenario": "末帧错场景 · 静默沉淀 vs 定格海报",
     "difficulty": "标准",
-    "covers": "SKILL.md · 铁律 #36 · v15.1 标版节奏"
+    "covers": "v15director §1.3 + §7 4 步原则 + §7.6 静默沉淀 · 禁'画面继续微动' · 禁'画面定格'标签"
   },
   {
     "id": 5,
-    "prompt": "算旁白时长有中文有英文有韵词，怎么算？合并 Clip 怎么决定？",
-    "expected_should_trigger": "应命中铁律 #32 旁白朗读时长公式（中文 0.25s/字 · 英文 0.7s/词 · 拖长韵 1.0s/词）+ 铁律 #33 旁白优先于图片（合并第一性原则）+ references/旁白朗读时长计算.md 详细文档",
-    "expected_reason": "Cat AT 家族 6 韵词算错（按 0.7s/词算 4.2s，实际 1.0s/词 6s）实战教训 · 铁律 #32 + 决策树",
-    "scenario": "Cat 启动第一版切分方案错场景 · 铁律 #32 #33 修复",
+    "prompt": "8 段旁白有时长差异（'A cute hamster.' 3 词 vs 'A happy hamster eats.' 4 词 vs 'I see a hamster.' 4 词 vs 'Find the hamster!' 3 词），怎么决定每个 Clip 的时长档位（5/6/7s）？",
+    "expected_should_trigger": "应命中 v15director §1.3 时长档位（5/6/7s 整数档，seedance ceiling 7.04s）+ 总镜头数 ≤ 时长 ÷ 1.5s + 看图推断 1-3 镜/段（不固定 3 镜）。**不**命中已废的'铁律 #32 #33 旁白朗读公式'（# 编号已删 + 0.25s/字 / 0.7s/词 等公式不在 v15director）。**实际公式**在算旁白朗读时长时临时算（1.4 词/秒 + 3.5 字/秒 兜底），不强求文档固定",
+    "expected_reason": "v15director §1.3 时长档位表 + 4 步原则 = 真实权威。0.25s/字 / 0.7s/词 等具体公式 = 实战记忆（**不在文档里**）。**禁止引用不存在的 references 文件**——脚本会查不到",
+    "scenario": "时长档位选择场景 · v15director §1.3 + 4 步原则",
     "difficulty": "标准",
-    "covers": "SKILL.md · 铁律 #32 #33 · references/旁白朗读时长计算.md · 决策树"
+    "covers": "v15director §1.3 时长档位表 · §7 4 步原则 · 主题编号引用方式 · 禁引用不存在的 references"
+  },
+  {
+    "id": 6,
+    "prompt": "绘本《Hamster》p3 = 仓鼠蹲伏在木屑堆上不动（静态画面），p6 = 仓鼠在跑轮里跑（动态画面）。这两个 prompt 的镜头 1 运镜怎么设计？",
+    "expected_should_trigger": "应命中 v15director §7.6 Step A：① 静态画面（p3 仓鼠在画面中央）→ **固定中景**（不套'中景拉远' = 仓鼠本来就在中央 = 拉什么？）② 动态画面（p6 跑轮）→ **正面平视**（让跑轮本身作动感，不推不拉）",
+    "expected_reason": "Pic10 Hamster 5-8 段 = 6/6 段 100% 套用'中景拉远定格' = 用户 2026-06-10 反馈'分镜设计过于模板化'。新铁律 Step A = 看图决定景别+运镜",
+    "scenario": "Pic10 Hamster 静态 vs 动态 · Step A 决定景别",
+    "difficulty": "复杂",
+    "covers": "v15director §7.6 Step A · 静态=固定中景 / 动态=正面平视 · v22 新增"
+  },
+  {
+    "id": 7,
+    "prompt": "p7 仓鼠从木屋门洞探出，p4 仓鼠在草地上啃瓜子，p3 仓鼠蹲在木屑堆上。这三个画面的镜头 1 音效应该分别怎么设计？为什么不能每段都写'微风声'？",
+    "expected_should_trigger": "应命中 v15director §7.6 Step B：① p7 木屋门洞 = <木屋吱呀声> 或静默（❌ 不写微风）② p4 草地 = <微风声>（✅ 合理户外）③ p3 木屑堆 = <细碎刨花声> 或静默（❌ 不写微风）",
+    "expected_reason": "Pic10 Hamster 6/6 段都写'<一声轻柔的微风声>' = 模板化兜底。新铁律 Step B = 看图决定音效，禁用微风声作为默认兜底",
+    "scenario": "Pic10 Hamster 5 种场景 · Step B 决定音效",
+    "difficulty": "复杂",
+    "covers": "v15director §7.6 Step B · 5 种场景对应 5 种音效 · 禁微风为默认兜底 · v22 新增"
+  },
+  {
+    "id": 8,
+    "prompt": "我写 prompt 时镜头 1 习惯写'镜头 1（建立场景·0-2s）：中景拉远定格'。用户反馈这太模板化了，每个镜头 1 都长这样。应该怎么改？",
+    "expected_should_trigger": "应命中 v15director §7.6 Step C：① 镜头命名用'动作+状态'（蹲伏姿态 / 侧面看门洞 / 跑轮开跑 等）**不**写'建立场景'标签 ② ❌ '镜头 1（建立场景·0-2s）' = 每个镜头 1 都长这样 = 模板化",
+    "expected_reason": "Pic10 Hamster 6/6 段都用'镜头 1（建立场景）+ 中景拉远定格' = 用户 2026-06-10 反馈'分镜设计过于模板化'。新铁律 Step C = 镜头命名用动作+状态",
+    "scenario": "Pic10 Hamster 镜头命名 · Step C 动作+状态",
+    "difficulty": "标准",
+    "covers": "v15director §7.6 Step C · 镜头命名 = 动作+状态 · 禁'建立场景'标签 · v22 新增"
+  },
+  {
+    "id": 9,
+    "prompt": "8 段 prompt 的末尾约束段应该怎么写？为什么之前我写'TTS 音轨占位，时长匹配旁白朗读时长（5 秒）'会导致视频里出现'莫名说话声'？",
+    "expected_should_trigger": "应命中 v15director §1[4] 末尾约束段官方原话：**'保持无字幕、无水印、无 Logo，无人声、无歌唱、无配音、无朗读'**。❌ 禁写'TTS 音轨占位 / 音轨占位 / 朗读时长'（Pic10 v2 翻车根因 = seedance 看到元术语激活人声生成路径）",
+    "expected_reason": "Pic10 Hamster v2 视频出现'莫名说话声' = seedance 看到'TTS 音轨占位+朗读时长'激活人声填补。v3 修复 = 完全删除 TTS 元术语 + 用官方原话 4 词",
+    "scenario": "Pic10 Hamster 末尾约束段官方原话修复",
+    "difficulty": "标准",
+    "covers": "v15director §1[4] · 末尾约束段 4 词官方原话 · TTS 元术语 = 翻车根因 · v22 验证"
+  },
+  {
+    "id": 10,
+    "prompt": "8 个 Clip 怎么用 3 并发跑？多任务并发时文件路径怎么避免互相覆盖？",
+    "expected_should_trigger": "应命中 SKILL.md Step 4 D 视频执行 + seedance2.0-tool/SKILL.md line 210 红线：① **3 并发**（官方推荐上限 = picturebook-workflow.md 铁律）② 每个任务用独立 download 路径（--download /path/clip1.mp4 各自不同），**不**用同路径（否则 seedance.py 直接当文件名用，不拼接 task_id，会覆盖）",
+    "expected_reason": "Pic10 Hamster 5 段串行 18 分钟 → 3 并发 7 分 18 秒（节省 11 分钟）。picturebook-workflow.md line 79-81 铁律'所有 Clip 一次性并行提交，不串行'",
+    "scenario": "Pic10 Hamster 3 并发 D 视频执行",
+    "difficulty": "标准",
+    "covers": "SKILL.md Step 4 · seedance2.0-tool/SKILL.md line 210 · 3 并发 · 文件路径独立 · picturebook-workflow.md 铁律"
+  },
+  {
+    "id": 11,
+    "prompt": "p1 仓鼠在画面中央捧着葵花籽，旁白'HAMSTER!'（1 个感叹词）。该怎么写 prompt 让镜头 1 不动？或者说，p1 是不是不需要'拉远'？",
+    "expected_should_trigger": "应命中 v15director §7.6 Step A：① p1 仓鼠在画面中央捧着种子 = 静态画面 = **固定中景**（不套'中景拉远' = 仓鼠已经在中央 = 拉什么？）② ❌ 错误：'中景拉远定格'作为默认开场运镜 = 模板化",
+    "expected_reason": "Pic10 Hamster Clip1 v1 写'镜头 1（建立场景）：中景拉远定格' = 用户 2026-06-10 反馈'分镜设计过于模板化'。新铁律 Step A 静态 = 固定中景（不拉）",
+    "scenario": "Pic10 Hamster Clip1 静态中央 · Step A 不拉远",
+    "difficulty": "标准",
+    "covers": "v15director §7.6 Step A · 静态中央 = 固定中景 · 禁默认拉远 · v22 新增"
   }
 ]
