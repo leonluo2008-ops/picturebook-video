@@ -22,9 +22,9 @@ metadata:
 - ❌ 不算朗读时长（消费 B 输出，不重新算）
 - ❌ 不跑视频（那是 D 子 agent 的事）
 - ❌ 不抽帧验证（那是 D 子 agent 的事）
-- ❌ **不在 v7 范式任务中调用**（v7 范式 = 2图=1Clip 合并 = 主 agent 直拼 cactus 8 段 prompt，不调 C——铁律 #89）
+- ❌ **不在 v7 范式任务中调用**（v7 范式 = **已删 · 禁用**· v1.2.0+pic21 净化）—— C 子 agent = **v15 导演思维版唯一**工作流
 
-**核心职责**：把 A+B 的"识别+量化"转化为"可执行 prompt"。**v0.7.1+pic7 时代最常翻车的地方**：
+**核心职责**：把 A+B 的"识别+量化"转化为"v15 导演思维版 6 段骨架 prompt"。**v0.7.1+pic7 时代最常翻车的地方**：
 - 节奏套"标版"机械 2-1-3-3-3
 - 短句旁白用 10s 跑（浪费）
 - 长句旁白用 6s 跑（不够）
@@ -36,32 +36,23 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 
 ---
 
-### 🔥 红线 0（v1.0.4 新增 · Horse 绘本踩坑）：**v7 范式 ≠ C 子 agent 工作流**
+### 🔥 红线 0（v1.2.0+pic21 强化 · v7 净化）：**C 子 agent = v15 导演思维版唯一工作流**
 
-**v7 范式** = 领读型 2图=1Clip 合并 = 主 agent 直拼 8 段 prompt（走 `assets/example-prompts/cactus-clip1-v7.txt` 真模板）= **不调 C**。
+**v7 范式 = 已删 · 禁用**（v1.2.0+pic21 · 用户 2026-06-10 14:55 红线原话"**不要有任何V7的结构，绝不能使用首尾帧**"）。
 
-**如果主 agent 调用 C 处理 v7 范式任务，必报错回主 agent**（不是走 v15 模板强套）：
+C 子 agent = **v15 导演思维版 6 段骨架唯一**工作流（看 `picturebook-video/references/分镜设计规范-v15director.md`）。
+
+**主 agent 调用 C 子 agent = 必传 v15 任务**（v7 任务 = 直接报错回主 agent · 不接）：
 
 ```json
 {
   "task": "storyboard-design",
   "status": "failed",
-  "error_code": "v7_paradigm_not_for_C",
-  "error_message": "检测到 v7 范式任务（2图=1Clip 合并 · 领读型 · 5 条件全过）· 走主 agent 直拼 cactus 8 段 prompt，不调 C 子 agent。详细路由见 picturebook-video/references/v7-vs-v15-paradigm-routing.md（v1.0.4 新增）",
-  "fallback": "主 agent 走 v7 范式：直接读 assets/example-prompts/cactus-clip1-v7.txt 真模板 + 改字段生成 8 段 prompt，不调 C"
+  "error_code": "v7_paradigm_deprecated",
+  "error_message": "检测到 v7 范式任务 = 已废（v1.2.0+pic21 净化）· 必走 v15 导演思维版 6 段骨架（唯一路径）。详细规范见 picturebook-video/references/分镜设计规范-v15director.md",
+  "fallback": "主 agent 改走 v15 导演思维版：看 分镜设计规范-v15director.md §1 6 段骨架 + 按 §1.3 镜头数算法 + 按 §1.2 6 段 prompt 写法"
 }
 ```
-
-**v7 vs v15 判定 5 条件**（主 agent 调用前自查）：
-1. 领读/认知/认字绘本
-2. 弱情节
-3. 旁白每段 < 8s
-4. 图片风格统一
-5. 总图数 6-10 张
-
-**5 条件全过 → v7 范式（主 agent 直拼）· 任一不满足 → v15 4 段（调 C）**。
-
-详细路由见 `picturebook-video/references/v7-vs-v15-paradigm-routing.md`。
 
 ## 输入 schema
 
@@ -221,7 +212,7 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 | **2.5-3.5s**（短偏长）| 1-3.5s | **短偏长档** | 4 | 1-1-朗读-1.5（建立 1s + 跃入 1s + 朗读+消化 + 末帧 1.5s）| **6-7s** | Pic2 Clip 5/6/7（~3.15s）→ 6s |
 | **3.5-5s**（中句）| 1-2s | **中句档（标准收势）** | 3-4 | 1-1-朗读-消化（建立 1s + 跃入 1s + 朗读 + 末帧消化 1-2s = 朗读 × 0.3-0.6 倍）| **5-7s** | Pic2 Clip 8 收势（~3.35s + 标准词组）→ 6s **3 镜头**（不要套 11s） |
 | **5-8s**（长句）| 1-5s | **长句档** | 5-6 | 2-1-3-消化-收势 | **10-15s** | — |
-| **8-15s**（扩展长句 · v1.0.4 修正）| 视情况 | **扩展长句档**（v7 范式 Clip 4 收势 10s · Horse R7 14s 都验证）| 5-6 | 用户 TTS 实测 + 0.5-1.5s 缓冲 | **8-15s** | v7 Clip 4 10s · Horse R7 14s |
+| **8-15s**（扩展长句 · v1.0.4 修正）| 视情况 | **扩展长句档**（Rabbit 8 段 Clip4 14s 验证）| 5-6 | 用户 TTS 实测 + 0.5-1.5s 缓冲 | **8-15s** | Rabbit Clip4 14s |
 | **> 15s** | — | 走 v15.1 拆 | — | — | — | seedance 物理上限 |
 
 **Pic2 实测总时长**（B 输出更精细 · v1.0.1+pic9 修复后）：
@@ -259,7 +250,7 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 - 朗读时间 < 1.5s 必须用极短档（3-4s 档，不要套 6s 档 = 浪费 2-3s）
 - 收势页可以比单句长（如 Line 8 10s = 末帧 3-4s 退场感）
 - 超出 **15s** = 必须拆 Clip（seedance 物理上限 · 不是 v5 公式 8s 档位上限）
-- **8s < x ≤ 15s = 合法扩展长句档**（v1.0.4 修正 · v7 Clip 4 收势 10s / Horse R7 14s 都验证）
+- **8s < x ≤ 15s = 合法扩展长句档**（v1.0.4 修正 · Rabbit 8 段 Clip4 14s 验证）
 - **不**按"标版"模板套——按本 Clip 朗读时长 + 消化时间 = 总时长推算
 - ❌ **不要看到 14s/13s/12s 立即报"必拆 v15.1"**——8s < x ≤ 15s = 单 Clip 合法（铁律 #90）
 

@@ -4,7 +4,7 @@
 # 用户原话："在之前的基础上，尝试使用提示词来控制 clip2 和 clip3 的 BGM 衔接，
 #           让他们具有同样的调性，因为这是儿童领读视频，不需要很准确匹配场景，
 #           只要整体氛围达到一定感觉就可以。"
-# 自动化脚本：scripts/build_v9_clips.py 加 build_v10_prompt() + CLI --version v10
+# 自动化脚本：scripts/build_v9_clips.py（v1.2.0+pic21 净化 = 已删） 加 build_v10_prompt() + CLI --version v10
 
 # ==============================================================================
 # Clip 1 (主题源，bgm_theme 自由定义)

@@ -11,7 +11,7 @@
 - **项目**：Cat 猫绘本（8 张图，纸艺拼贴风，领读型 AT 韵律家族）
 - **素材文件夹**：`https://aistar-work.feishu.cn/drive/folder/Eo7FfCo9VlT227d87dOc4fSancd`
 - **工作目录**：`/home/luo/huiben-projects/20260605-folder2-test/`
-- **范式选择**：v15（绘本默认 2026-06-05 起）+ v7-Say 音效密集型
+- **范式选择**：v15（绘本默认 2026-06-05 起）+ Say 音效密集型
 - **任务 ID**：Clip 4 (12s AT 家族单测) `cgt-20260605180009-2j5bt` · succeeded
 
 ---

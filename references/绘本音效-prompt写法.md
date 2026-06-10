@@ -223,9 +223,9 @@ prompt_template.format(
 
 **应对**：用 `{音效副词}` 占位符预留，由本项目 Phase 5 Step 1 阶段生成。机械/车辆类主体的拟声（vroom/horn/siren/beep 等）现在全部安全，可以根据画面真实需求自由选择。**绘本风格调性**建议优先 chime/rustling 等温柔卡点（属于风格选择，不是风控规避）。
 
-## 7. 范式对比：v3 嵌入式 vs v7 独立音频段
+## 7. 范式对比：v3 嵌入式 vs v15 导演思维版
 
-> **v7 是 2026-06-02 后的推荐范式**。v3 仅适用于"氛围型绘本/不要求 TTS 严格卡点"。
+> **v15 导演思维版（v1.0.0）是 2026-06-10 起的唯一推荐范式**。v3 仅适用于"氛围型绘本/不要求 TTS 严格卡点"。
 
 ### 7.1 v3 范式（嵌入式音效 · 备选）
 
@@ -239,48 +239,49 @@ final frame: ... quiet warm chime settles.
 → 适用：氛围型绘本/不要求 TTS 严格卡点
 ```
 
-### 7.2 v7 范式（独立 Storyboard Audio Description 段 · 推荐）⭐
+### 7.2 v15 导演思维版（6 段骨架 · 唯一推荐）⭐
 
 ```
-@Image1 ...;
-@Image2 ...;
-final frame: ...;
-Storyboard Audio Description: 0.0s to 1.2s a single paper-landing tap-tap as the CACTUS letters settle then ambient silence, 1.2s a quick soft whoosh as the cactus grows up, 1.2s to 8.0s minimal desert ambient silence, a single brief warm chime at the very end;
-No background music, no human voice, no narration, no singing;
-风格段.
+@image1 as the only visual reference for the entire video, ...风格一次性说清...
+主体定义：将图片1中的 X 定义为 <主角>。
+镜头 1（建立 · 0-Xs）：<景别><运镜 1 种>，<主体动作>，<位置>，<音频内联>。
+镜头 2（单词动作 · X-Ys）：<景别><运镜 1 种>，<主体动作>，<位置>，<音频内联>。
+镜头 3（收势 · Y-Zs）：<景别><运镜 1 种>，<主体动作>，<位置>，<音频内联>。
+全程无背景音乐、无旁白人声、无哼唱、无歌唱。保留 TTS 音轨占位，时长匹配旁白朗读时长。
+画面保持无字幕、无水印、无 Logo。镜头全程严格遵守"1 镜头 1 种运镜"红线。
+This is a storyboard reference image sequence, ...
 
-→ 实测：v7 跑出来真正的"卡点音效"（Cactus 4 段验证通过）
-→ 适用：领读型绘本 + TTS 后期卡点（绘本主流场景）
+→ 实测：v15 跑出来真正的"多镜头时间线 + 卡点音效"（Rabbit newclip1 v2 验证通过）
+→ 适用：所有绘本（领读/认知/认字/叙事/冒险/收势）—— 唯一入口
+→ 规范：picturebook-video/references/分镜设计规范-v15director.md
 ```
 
-### 7.3 v7 关键发现（里程碑）
+### 7.3 v15 关键发现（里程碑）
 
 | 模型 | 对否定句的反应 | 来源 |
 |------|--------------|------|
 | **视觉模型** | ❌ 不擅长"反向作画"——"No X" 干扰画面指令 | 三铁律 3（Red v2 教训） |
-| **音频模型** | ✅ 会听否定禁令——`No background music, no human voice, no narration, no singing` 全部生效 | 参考示例 + Cactus 4 段实测 |
+| **音频模型** | ✅ 会听否定禁令——`No background music, no human voice, no narration, no singing` 全部生效 | 参考示例 + Rabbit 验证 |
 
-**结论**：**音频控制可以用否定句，视觉控制不能用**——这是 v6 → v7 的关键突破。
+**结论**：**音频控制可以用否定句，视觉控制不能用**——这是 v6 → v15 关键洞察。
 
-### 7.4 Storyboard Audio Description 段写法规范
+### 7.4 多镜头时间线段写法规范（v15 唯一入口）
 
-**必备结构**（按时间窗分时描述）：
-
-```
-Storyboard Audio Description: 
-  X.Xs to Y.Ys [第 1 段音效] then ambient silence, 
-  X.Xs [第 2 段音效触发], 
-  X.Xs to Y.Ys [第 2 段剩余时间] minimal ambient silence, 
-  a single brief [收尾音效] at the very end;
-```
-
-**音频禁令段**（紧随其后）：
+**音效内嵌到每个镜头**（4 逻辑齐全 · 官方 doc2 §1.2）：
 
 ```
-No background music, no human voice, no narration, no singing;
+镜头 1（建立 · 0-1.5s）：中景拉远定格，<主体动作>，<位置>，<远处有微风轻轻吹过的声音>。
+镜头 2（单词动作 · 1.5-3s）：<景别><运镜 1 种>，<主体动作>，<位置>，<一声轻巧的"叮"，像铃铛一响>。
+镜头 3（收势 · 3-5s）：缓推回到正面中景，<主体动作>，<位置>，<远处鸟叫声渐弱>。
 ```
 
-**音效用词白名单**：
+**音频禁令段**（段 4 · 紧随其后）：
+
+```
+全程无背景音乐、无旁白人声、无哼唱、无歌唱。保留 TTS 音轨占位，时长匹配旁白朗读时长。
+```
+
+**音效用词白名单**（官方 doc2 §440-451 特殊字符规范）：
 
 | 类别 | 推荐词 |
 |------|--------|
@@ -288,25 +289,32 @@ No background music, no human voice, no narration, no singing;
 | 快速触发 | `a quick whoosh`, `a quick rustle`, `a quick tap` |
 | 短促环境 | `brief warm chime`, `brief sparkle pop`, `brief petal flutter` |
 | 静默标记 | `ambient silence`, `minimal ambient silence`, `then silence` |
+| **音效符号** | `<...>` 包裹 · `（音乐）` 圆括号 · `{台词}` 大括号 · `【字幕】` 方头括号 |
 
-### 7.5 v7 范式完整 Cactus Clip 1 示例
+### 7.5 v15 范式完整 Rabbit newclip1 v2 示例（✅ 验证通过）
 
 ```python
-prompt_v7 = """This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
-from 0.0s to 1.2s @Image1 is the opening shot, in this shot the colorful paper-collaged letters 'CACTUS' bounce into the frame from the edges and land in the center, settling into place one by one to spell CACTUS, then they hold steady for the rest of this shot;
-from 1.2s to 8.0s @Image2 is the second shot, in this shot a green saguaro cactus slowly grows up from the yellow desert sand with paper layers unfolding, then it stands tall and sways gently in a warm breeze for the rest of this shot;
-final frame: the camera locks completely, paper textures crisp and vivid, the scene holds its final pose;
-Storyboard Audio Description: 0.0s to 1.2s a single paper-landing tap-tap as the CACTUS letters settle then ambient silence, 1.2s a quick soft whoosh as the cactus grows up, 1.2s to 8.0s minimal desert ambient silence, a single brief warm chime at the very end;
-No background music, no human voice, no narration, no singing;
-Children's picture book collage illustration style, paper-cut craft with visible paper texture and torn edges, warm and lively atmosphere, bright primary colors, handcrafted feel."""
+prompt_v15 = """@image1 as the only visual reference for the entire video, children's picture book 2D paper-cut collage style, soft pastel palette of mint green, cream, white, and warm yellow, paper texture and torn edges clearly visible.
+
+主体定义：将图片1中的小兔子定义为<主角小兔>。
+
+整段视频呈现"找一找"主题。旁白朗读："小兔子 rabbit，藏在哪里？"。参考图原有的"rabbit"与"兔子"字样作为画面元素自然融入场景，不重新生成任何新文字。
+
+镜头 1（建立 · 0-1.5s）：中景拉远定格，画面中央的草丛只露出<主角小兔>的两只长耳朵，纸艺拼贴的质感和纸纹清晰可见，<远处有微风轻轻吹过的声音>。
+镜头 2（单词动作 · 1.5-3s）：镜头切到侧面中景特写，<主角小兔>缓缓从草丛里探出半个脑袋，胡须轻颤，眼睛眨了两下，<一声轻巧的"叮"，像铃铛一响>。
+镜头 3（收势 · 3-5s）：缓推回到正面中景，<主角小兔>从草丛完全钻出坐在花田中央，前爪轻轻放下，<主角小兔>抬头望向镜头方向微笑，<远处鸟叫声渐弱>，画面定格在<主角小兔>微笑的最后一帧。
+
+全程无背景音乐、无旁白人声、无哼唱、无歌唱。保留 TTS 音轨占位，时长匹配旁白朗读时长（5 秒）。
+画面保持无字幕、无水印、无 Logo。镜头全程严格遵守"1 镜头 1 种运镜"红线（不堆叠推拉摇移）。
+
+This is a storyboard reference image sequence, designed for picture book reading - viewers should clearly see the rabbit scene unfold with gentle micro-animations, holding the final pose for natural reading rhythm."""
 ```
 
-**8 段结构 / 7 个分号 / 1 个句号在风格段尾 / 0 个独立 `[Sound effect: ...]` 块 / 0 个视觉段否定句 / 1 个音频禁令段**。
+**6 段结构 / 5s 3 镜头 / 1 镜头 1 运镜 / 4 逻辑齐全（运镜+动作+位置+音频内联）/ 0 独立 `[Sound effect: ...]` 块 / 0 视觉段否定句 / 1 音频禁令段**。
 
 ---
 
 ## 8. 关联 skill 章节
 
-- `picturebook-video/SKILL.md` Phase 8 必读 · 绘本 prompt 三铁律 + 范式选择决策树（v3/v7 何时用）
-- `picturebook-video/SKILL.md` Phase 8 必读 · 单测门 SOP（v7 范式专项检查 ⑥⑦⑧）
-- `references/分镜时序-prompt范式-v7.md` · v7 范式完整文档（8 段固定结构）
+- `picturebook-video/SKILL.md` 必读 · v15 导演思维版 6 段骨架（**唯一入口** · v1.2.0+pic21）
+- `references/分镜设计规范-v15director.md` · v15 范式完整文档（6 段固定结构 + 镜头数算法 + 4 逻辑齐全）

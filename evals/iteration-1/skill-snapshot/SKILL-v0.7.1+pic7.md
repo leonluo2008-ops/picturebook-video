@@ -400,7 +400,7 @@ python3 /home/luo/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seeda
 | [references/versions/v15.md](references/versions/v15.md) | v15 范式完整文档（4 大件 + 6 必问）|
 | [references/长旁白拆分规范-v15.1.md](references/长旁白拆分规范-v15.1.md) | v15.1 长旁白拆分规范（Cat 4a v3 标版）|
 | [references/旁白朗读时长计算.md](references/旁白朗读时长计算.md) | 公式 + 决策树 + Cat/Say 对比 + 4 个陷阱 |
-| [references/leading-reading-4clip-pattern.md](references/leading-reading-4clip-pattern.md) | 领读型 4-Clip 切分模板（`8+8+9+10=35s`）|
+| [references/leading-reading-4clip-pattern（v1.2.0+pic21 净化 = 已删）.md](references/leading-reading-4clip-pattern（v1.2.0+pic21 净化 = 已删）.md) | 领读型 4-Clip 切分模板（`8+8+9+10=35s`）|
 | [references/绘本音效-prompt写法.md](references/绘本音效-prompt写法.md) | v7-Say 密集音效型 prompt 写法 |
 | [references/绘本文字保留铁律-v1v2.md](references/绘本文字保留铁律-v1v2.md) | 文字保留措辞（v1 → v2 进化 + **v3"必须完整保留"措辞**）|
 | [references/2026-06-05-say-pitfalls.md](references/2026-06-05-say-pitfalls.md) | Say 踩坑对话日志（旁白语言版本 / 彩色文字 / 运镜定制）|
