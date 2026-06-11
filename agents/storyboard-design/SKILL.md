@@ -63,6 +63,34 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 
 详细路由见 `picturebook-video/references/v7-vs-v15-paradigm-routing.md`。
 
+### 🔥 例外 · ≤ 4 Clip 主 agent 直干（v1.0.5+pic18 Banana #3 修复）
+
+> **背景**：v1.0.0 主路径"主 agent 必调 C"是**默认**而非**强制**。Banana 报告（2026-06-11）实战 3 Clip 简易绘本 = 5 分钟**主 agent 直干**完成（直产 JSON + 直填 fill_v15_template），而调子 agent delegate = 启动 + 上下文传递 + 多步 vision = 5+ 分钟 + 600s timeout 风险（Pic3 9 Clip 实战翻车）。
+
+**触发条件**（任一满足即直干，**不**调 C）：
+- Clip 数 ≤ 4（< 5 段 + 简易认知/领读型）
+- 风格统一（同色系/同主体/相邻景别）+ 故事弧清晰
+- 调性/节奏/范式主 agent 已确定
+
+**直干 SOP**（4 步）：
+1. 主 agent 看 N 张图（native vision）
+2. 直产 11 维原料 JSON（time_breakdown / characters / text_position / end_frame_microaction / target_word_emphasis / seedance_visual_checklist）
+3. 用 `scripts/fill_v15_template.py` 填 11 变量 = 终稿 prompt
+4. 跳过 `delegate_task(goal=...)`
+
+**数据对比**：
+
+| 模式 | Clip 数 | 耗时 | 翻车风险 |
+|------|---------|------|---------|
+| delegate C 子 agent | 3 | ~3-5 min + 600s timeout 风险 | 中 |
+| **主 agent 直干** | **3** | **~3 min（直产 JSON + 直填模板）** | **低** |
+| delegate C 子 agent | 9 (Pic3) | ~10 min | 高（600s timeout 实测）|
+| **主 agent 直干** | **9** | **~10 min（不调 C 节省 5 min）** | **低** |
+
+**反模式**：≤ 4 Clip 仍 delegate = 浪费时间 + 600s timeout 风险（**已 Ban ana 报告 3 Clip 端到端验证 3/3 succeeded**）
+
+**判断口诀**：**"Clip 数 ≤ 4 + 风格统一 + 调性确定 = 主 agent 直干"**
+
 ## 输入 schema
 
 主 agent 传入的 brief 必须包含 A+B 输出：

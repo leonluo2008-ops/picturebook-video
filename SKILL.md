@@ -347,6 +347,37 @@ result_a = delegate_task(
 - **标准模式**：8s + 8s + 9s + 10s = 35s（Red 绘本等）
 - **TTS 优先不压缩**：8s + 9s + 10s + 10s = 37s（Cactus 绘本）
 - **原则**：合并 clip 时长 = 各段 TTS 旁白时长之和 + 0.5-1.5s 缓冲
+
+**⚠️ Step 3.1 ≤ 4 Clip 主 agent 直干决策（v1.0.5+pic18 Banana #3 修复）**：
+
+> **背景**：v1.0.0 默认"主 agent 必调 C"是**默认**而非**强制**。Banana 报告 3 Clip 简易绘本 = 5 分钟**主 agent 直干**比 delegate 快 3 倍（3-5 min vs 5+ min）+ 不冒 600s timeout 风险。
+
+**决策树**：
+
+```text
+Step 3 · 调 C（主 agent 直干 or delegate 子 agent 二选一）
+    ↓
+判断 1: Clip 数 ≤ 4 且 风格统一？
+    ├── 是 → 主 agent 直干（v1.0.5+pic18 新例外）
+    │         4 步 SOP: 看图（native vision）→ 直产 11 维 JSON → 填 fill_v15_template.py → 跳过 delegate
+    └── 否 → delegate C 子 agent
+            ↓
+            判断 2: v7 范式 5 条件全过？
+                ├── 是 → v7 范式（主 agent 直拼 · **不**调 C）
+                └── 否 → v15 4 段 / v6 5 段（调 C 产原料 + fill_v15_template.py）
+```
+
+**触发条件**（任一满足即直干）：
+- Clip 数 ≤ 4（< 5 段 + 简易认知/领读型）
+- 风格统一（同色系/同主体/相邻景别）+ 故事弧清晰
+- 调性/节奏/范式主 agent 已确定
+
+**反模式**：≤ 4 Clip 仍 delegate = 浪费时间 + 600s timeout 风险（**已 Ban ana 报告 3 Clip 端到端验证 3/3 succeeded**）
+
+**判断口诀**：**"Clip 数 ≤ 4 + 风格统一 + 调性确定 = 主 agent 直干"**
+
+详见 `agents/storyboard-design/SKILL.md` § 例外 · ≤ 4 Clip 主 agent 直干。
+
 - **不**为对齐"标准 35s"压缩时长 —— 冗余给后期剪辑留余地
 
 **v7 范式必填 seedance 参数**：
