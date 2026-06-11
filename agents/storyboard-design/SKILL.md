@@ -76,7 +76,8 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
   "style_report": { /* A 子 agent 的完整 JSON 输出 */ },
   "narration_report": { /* B 子 agent 的完整 JSON 输出 */ },
   "narration_lines": [
-    {"index": 1, "en": "...", "zh": "...", "image_index": 1},
+    {"index": 1, "en": "...", "zh": "...", "image_index": [1, 2, 3]},  # v1.0.5+pic18 Banana #2：多图用数组（v7 范式 2图=1Clip 合并 / v15 范式 ≤4 Clip 切分都用）
+    {"index": 2, "en": "...", "zh": "...", "image_index": [1]},           # 单图也用数组（统一 schema）
     ...
   ],
   "extra_constraints": {
@@ -108,7 +109,7 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
   "clips": [
     {
       "clip_index": 1,
-      "image_index": 1,
+      "image_index": [1, 2, 3],  # v1.0.5+pic18 Banana #2：多图用数组（必填，单图也用 [1]）
       "narration_text": {"en": "No!", "zh": "不能No!"},
       "clip_narrative": "小熊举起双掌做'Stop'拒绝手势·坚定地首次宣布'No'·开篇确立规则守护者姿态",
       "rhythm_formula": "1-朗读-1",
@@ -473,7 +474,7 @@ result = delegate_task(
   "clips": [
     {
       "clip_index": 1,
-      "image_index": 1,
+      "image_index": [1, 2, 3],  # v1.0.5+pic18 Banana #2：多图用数组（必填，单图也用 [1]）
       "narration_text": {"en": "No!", "zh": "不能No!"},
       "clip_narrative": "小熊举起双掌做'Stop'拒绝手势·坚定地首次宣布'No'·开篇确立规则守护者姿态",
       "rhythm_formula": "1-朗读-1",
