@@ -201,7 +201,7 @@ python3 -c "import os; print(os.path.exists('/home/luo/.hermes/profiles/huiben/w
 | # | 必问项 | 默认值 | 为什么这么定 |
 |---|---|---|---|
 | 1 | **画幅比例** | 16:9 | 抖音/视频号/B 站主流；小红书可改 3:4 |
-| 2 | **单 Clip 时长** | **v6 整数公式**（短句 6s / 中句 7s / 长句 8s / 极短 5s）| 按 B 子 agent 算出的朗读时长 + **整数**（铁律 #72：seedance 不生成小数）+ 末帧静默 ≥ 2s（铁律 #74 v5 公式）|
+| 2 | **单 Clip 时长** | **v6 整数公式**（短句 6s / 中句 7s / 长句 8s / 极短 5s）| 按 B 子 agent 算出的朗读时长 + **整数**（铁律 #72：seedance 不生成小数）+ 末帧静默 ≈ 朗读 × 0.3-0.6（**参考标准 #74** v1.0.5+pic18 重写，**不**是红线，详见 §末帧静默参考标准）|
 | 3 | **切分方式** | 按图（每张图 1 Clip） | 默认；>15s 走 v15.1 语义块 |
 | 4 | **调性** | 等 A 子 agent 识别 | 主 agent 不擅自定 |
 | 5 | **范式** | **领读型 v7 范式（默认）** | v7 = 2图=1Clip 合并（主 agent 直拼 · 详见 Step 3.0 路由）· 叙事/冒险/收势向走 v15 4 段（调 C 拼） |
@@ -214,14 +214,67 @@ python3 -c "import os; print(os.path.exists('/home/luo/.hermes/profiles/huiben/w
 
 1. **列出所有数字约束**（总时长 / 单 Clip 时长 / 单段朗读 / 镜头数 / R 特殊时长）
 2. **用兜底公式算 8 段朗读时长**（1.4 词/秒 + 3.5 字/秒）
-3. **列可行解表**（A 全准守 / B 放大总时长 / C 拆 Clip / D 放松短句）—— **每档**标"末帧静默 = 几 s"（必 ≥ 2s 铁律 #74）
+3. **列可行解表**（A 全准守 / B 放大总时长 / C 拆 Clip / D 放松短句）—— **每档**标"末帧静默 = 几 s"（参考标准 #74 v1.0.5+pic18：默认朗读 × 0.3-0.6，**不**是 ≥ 2s 红线）
 4. **冲突时让用户选**（不偷偷按字面意思跑）
-5. **翻车征兆（末帧静默 < 2s）= 必报**（不掩盖）
+5. **物理装不下（静默 < 0.5s）= 必跑 `validate_durations.py` 验证 + 必报**（不掩盖）
 
 **反模式**：用户给 3 个数字 → 直接算档位 → 跑出来发现 5 段末帧 < 1s → 浪费 1 轮。**判断口诀**：**"3 数字约束 = 必先列可行解表 = 让用户选"**
 
 **用户没指定** → 用默认值 + 在 Step 2 报"我打算 X 因为 Y"。
 **用户指定** → 用指定值。
+
+---
+
+## 📌 参考标准 · 末帧静默（v1.0.5+pic18 重写 · **不**是红线）
+
+> **历史**：v1.0.3+pic12 把"末帧静默 ≥ 2s"写进铁律 #74（Pic4 No 绘本 v5 公式沉淀）。**2026-06-11 Banana 报告实战教正**：3 Clip × 10s 整数 = 30s 装 30s 朗读 → 末帧静默物理装不下 2s = 铁律跟用户硬约束冲突 = 主 agent 越界劝用户放弃。**根因**：把"经验值"当"红线"用。
+> **修复**：v1.0.5+pic18 降级为**参考标准**（**不**是铁律），并加 `validate_durations.py` 自动验证。
+
+### 规则（v1.0.5+pic18）
+
+| 末帧静默 | 等级 | 含义 |
+|---------|------|------|
+| **< 0.5s** | ❌ 错误 | 物理装不下朗读 = 翻车征兆，**必**改 prompt 重提 |
+| **0.5s ≤ X < 1s** | ⚠️ 警告 | 违反默认参考 = 需文案说明例外（紧接无静默 / 多段旁白紧接 / 节奏紧凑领读型）|
+| **1s ≤ X < 2s** | ✅ 通过 | 收势合理（不算错也不推荐）|
+| **≥ 2s** | ✅ 通过（推荐）| 标准做法（Pic4 v5 公式推荐档位）|
+
+### 静默 = 0 或 < 1s 的"合法例外"
+
+- **多段旁白紧接**（无画面切换）= 0.5s 仅做镜头切换消化
+- **节奏紧凑的认知/领读绘本** = 紧接无静默（Banana 3 Clip 全走这模式）
+- **末帧 1s 末**必须是"本 Clip 故事动作停留"（不是"静默"）
+
+### 验证脚本（v1.0.5+pic18 新增）
+
+```bash
+python3 ~/.hermes/profiles/huiben/skills/creative/picturebook-video/scripts/validate_durations.py <project_dir>
+```
+
+**实际效果**（Banana 报告端到端验证）：
+```
+📂 验证项目：.../20260611-banana-input
+📐 阈值：错误 < 0.5s / 警告 < 1.0s / 推荐 ≥ 2.0s
+🎬 总 Clip 数：3
+  Clip 1: ⚠️  末帧静默 0.50s < 1s（违反默认参考）— 需文案说明例外
+  Clip 2: ⚠️  末帧静默 0.50s < 1s（违反默认参考）— 需文案说明例外
+  Clip 3: ✅  末帧静默 1.88s 介于 1-2s（收势合理）
+📊 汇总：1 通过 / 2 警告 / 0 错误
+```
+
+**退出码**：错误 ≥ 1 → 退出 1（CI 可拦截）；警告 ≥ 1 → 退出 0（**不**强制改，**不**破坏例外合法场景）
+
+### 铁律分类法自检（v1.0.5+pic18 新增）
+
+任何"X ≥ N 秒" / "X = N 步" 类的规则 = **优先判断是不是经验值**：
+
+| 类型 | 例子 | 落点 |
+|------|------|------|
+| **官方约束**（如 seedance 15s 物理上限）| 写铁律 | 必守 |
+| **行为准则**（如用户决策权归主 agent）| 写元教训铁律 | 必守 |
+| **经验值**（如末帧静默 2s）| **写参考标准**（**不**是铁律）| 灵活运用，例外合法 |
+
+**反模式**：把经验值当铁律 = 用户硬约束冲突时 = 主 agent 越界劝用户放弃 = 反复劝退浪费轮次。
 
 ---
 
@@ -263,8 +316,8 @@ result_a = delegate_task(
 主 agent 必做：
 1. 验证 A 输出符合 schema（不合法 → 重发 A，1 次机会）
 2. 验证 B 输出符合 schema（不合法 → 重发 B，1 次机会）
-3. 持久化 A 输出 → `huiben-projects/<日期-项目>/style-recognition.json`
-4. 持久化 B 输出 → `huiben-projects/<日期-项目>/narration-quantization.json`
+3. 持久化 A 输出 → `~/.hermes/profiles/huiben/work/<日期-项目>/style-recognition.json`（v1.0.5+pic18 路径约定）
+4. 持久化 B 输出 → `~/.hermes/profiles/huiben/work/<日期-项目>/narration-quantization.json`（v1.0.5+pic18 路径约定）
 5. 合并传给 C 子 agent
 
 ---
@@ -320,7 +373,7 @@ result_c = delegate_task(
 )
 # 验证 result_c.summary.status == "succeeded"
 # 验证每个 clip.prompt_draft 通过 self_check 9 项
-# 持久化每个 prompt_draft → huiben-projects/<日期-项目>/clips/clipN-prompt.txt
+# 持久化每个 prompt_draft → ~/.hermes/profiles/huiben/work/<日期-项目>/clips/clipN-prompt.txt（v1.0.5+pic18 路径约定）
 ```
 
 **C 子 agent 必做**（主 agent 不替代）：
@@ -407,7 +460,7 @@ result_c = delegate_task(
 ## Step 5 · 汇总 + 发飞书
 
 **主 agent 必做**：
-1. 持久化 D 输出 → `huiben-projects/<日期-项目>/execution-report.json`
+1. 持久化 D 输出 → `~/.hermes/profiles/huiben/work/<日期-项目>/execution-report.json`（v1.0.5+pic18 路径约定）
 2. **不翻车** → 决定是否发飞书（**铁律 #29 视频交付不抽帧**——不主动抽帧，让用户自己看）
 3. **翻车** → 报告翻车清单 + 决定重发 C / 接受 / 降级 v0.7.1+pic7 单 agent
 4. token 用量记入 `results.tsv`

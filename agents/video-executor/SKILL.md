@@ -35,13 +35,13 @@ metadata:
 {
   "task": "video-execution",
   "book_title": "Please 请",
-  "project_dir": "/home/luo/huiben-projects/20260606-pic2",
+  "project_dir": "~/.hermes/profiles/huiben/work/20260606-pic2",
   "clips_to_execute": [
     {
       "clip_index": 1,
       "prompt_draft": "主体定义：...\n分镜绑定：@Image1...\n...",  // C 子 agent 的输出
-      "image_paths": ["/home/luo/huiben-projects/20260606-pic2/1.jpg"],
-      "output_path": "/home/luo/huiben-projects/20260606-pic2/clip1.mp4",
+      "image_paths": ["~/.hermes/profiles/huiben/work/20260606-pic2/1.jpg"],
+      "output_path": "~/.hermes/profiles/huiben/work/20260606-pic2/clip1.mp4",
       "duration": 6,
       "aspect_ratio": "16:9"
     },
@@ -68,7 +68,7 @@ metadata:
       "clip_index": 1,
       "status": "succeeded | failed | timeout",
       "task_id": "cgt-20260606193311-sxmdg",
-      "output_path": "/home/luo/huiben-projects/20260606-pic2/clip1.mp4",
+      "output_path": "~/.hermes/profiles/huiben/work/20260606-pic2/clip1.mp4",
       "duration_seconds": 6.08,
       "file_size_mb": 2.1,
       "token_usage": 168500,
@@ -277,7 +277,7 @@ result = delegate_task(
 
 **主 agent 必做 5 件事**：
 1. **验证** C 输出 self_check 9 项全过
-2. **持久化** D 输出到 `huiben-projects/<日期-项目>/execution-report.json`
+2. **持久化** D 输出到 `~/.hermes/profiles/huiben/work/<日期-项目>/execution-report.json`（v1.0.5+pic18 路径约定）
 3. **翻车时**决定：重发 C 改 prompt / 接受 / 降级 v0.7.1+pic7 模式
 4. **不翻车时**决定：是否发飞书（铁律 #29 · 视频交付不抽帧）
 5. **token 用量**记录到 results.tsv
@@ -291,8 +291,8 @@ result = delegate_task(
     {
       "clip_index": 1,
       "prompt_draft": "主体定义：奶白色小兔子@Image1...",
-      "image_paths": ["/home/luo/huiben-projects/20260606-pic2/1.jpg"],
-      "output_path": "/home/luo/huiben-projects/20260606-pic2/clip1.mp4",
+      "image_paths": ["~/.hermes/profiles/huiben/work/20260606-pic2/1.jpg"],
+      "output_path": "~/.hermes/profiles/huiben/work/20260606-pic2/clip1.mp4",
       "duration": 6,
       "aspect_ratio": "16:9"
     }
@@ -308,7 +308,7 @@ result = delegate_task(
       "clip_index": 1,
       "status": "succeeded",
       "task_id": "cgt-20260606194413-ph4lh",
-      "output_path": "/home/luo/huiben-projects/20260606-pic2/clip1.mp4",
+      "output_path": "~/.hermes/profiles/huiben/work/20260606-pic2/clip1.mp4",
       "duration_seconds": 6.08,
       "file_size_mb": 2.1,
       "token_usage": 168500,

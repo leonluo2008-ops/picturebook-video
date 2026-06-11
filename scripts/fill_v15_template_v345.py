@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-CLIPS = Path("/home/luo/huiben-projects/20260607-pic4-compress/clips")
+CLIPS = Path("~/.hermes/profiles/huiben/work/20260607-pic4-compress/clips").expanduser()  # v1.0.5+pic18
 
 V15_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文 "{EN_WORD}" 和中文"{ZH_WORD}"字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。"""
 

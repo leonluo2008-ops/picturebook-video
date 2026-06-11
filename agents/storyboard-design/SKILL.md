@@ -436,7 +436,7 @@ result = delegate_task(
 )
 # 主 agent 验证 result.summary 是 JSON
 # 验证每个 prompt_draft 满足 self_check
-# 持久化每个 prompt_draft 到 huiben-projects/<日期-项目>/clips/clipN-prompt.txt
+# 持久化每个 prompt_draft 到 ~/.hermes/profiles/huiben/work/<日期-项目>/clips/clipN-prompt.txt
 # 然后调 D 子 agent
 ```
 
@@ -550,10 +550,10 @@ result = delegate_task(
 ```bash
 # 1. 跑 picturebook-video/scripts/fill_v15_template.py 把 9 个 clipN.json → 9 个 clipN-prompt.txt
 python3 /home/luo/.hermes/profiles/huiben/skills/creative/picturebook-video/scripts/fill_v15_template.py \
-  --clips-dir /home/luo/huiben-projects/<日期-项目>/clips
+  --clips-dir ~/.hermes/profiles/huiben/work/<日期-项目>/clips
 
 # 2. 验证 9 个 prompt.txt 都写出 + 4 段结构齐全
-ls -la /home/luo/huiben-projects/<日期-项目>/clips/clip*-prompt.txt
+ls -la ~/.hermes/profiles/huiben/work/<日期-项目>/clips/clip*-prompt.txt
 
 # 3. 调 D（主 agent 干 · ≤2/批 + 续跑）
 ```

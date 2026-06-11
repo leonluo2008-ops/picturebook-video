@@ -3,7 +3,7 @@
 v1.0.3+pic12 主 agent 填 v15 4 段 / v6 5 段骨架模板（修复 pic4 硬编码）
 
 修复 pic4 硬编码（2026-06-07 Pic5 Bird 实战踩坑）：
-1. ROOT 路径：从硬编码 /home/luo/huiben-projects/20260607-pic4-compress 改为 --project-dir 参数
+1. ROOT 路径：从硬编码 /home/luo/huiben-projects/20260607-pic4-compress 改为 --project-dir 参数（v1.0.5+pic18 默认值同步到 work 路径）
 2. clip 数量：从硬编码 1-9 改为自动 glob clips/clip*.json
 3. bg_mood：从硬编码"严肃警示·温柔坚定" 改为 --tone 参数 + 兜底
 4. en_color 字段：从只支持 en_color 字符串 升级为兼容 en_color 字符串 + en_color_pattern 字典
@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 # 默认值（向后兼容 pic4 旧调用）
-DEFAULT_ROOT = Path("/home/luo/huiben-projects/20260607-pic4-compress")
+DEFAULT_ROOT = Path("~/.hermes/profiles/huiben/work/20260607-pic4-compress").expanduser()  # v1.0.5+pic18 默认 work 路径，向后兼容 pic4
 DEFAULT_VERSION = "v15"
 DEFAULT_TONE = "严肃警示·温柔坚定"  # pic4 No 警示向
 
