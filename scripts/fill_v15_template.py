@@ -188,13 +188,16 @@ def _build_text_visibility_segment(tp: dict, target_word: str, en_word_fallback:
     font_style = tp.get('font_style', '粗体圆润无衬线童趣字体，笔画边缘不规整，撕纸拼贴风格')
 
     # 字符顺序浮现时间表（v6 段 5 必填）
-    char_floats = (
-        f"按朗读节奏字符顺序浮现：参(0.3s) → "
-        f"考(0.6s) → "
-        f"图(0.9s) → "
-        f"原(1.2s) → "
-        f"考(1.5s)"
-    )
+    # 字符顺序浮现时间表（v6 段 5 必填 · 通用方法论 · 动态按 en_word 字母数生成）
+    en_word_chars = en_word or 'M'
+    max_chars = min(5, len(en_word_chars))
+    char_floats_list = []
+    for i, ch in enumerate(en_word_chars[:max_chars]):
+        t = 0.3 + i * 0.3
+        char_floats_list.append(f"{ch}({t:.1f}s)")
+    if zh_word:
+        char_floats_list.append(f"{zh_word}({0.3 + max_chars * 0.3:.1f}s)")
+    char_floats = " → ".join(char_floats_list)
 
     return (
         f"\n\n段 5 · 文字持续可见段（v6 铁律 #73 · #77）：\n"
