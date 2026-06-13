@@ -39,6 +39,8 @@ Step 3 · 标叙事弧 → 合并到 3-5 Clip（导演分镜）
 Step 4 · 写 11 维 JSON（≤ 4 Clip 主 agent 直干 / > 4 Clip 调 C 子 agent）
    ↓
 Step 5 · fill v15/v6 模板（段 4 B 档默认 + @Image 空格语法 + char_floats 动态）
+        ↓
+        **5.5 · 必跑 `scripts/verify_filled_prompts.py <clips_dir>` 验证 4 项**（不靠"上次我修过"记忆）
    ↓
 Step 6 · seedance 提交（--generate-audio true + --ref-images 多图 + 整数时长）
    ↓
@@ -411,12 +413,80 @@ done
 
 ## 维护陷阱（绘本完成后必看）
 
-| 陷阱 | 反模式（**必去绘本名/版本号占位**）| 修复 |
+| 陷阱 | 反模式 | 修复 |
 |---|---|---|
-| 1. skill 装绘本"版本号" | 在铁律名里嵌入"`v\d+\.\d+\+pic\d+`"或"XX 绘本踩坑"等字样 | 铁律以**通用方法论**命名·反问自检："这条铁律是某本绘本踩坑还是通用方法论？" → 仅后者入 skill |
-| 2. 开新 git 分支做"实验" | 每本绘本 = 新分支（`{绘本名}-Nclip-{vX.X+picN}` 模式）| 沿用现有 fix/feature 分支累加 commit |
-| 3. 1 个 commit = 1 个完整变更单元 | N 个半成品 commit | 本轮工作 = 1 个 commit·message 列出"通用方法论 + fill 脚本 bug 修复" |
+| 1. skill 装绘本"版本号" | `**#110**（v1.0.5+pic32 实战新增 · 绘本踩坑 ...）` | 铁律以通用方法论命名·不绑绘本名·反问自检 |
+| 2. 开新 git 分支做"实验" | 每本绘本 = 新分支（`mango-4clip-director-v1.0.5+pic37` 等）| 沿用现有 fix/feature 分支累加 commit |
+| 3. 1 个 commit = 1 个完整变更单元 | N 个半成品 commit | 本轮工作 = 1 个 commit·message 列出铁律+bug+章节 |
 | 4. 子 agent 累积未提交修改 | `git status` 满屏 `M` / `??` | 开工前必先 `git status`·要么 commit 要么 stash |
+| 5. fill 脚本 "state reverts" 翻车 | 信任"上次我已修过"记忆 = 这次跑出来 `char_floats 硬编码 "参/考/图/原/考"` | **每 session 必跑** `scripts/verify_filled_prompts.py <clips_dir>` 验证 4 项（不靠记忆）|
+| 6. 12 个 untracked 一把 `git add -A` | 误把 6 个含绘本名 references + 2 个含绘本名 scripts + 2 个业务数据目录 add 进 commit | 跑 `git status` 后**先分类**再 `git add`（见下方 3-way 分类法）|
+
+### 维护陷阱 #5 详解 · fill 脚本 state reverts
+
+**触发条件**（实测翻车 2026-06-13）：`scripts/fill_v15_template.py` 的 `_build_text_visibility_segment` 函数曾有"char_floats 硬编码 参/考/图/原/考" bug · 之前 session 修过 · 本 session 跑时 grep 发现 bug 还在。
+
+**根因**：agent 凭"我之前修过"记忆直接填 prompt = **没验证填出来的结果**。`fill_v15_template.py` 实际状态可能在跨 session 期间被回滚 / 外部编辑 / 子 agent 改过 = 记忆失效。
+
+**修复**（必跑 · 不能省）：
+
+```bash
+# 跑完 fill_v15_template.py 后必跑验证脚本
+python3 scripts/verify_filled_prompts.py <clips_dir>
+
+# 4 项检查：
+#   1. 0 双重前缀（@Image@Image）
+#   2. @Image 空格语法（@Image1+@Image2 带空格·不是 @Image1+@Image2）
+#   3. 段 4 B 档音效版（不是 A 档"无 BGM/无人声/无哼唱"全静音）
+#   4. char_floats 动态按 en_word 字母数生成（不是硬编码"参/考/图/原/考"）
+# 退出码 0 = 4/4 全过 · 1 = 失败（CI 可拦截）
+```
+
+**判断口诀**：**"fill 完 ≠ 验证过 · 跑 verify_filled_prompts.py = 唯一权威"**。
+
+### 维护陷阱 #6 详解 · untracked 残留 3-way 分类法
+
+**触发条件**：skill 仓 `git status` 出现 N 个 untracked 文件（references/scripts/templates/ 子目录 + `_inbox/` + `data/`）= 准备 commit 时**不知道该不该 add**。
+
+**反模式**：直接 `git add -A` = 误把绘本名污染 + 业务数据一并 commit = 违反铁律 #116 / #117。
+
+**3-way 分类法**（commit 前必跑）：
+
+| 类别 | 判定标准 | 动作 |
+|---|---|---|
+| ✅ **应 commit** | 在 `references/` / `scripts/` / `templates/` 下 + **0 绘本名**（grep 不到 Mango/Kangaroo/Horse/Cherry/Bird/Cow/No/Banana 等）+ 是**通用方法论** | `git add <file>` |
+| ❌ **绘本名污染** | 文件名或内容含特定绘本名 = 违反铁律 #117 绘本名不绑 | `rm <file>` · 内容可重写到 `work/<日期-绘本名>/` 业务笔记 |
+| ❌ **业务数据** | 在 `_inbox/` / `data/` / `work/` 目录下 = 业务产物 = 违反铁律 #116 不入 skill 仓 | `rm -rf <dir>` · 或保持 untracked（不入 commit）|
+
+**操作流程**：
+
+```bash
+# 1. 看未跟踪
+git status
+
+# 2. 对每个 untracked 文件做判定
+for f in $(git status --porcelain | grep '^??' | awk '{print $2}'); do
+  case "$f" in
+    # 业务数据 → 删
+    _inbox/*|data/*|work/*) echo "❌ 业务数据·删: $f" ;;
+    # 绘本名污染 → 删
+    *mango*|*kangaroo*|*horse*|*cherry*|*bird*|*cow*|*banana*)
+      echo "❌ 绘本名污染·删: $f" ;;
+    # references/scripts/templates 通用方法论 → 检查内容是否含绘本名
+    references/*|scripts/*|templates/*)
+      if grep -lE "Mango|Kangaroo|Horse|Cherry|Bird|Cow|No\.|Banana" "$f" >/dev/null 2>&1; then
+        echo "❌ 内容含绘本名·删: $f"
+      else
+        echo "✅ 通用方法论·add: $f"
+      fi ;;
+    *) echo "⚠️ 未知类别·人工判断: $f" ;;
+  esac
+done
+
+# 3. 执行 add / rm（按上面输出操作）
+```
+
+**判断口诀**：**"`git add -A` 永远错 · 3-way 分类必跑一遍"** ·  **"通用方法论 = commit · 绘本名 = 删 · 业务数据 = 删/不 commit"**
 
 **自检命令**（绘本完成后必跑 0 残留验证）：
 
