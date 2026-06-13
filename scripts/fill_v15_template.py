@@ -25,18 +25,18 @@ DEFAULT_VERSION = "v15"
 DEFAULT_TONE = "严肃警示·温柔坚定"  # pic4 No 警示向
 
 # v15 4 段骨架模板
-V15_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。"""
+V15_TEMPLATE = """主体定义：{主角1}{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段（v1.0.5+pic32 · 绘本音效版）：无任何背景音乐（no background music）· 无旁白人声/朗读（no voiceover/narration/singing）· **允许并保留画面元素动作音效**（叮/咚/沙/沙沙等拟声 · 来自段 2 镜头描述 · 不是 BGM）· 不发完整朗读，TTS 后期对齐。段 3 · 风格锁定：{style_keywords}。"""
 
 # v6 5 段骨架模板（v15 + 文字持续可见段，铁律 #73 + #77）
-V6_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。{text_visibility_segment}"""
+V6_TEMPLATE = """主体定义：{主角1}{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段（v1.0.5+pic32 · 绘本音效版）：无任何背景音乐（no background music）· 无旁白人声/朗读（no voiceover/narration/singing）· **允许并保留画面元素动作音效**（叮/咚/沙/沙沙等拟声 · 来自段 2 镜头描述 · 不是 BGM）· 不发完整朗读，TTS 后期对齐。段 3 · 风格锁定：{style_keywords}。{text_visibility_segment}"""
 
 
 def build_image_index(image_index):
-    """把 image_index 字段转成 @ImageN / @Image1+2+3 格式（v1.0.5+pic18 Banana #2 修复）
+    """把 image_index 字段转成 @ImageN / @ImageN + @ImageM + @ImageK 格式（绘本视频通用铁律 #114）
 
-    支持多图合并场景（如 Banana 3 Clip × 8 图 → 切 3 Clip = [1,2,3] [4,5,6] [7,8]）：
+    支持多图合并场景：
     - 单图 [N] → "@ImageN"
-    - 多图 [1,2,3] → "@Image1+2+3"
+    - 多图 [1,2,3] → "@Image1 + @Image2 + @Image3"（**带空格官方语法** · 铁律 #114）
 
     向后兼容：老脚本传单数字 N（int）→ 自动包成 [N] → "@ImageN"
     """
@@ -45,7 +45,7 @@ def build_image_index(image_index):
     if isinstance(image_index, list) and len(image_index) == 1:
         return f"@Image{image_index[0]}"
     if isinstance(image_index, list) and len(image_index) > 1:
-        return "@Image" + "+".join(str(i) for i in image_index)
+        return " + ".join(f"@Image{i}" for i in image_index)
     raise ValueError(f"image_index 必须是 int 或 list（当前类型：{type(image_index).__name__}）")
 
 
