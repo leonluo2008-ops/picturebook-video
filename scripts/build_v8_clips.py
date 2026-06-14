@@ -219,7 +219,7 @@ def main():
         sys.exit(1)
 
     # 写 JSON 文件（自动化跑 seedance.py 用）
-    project_dir = "/home/luo/huiben-projects/你的绘本项目"
+    project_dir = "~/.hermes/profiles/huiben/work/<日期-项目>"  # v1.0.5+pic18 路径约定
     with open("clips-prompt.json", "w", encoding="utf-8") as f:
         json.dump({
             "version": "v8-20260603",

@@ -63,6 +63,34 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 
 详细路由见 `picturebook-video/references/v7-vs-v15-paradigm-routing.md`。
 
+### 🔥 例外 · ≤ 4 Clip 主 agent 直干（v1.0.5+pic18 Banana #3 修复）
+
+> **背景**：v1.0.0 主路径"主 agent 必调 C"是**默认**而非**强制**。Banana 报告（2026-06-11）实战 3 Clip 简易绘本 = 5 分钟**主 agent 直干**完成（直产 JSON + 直填 fill_v15_template），而调子 agent delegate = 启动 + 上下文传递 + 多步 vision = 5+ 分钟 + 600s timeout 风险（Pic3 9 Clip 实战翻车）。
+
+**触发条件**（任一满足即直干，**不**调 C）：
+- Clip 数 ≤ 4（< 5 段 + 简易认知/领读型）
+- 风格统一（同色系/同主体/相邻景别）+ 故事弧清晰
+- 调性/节奏/范式主 agent 已确定
+
+**直干 SOP**（4 步）：
+1. 主 agent 看 N 张图（native vision）
+2. 直产 11 维原料 JSON（time_breakdown / characters / text_position / end_frame_microaction / target_word_emphasis / seedance_visual_checklist）
+3. 用 `scripts/fill_v15_template.py` 填 11 变量 = 终稿 prompt
+4. 跳过 `delegate_task(goal=...)`
+
+**数据对比**：
+
+| 模式 | Clip 数 | 耗时 | 翻车风险 |
+|------|---------|------|---------|
+| delegate C 子 agent | 3 | ~3-5 min + 600s timeout 风险 | 中 |
+| **主 agent 直干** | **3** | **~3 min（直产 JSON + 直填模板）** | **低** |
+| delegate C 子 agent | 9 (Pic3) | ~10 min | 高（600s timeout 实测）|
+| **主 agent 直干** | **9** | **~10 min（不调 C 节省 5 min）** | **低** |
+
+**反模式**：≤ 4 Clip 仍 delegate = 浪费时间 + 600s timeout 风险（**已 Ban ana 报告 3 Clip 端到端验证 3/3 succeeded**）
+
+**判断口诀**：**"Clip 数 ≤ 4 + 风格统一 + 调性确定 = 主 agent 直干"**
+
 ## 输入 schema
 
 主 agent 传入的 brief 必须包含 A+B 输出：
@@ -76,7 +104,8 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
   "style_report": { /* A 子 agent 的完整 JSON 输出 */ },
   "narration_report": { /* B 子 agent 的完整 JSON 输出 */ },
   "narration_lines": [
-    {"index": 1, "en": "...", "zh": "...", "image_index": 1},
+    {"index": 1, "en": "...", "zh": "...", "image_index": [1, 2, 3]},  # v1.0.5+pic18 Banana #2：多图用数组（v7 范式 2图=1Clip 合并 / v15 范式 ≤4 Clip 切分都用）
+    {"index": 2, "en": "...", "zh": "...", "image_index": [1]},           # 单图也用数组（统一 schema）
     ...
   ],
   "extra_constraints": {
@@ -108,7 +137,7 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
   "clips": [
     {
       "clip_index": 1,
-      "image_index": 1,
+      "image_index": [1, 2, 3],  # v1.0.5+pic18 Banana #2：多图用数组（必填，单图也用 [1]）
       "narration_text": {"en": "No!", "zh": "不能No!"},
       "clip_narrative": "小熊举起双掌做'Stop'拒绝手势·坚定地首次宣布'No'·开篇确立规则守护者姿态",
       "rhythm_formula": "1-朗读-1",
@@ -436,7 +465,7 @@ result = delegate_task(
 )
 # 主 agent 验证 result.summary 是 JSON
 # 验证每个 prompt_draft 满足 self_check
-# 持久化每个 prompt_draft 到 huiben-projects/<日期-项目>/clips/clipN-prompt.txt
+# 持久化每个 prompt_draft 到 ~/.hermes/profiles/huiben/work/<日期-项目>/clips/clipN-prompt.txt
 # 然后调 D 子 agent
 ```
 
@@ -473,7 +502,7 @@ result = delegate_task(
   "clips": [
     {
       "clip_index": 1,
-      "image_index": 1,
+      "image_index": [1, 2, 3],  # v1.0.5+pic18 Banana #2：多图用数组（必填，单图也用 [1]）
       "narration_text": {"en": "No!", "zh": "不能No!"},
       "clip_narrative": "小熊举起双掌做'Stop'拒绝手势·坚定地首次宣布'No'·开篇确立规则守护者姿态",
       "rhythm_formula": "1-朗读-1",
@@ -550,10 +579,10 @@ result = delegate_task(
 ```bash
 # 1. 跑 picturebook-video/scripts/fill_v15_template.py 把 9 个 clipN.json → 9 个 clipN-prompt.txt
 python3 /home/luo/.hermes/profiles/huiben/skills/creative/picturebook-video/scripts/fill_v15_template.py \
-  --clips-dir /home/luo/huiben-projects/<日期-项目>/clips
+  --clips-dir ~/.hermes/profiles/huiben/work/<日期-项目>/clips
 
 # 2. 验证 9 个 prompt.txt 都写出 + 4 段结构齐全
-ls -la /home/luo/huiben-projects/<日期-项目>/clips/clip*-prompt.txt
+ls -la ~/.hermes/profiles/huiben/work/<日期-项目>/clips/clip*-prompt.txt
 
 # 3. 调 D（主 agent 干 · ≤2/批 + 续跑）
 ```

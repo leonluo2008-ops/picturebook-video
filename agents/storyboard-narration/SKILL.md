@@ -194,7 +194,7 @@ result = delegate_task(
 **主 agent 必做 3 件事**：
 1. **优先**调用本子 agent 前**问用户**："你提供 TTS 音频吗？"（提供 = TTS 实测；不提供 = 走兜底公式）
 2. **验证** result 符合 schema
-3. **持久化**到 `huiben-projects/<日期-项目>/narration-quantization.json`
+3. **持久化**到 `~/.hermes/profiles/huiben/work/<日期-项目>/narration-quantization.json`（v1.0.5+pic18 路径约定）
 
 ## 示例：Please 请 绘本（无 TTS，兜底公式）
 

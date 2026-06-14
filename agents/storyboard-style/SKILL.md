@@ -165,7 +165,7 @@ result = delegate_task(
 **主 agent 必做 3 件事**：
 1. **验证** result 符合 schema（不合法 → 重发 A，1 次机会）
 2. **合并** A 输出与 B 输出 → 喂给 C 子 agent
-3. **持久化** A 输出到 `huiben-projects/<日期-项目>/style-recognition.json`（供 review）
+3. **持久化** A 输出到 `~/.hermes/profiles/huiben/work/<日期-项目>/style-recognition.json`（v1.0.5+pic18 路径约定，供 review）
 
 ## 示例：Please 请 绘本
 

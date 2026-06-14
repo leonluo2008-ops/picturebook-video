@@ -3,7 +3,7 @@
 v1.0.3+pic12 主 agent 填 v15 4 段 / v6 5 段骨架模板（修复 pic4 硬编码）
 
 修复 pic4 硬编码（2026-06-07 Pic5 Bird 实战踩坑）：
-1. ROOT 路径：从硬编码 /home/luo/huiben-projects/20260607-pic4-compress 改为 --project-dir 参数
+1. ROOT 路径：从硬编码 /home/luo/huiben-projects/20260607-pic4-compress 改为 --project-dir 参数（v1.0.5+pic18 默认值同步到 work 路径）
 2. clip 数量：从硬编码 1-9 改为自动 glob clips/clip*.json
 3. bg_mood：从硬编码"严肃警示·温柔坚定" 改为 --tone 参数 + 兜底
 4. en_color 字段：从只支持 en_color 字符串 升级为兼容 en_color 字符串 + en_color_pattern 字典
@@ -20,15 +20,33 @@ import sys
 from pathlib import Path
 
 # 默认值（向后兼容 pic4 旧调用）
-DEFAULT_ROOT = Path("/home/luo/huiben-projects/20260607-pic4-compress")
+DEFAULT_ROOT = Path("~/.hermes/profiles/huiben/work/20260607-pic4-compress").expanduser()  # v1.0.5+pic18 默认 work 路径，向后兼容 pic4
 DEFAULT_VERSION = "v15"
 DEFAULT_TONE = "严肃警示·温柔坚定"  # pic4 No 警示向
 
 # v15 4 段骨架模板
-V15_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。"""
+V15_TEMPLATE = """主体定义：{主角1}{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段（v1.0.5+pic32 · 绘本音效版）：无任何背景音乐（no background music）· 无旁白人声/朗读（no voiceover/narration/singing）· **允许并保留画面元素动作音效**（叮/咚/沙/沙沙等拟声 · 来自段 2 镜头描述 · 不是 BGM）· 不发完整朗读，TTS 后期对齐。段 3 · 风格锁定：{style_keywords}。"""
 
 # v6 5 段骨架模板（v15 + 文字持续可见段，铁律 #73 + #77）
-V6_TEMPLATE = """主体定义：{主角1}@Image{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}@Image{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：@Image{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段：无任何背景音乐、无旁白人声、无哼唱。段 3 · 风格锁定：{style_keywords}。{text_visibility_segment}"""
+V6_TEMPLATE = """主体定义：{主角1}{N}（{feature_1}+{feature_2}+{feature_3}+{action}+{expression}），{背景}{N}（{bg_main_color}+{bg_sub_color}+{bg_texture}+{bg_mood}）；分镜绑定：{N} 作为唯一参考帧；{镜头序列}末帧策略：{end_frame_motion}，末帧 {silence_seconds}s 静默消化时间，末帧 1s 内必须包含至少 1 个动作元素（{end_frame_action}），不得成为定格海报；参考图原有的所有文字（顶部 1/6 画面的{en_color_desc}英文（参考图原有 · 不在 prompt 重写）和中文（参考图原有 · 不在 prompt 重写）字）必须完整保留作为画面元素，模型不得删除或替换这些文字，文字位置锁定在顶部 1/6 画面不要重新生成该区域内容，让文字自然融入场景；段 4 · BGM 段（v1.0.5+pic32 · 绘本音效版）：无任何背景音乐（no background music）· 无旁白人声/朗读（no voiceover/narration/singing）· **允许并保留画面元素动作音效**（叮/咚/沙/沙沙等拟声 · 来自段 2 镜头描述 · 不是 BGM）· 不发完整朗读，TTS 后期对齐。段 3 · 风格锁定：{style_keywords}。{text_visibility_segment}"""
+
+
+def build_image_index(image_index):
+    """把 image_index 字段转成 @ImageN / @ImageN + @ImageM + @ImageK 格式（绘本视频通用铁律 #114）
+
+    支持多图合并场景：
+    - 单图 [N] → "@ImageN"
+    - 多图 [1,2,3] → "@Image1 + @Image2 + @Image3"（**带空格官方语法** · 铁律 #114）
+
+    向后兼容：老脚本传单数字 N（int）→ 自动包成 [N] → "@ImageN"
+    """
+    if isinstance(image_index, int):
+        return f"@Image{image_index}"
+    if isinstance(image_index, list) and len(image_index) == 1:
+        return f"@Image{image_index[0]}"
+    if isinstance(image_index, list) and len(image_index) > 1:
+        return " + ".join(f"@Image{i}" for i in image_index)
+    raise ValueError(f"image_index 必须是 int 或 list（当前类型：{type(image_index).__name__}）")
 
 
 def build_shot_sequence(time_breakdown, narration_text, target_emphasis):
@@ -170,13 +188,16 @@ def _build_text_visibility_segment(tp: dict, target_word: str, en_word_fallback:
     font_style = tp.get('font_style', '粗体圆润无衬线童趣字体，笔画边缘不规整，撕纸拼贴风格')
 
     # 字符顺序浮现时间表（v6 段 5 必填）
-    char_floats = (
-        f"按朗读节奏字符顺序浮现：参(0.3s) → "
-        f"考(0.6s) → "
-        f"图(0.9s) → "
-        f"原(1.2s) → "
-        f"考(1.5s)"
-    )
+    # 字符顺序浮现时间表（v6 段 5 必填 · 通用方法论 · 动态按 en_word 字母数生成）
+    en_word_chars = en_word or 'M'
+    max_chars = min(5, len(en_word_chars))
+    char_floats_list = []
+    for i, ch in enumerate(en_word_chars[:max_chars]):
+        t = 0.3 + i * 0.3
+        char_floats_list.append(f"{ch}({t:.1f}s)")
+    if zh_word:
+        char_floats_list.append(f"{zh_word}({0.3 + max_chars * 0.3:.1f}s)")
+    char_floats = " → ".join(char_floats_list)
 
     return (
         f"\n\n段 5 · 文字持续可见段（v6 铁律 #73 · #77）：\n"
@@ -206,7 +227,7 @@ def fill_template(clip_path, version="v15", tone=None):
     clip = json.loads(clip_path.read_text(encoding='utf-8'))
 
     # 11/12 个变量
-    N = clip['image_index']
+    N = build_image_index(clip['image_index'])  # v1.0.5+pic18 Banana #2：单/多图自动转 @ImageN / @Image1+2+3
     char = clip['characters'][0]
 
     # 兼容 C 子 agent 输出：feature_1/2/3 字典 OR color_details+texture 平铺
