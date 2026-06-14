@@ -1,6 +1,6 @@
 ---
 name: picturebook-video
-description: "绘本转儿童动画视频的标准制作流程。接收绘本简介 + 图片 + 旁白 → 通读旁白标叙事弧合并到 3-5 Clip（导演分镜·1 个故事 = 1 个 Clip·不按图分段）→ fill v15/v6 5 段模板（B 档音效默认）→ seedance 提交 `--generate-audio true` + `--ref-images` 多图 → 端到端验证。默认 16:9 · 整数时长 · 视频总时长 = 用户给 TTS + 5s 冗余（不缩短）· 单 Clip ≤ seedance 15s 物理上限 · 静默按故事连贯编排（不是铁律）· vision 必跑全 N 张图 · **绝对不用首尾帧范式**（v7/v3/v8 · `--image`+`--last-frame` = 用户元偏好的绝对约束）。**元方法论（按工作流顺序）**：#M1 整本故事分镜思维（贯穿 Step 3-5）· #M2 规则推导方法论（贯穿所有步骤）· #M3 旁白-镜头映射法（Step 5 核心）· #M4 skill 蒸馏治理（跨 skill 通用 · 三层架构 + 3 次原则 + sibling 防污染）· **铁律（按工作流顺序，详见顶部纠错表）**：Step 1-2 #1-4 · Step 3 #5-12 · Step 5 #13-18 · Step 6 #19 · Step 7 #20。触发词：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video、绘本做视频、**整本故事分镜、多片段节奏分配、整本节奏优先、旁白-镜头映射、镜头序列同步旁白**。"
+description: "绘本转儿童动画视频标准流程。Step 1 接收需求 → Step 2 vision 全 N 张图 → Step 3 标叙事弧合并 3-5 Clip + 算 TTS（1.0 词/秒 + 3 字/秒 + 0.5s 词间停顿）→ Step 4 写 11 维 JSON → Step 5 fill v15/v6 模板 + verify_filled_prompts.py 4 项检查 → Step 6 seedance 提交（`--generate-audio true` + `--ref-images` 多图 + 整数时长 4-15s）→ Step 7 端到端验证 + 发飞书（不抽帧自检）。默认 16:9 · 视频总时长 = TTS + 5s 冗余 · 单 Clip ≤ 15s · **绝对不用首尾帧范式**。**4 元方法论**：#M1 整本节奏（贯穿 Step 3-5）· #M2 规则推导 · #M3 旁白-镜头映射（Step 5 核心）· #M4 skill 蒸馏治理（跨 skill 通用）。**20 铁律按工作流顺序**（详见顶部纠错表）。触发词：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video、绘本做视频、整本故事分镜、整本节奏优先、旁白-镜头映射。"
 license: Apache-2-2
 metadata:
   hermes:
