@@ -51,7 +51,12 @@ def check_2_space_syntax(prompt_files):
 
 
 def check_3_sound_strategy_b(prompt_files):
-    """检查 3 · 段 4 B 档音效版（非 A 档全静音）"""
+    """检查 3 · 段 4 B 档音效版（非 A 档全静音）
+
+    支持两种范式：
+    - v15/v6 模板：找"段 4 · BGM 段"标记
+    - v7 模板：直接搜全文"No background music"（B 档标志）
+    """
     errors = []
     a_grade_patterns = [
         re.compile(r'no\s+background\s+music\s*,\s*no\s+human\s+voice\s*,\s*no\s+narration\s*,\s*no\s+singing', re.I),
@@ -63,11 +68,30 @@ def check_3_sound_strategy_b(prompt_files):
     ]
     for f in prompt_files:
         text = f.read_text(encoding='utf-8', errors='ignore')
-        # 找段 4 区域（粗略：最后 1/4）
-        quarter = max(1, len(text) // 4)
-        segment_4 = text[-quarter:]
+        # v7 模板识别（包含 "This is a storyboard reference image sequence"）
+        is_v7 = "storyboard reference image sequence" in text.lower()
+        if is_v7:
+            # v7 范式：直接搜全文 B 档标识（v7 末尾都有 "No background music, no human voice, no narration, no singing"）
+            segment_4 = text  # 全文本
+        else:
+            # v15/v6 范式：找"段 4 · BGM 段"标记
+            seg4_start = text.find("段 4 · BGM 段")
+            if seg4_start < 0:
+                # 兜底：v15 模板没有"段 4 · BGM 段"标记，取中间 1/3
+                third = max(1, len(text) // 3)
+                segment_4 = text[third:2*third]
+            else:
+                # 找到"段 4 · BGM 段"位置，取到下一个段标记
+                seg4_end_candidates = [text.find(marker, seg4_start) for marker in ["段 3 · 风格锁定", "段 5 · 文字持续可见段"]]
+                seg4_end_candidates = [e for e in seg4_end_candidates if e > 0]
+                seg4_end = min(seg4_end_candidates) if seg4_end_candidates else len(text)
+                segment_4 = text[seg4_start:seg4_end]
         is_a_grade = any(p.search(segment_4) for p in a_grade_patterns)
         is_b_grade = any(p.search(segment_4) for p in b_grade_indicators)
+        # v7 模板的 "No background music, no human voice, no narration, no singing" 就是绘本 B 档标准写法
+        # 不是真 A 档翻车 · 跳过 A 档判定
+        if is_v7 and is_a_grade and is_b_grade:
+            is_a_grade = False  # v7 模板 + 含 B 档元素 = 不是真 A 档
         if is_a_grade:
             errors.append(f'  ❌ {f.name}: 段 4 仍是 A 档（无 BGM/无人声/无哼唱 = 全静音翻车）')
         elif not is_b_grade:
@@ -76,13 +100,20 @@ def check_3_sound_strategy_b(prompt_files):
 
 
 def check_4_dynamic_char_floats(prompt_files):
-    """检查 4 · char_floats 动态按 en_word 字母数生成（非硬编码"参/考/图/原/考"）"""
+    """检查 4 · char_floats 动态按 en_word 字母数生成（非硬编码"参/考/图/原/考"）
+
+    v6 模板必查，v7 模板跳过（v7 没有文字持续可见段）。
+    """
     errors = []
     dynamic_pattern = re.compile(
         r'→\s*[A-Za-z一-鿿]\s*[\(（]\s*0\.\d+s\s*[\)）]'
     )
     for f in prompt_files:
         text = f.read_text(encoding='utf-8', errors='ignore')
+        # v7 模板跳过 char_floats 检查
+        is_v7 = "storyboard reference image sequence" in text.lower()
+        if is_v7:
+            continue
         has_hardcoded = bool(HARDCODED_CHAR_FLOATS_RE.search(text))
         has_dynamic = bool(dynamic_pattern.search(text))
         if has_hardcoded:
