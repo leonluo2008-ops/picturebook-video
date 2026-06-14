@@ -22,12 +22,67 @@
 
 ## [Unreleased]
 
-### 新增
-- 初始版本：picturebook-video skill
-- 主工作流 SKILL.md（348行，覆盖6步完整流程）
-- references/ 目录：7份参考文档（video-sop / script-chunk / shots-timing / shots-assembly / scene-reflection / video-prompt / clip-continuity）
-- README.md：项目说明、快速开始、目录结构
-- CHANGELOG.md：本开发日志
+## [3.0.0] - 2026-06-14
+
+### 元方法论（新增 4 个 · 核心）
+- **#M1 整本节奏**：从整本视角分配节奏，不在单个 clip 内重复起承转合
+- **#M2 规则推导**：从作者底层思维提取机制，不是搬运表面结构
+- **#M3 旁白-镜头映射**：镜头序列必须按旁白进度同步（v1 翻车沉淀）
+- **#M4 蒸馏治理**：跨 skill 沉淀方法论，避免低层陷阱累积
+
+### 铁律（20 条按工作流顺序重排）
+- Step 1 → Step 7 + 跨流程映射
+- 旧 #1-20 全部按工作流重排（用户元偏好"按工作流顺序排列"）
+
+### SKILL.md 重构（v3.0 核心改动）
+- **删除「维护陷阱」章节**（245 行冗余）
+- 26 个陷阱整合到 4 个 references 支撑文档
+- **清理 3 处孤立引用**（line 841 / 1291 / 1294）
+- description 精简 1338 → 986 chars（在 1024 边界内）
+
+### 新增 references（4 个核心支撑 + 实战沉淀）
+- `holistic-storyboard-thinking.md` (#M1)
+- `rule-derivation-methodology.md` (#M2)
+- `narration-shot-mapping.md` (#M3)
+- `skill-distillation-governance.md` (#M4)
+- `parallel-wait-and-download-pattern.md` (本轮新增)
+- `official-quote-4-levels.md` (官方原话 4 维属性)
+- `onoma-symbols-disposal.md` (拟声符号生命周期)
+- `story-arc-rhythm-paradigm.md` (整本节奏范式)
+- ... 共 67 个 references
+
+### 模板
+- `v15-4段骨架-模板.md`
+- `v6-5段骨架-模板.md`
+- `v7-12-check.md`
+
+### 修复
+- 修 4 处"1 镜 1 动作"错误规则 → "1 镜 1 运镜 + 1-2 核心动作"
+- 修 3 处"1 主 1 辅动作"错误规则
+- 加 §9 官方原话纪律节
+- 决策树 1 TTS 优先级分支（用户说"有冗余"不加 5s）
+- 整本节奏判定 = 看段内容不看 clip 序号
+- clip5 不凑整 6s（铁律 #18 印证）
+
+### 评估
+- 达尔文基线 86.7 → R1 keep 87.5（+0.8）· eval_mode=dry_run
+
+### 实战案例
+- Donkey 驴绘本（v3.0 首秀）：5 Clip · 46.461s · 8 张图全用 · 验证 #M3 修复 v1 翻车
+
+### Commits（本轮 10 个关键）
+- d108af9 optimize description 1338→986
+- 63419f8 refactor 20 铁律 + 4 元方法论
+- f4ff4a9 决策树 TTS 优先级
+- 34f32aa 断链引用判定 3 分类
+- 373fd63 删 3 处断链引用
+- 4088464 加官方原话纪律
+- dbd4c26 修 1 主 1 辅错误规则
+- 548183d 修 1 镜 1 动作错误规则
+- b40b31a 消除 MCP timeout 冗余
+- 9dde1b3 新增 5 个 test-prompts
+
+## [Unreleased] (历史)
 
 ## [0.5.0] - 2026-06-05
 
