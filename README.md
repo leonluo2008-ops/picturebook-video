@@ -211,6 +211,8 @@ picturebook-video/
 - picturebook-video 集成版只取核心 ~800 行
 - 两仓并行不冲突；如 seedance2.0-tool 升级新能力，可选择性同步进 picturebook-video
 
+**从老版本升级**：v4.x → v5.0 完整步骤见 `references/upgrade-v4-to-v5.md`（9 步：汇报 → 备份 → 克隆 → 部署 → 配 .env → 查 config → 重启 → 验收 → 清理）。
+
 ---
 
 ## 📜 版本历史

@@ -467,6 +467,8 @@ git checkout v4.0  # v4.0 仍可用（需另装 seedance2.0-tool 仓）
 
 > **回滚 v4.0 提示**：v4.0 依赖 `seedance2.0-tool` 仓，回滚后需要重新安装那个仓 + 部署对应 wrapper.sh。
 
+> **v4 → v5 升级步骤**：云服 Hermes 收到的完整升级指令见 `references/upgrade-v4-to-v5.md`（含备份 / 部署 / 验收 / 回滚全流程）。
+
 ### 8.3 查看 tag 列表
 
 ```bash
