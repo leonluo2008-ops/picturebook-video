@@ -1,7 +1,0 @@
-This is a storyboard reference image sequence; render the following images in time order as separate shots within one continuous video;
-from 0.0s to 2.5s @Image1 is the opening shot, in this shot the <SUBJECT> stands still in <POSE> to show <KEY_FEATURE> clearly, the colorful paper-collaged letters '<EN_WORD>' settle in the bottom area with the Chinese characters '<ZH_WORD>' just below, <KEY_FEATURE_VERB> hold their shape, then text and pose hold steady for the rest of this shot;
-from 2.5s to <END>s @Image2 is the second shot, in this shot the camera slowly <CAMERA_MOTION> around the <SUBJECT> to show <KEY_FEATURE_ALT> from a new angle, the <SUBJECT> remains calmly in <POSE>, <SECONDARY_ELEMENT> <SECONDARY_VERB>, the <ENVIRONMENT> <ENVIRONMENT_VERB> for the rest of this shot;
-final frame: the camera locks completely, paper textures crisp and vivid, the <SUBJECT> stands in <POSE> showing <KEY_FEATURE_FINAL> balancing calmly;
-Storyboard Audio Description: 0.0s to 2.5s a soft paper-crinkle as the <SUBJECT> settles then ambient silence, 2.5s a gentle <BREEZE_TYPE> whisper as the <ENVIRONMENT> <ENVIRONMENT_VERB>, 2.5s to <END>s minimal <LOCATION> ambient silence with soft rustling leaves, a single brief warm chime at the very end;
-No background music, no human voice, no narration, no singing;
-Children's picture book collage illustration style, paper-cut craft with visible paper texture and torn edges, warm and lively atmosphere, bright primary colors, handcrafted feel.
