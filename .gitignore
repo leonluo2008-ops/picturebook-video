@@ -1,2 +1,11 @@
-scripts/__pycache__/
+# 真实 .env（必填 API key，**绝不** commit）
+seedance_mcp/.env
+
+# Python
+__pycache__/
 *.pyc
+*.pyo
+
+# 测试产物
+/tmp/install_test_*/
+*.test.mp4

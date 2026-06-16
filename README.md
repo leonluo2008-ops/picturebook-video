@@ -1,11 +1,12 @@
-# picturebook-video v4.0
+# picturebook-video v5.0
 
-> **绘本转儿童动画视频标准流程（导演模式）** · 输入静态图 + 旁白 → 输出完整动画视频
+> **绘本转儿童动画视频标准流程（导演模式）** · 输入静态图 + 旁白 → 输出完整动画视频 · **单仓含 seedance_mcp 集成**
 
-[![version](https://img.shields.io/badge/version-4.0.0-blue)]()
+[![version](https://img.shields.io/badge/version-5.0.0-blue)]()
 [![methods](https://img.shields.io/badge/方法论-4-green)]()
 [![laws](https://img.shields.io/badge/铁律-28-orange)]()
 [![references](https://img.shields.io/badge/references-33-lightgrey)]()
+[![single_repo](https://img.shields.io/badge/单仓集成-seedance_mcp-success)]()
 
 ---
 
@@ -13,7 +14,13 @@
 
 **接收任意数量静态绘本图 + 双语旁白 → 输出完整动画视频（v8 导演分镜模式 · 参考图驱动 · 简洁写实 · 物理保证连贯）**。
 
-**v4.0 核心升级**：v8 prompt 模板（替代 v15 4 段 / v6 5 段 / v7 12 步）· #26/27/28 新铁律 · references 87→33 精简 · scripts 8→2。
+**v5.0 核心升级**：
+- ✅ **单仓可用** — `seedance_mcp/` 集成（uguu 上传 + Ark API 调用 + MCP 协议壳），不再依赖 `seedance2.0-tool` 仓
+- ✅ v8 prompt 模板（替代 v15 4 段 / v6 5 段 / v7 12 步）
+- ✅ 28 铁律按工作流顺序
+- ✅ references 87→33 精简
+- ✅ scripts 8→2
+- ✅ 新增元方法论 `workflow-internal-vs-external-confirmation`
 
 ---
 
@@ -126,7 +133,7 @@ Step 7 · 端到端验证 → 发飞书（不抽帧自检）
 
 ---
 
-## 📂 目录结构（v4.0 · 大幅精简）
+## 📂 目录结构（v5.0 · 单仓含 seedance_mcp 集成）
 
 ```
 picturebook-video/
@@ -134,8 +141,16 @@ picturebook-video/
 ├── README.md                         # 本文件
 ├── CHANGELOG.md                      # 开发日志
 ├── VERSION_INDEX.md                  # 范式版本索引
-├── INSTALL.md                        # 安装指南
-├── references/                       # 33 份支撑文档（v3.0 67 → v4.0 33 · -50%）
+├── INSTALL.md                        # 安装指南（v5.0 单仓简化版）
+├── INSTALL_TEST.sh                   # 一键验收脚本（7 步检查 + 端到端视频）
+├── seedance_mcp/                     # 🆕 v5.0 集成（替代 seedance2.0-tool 仓）
+│   ├── mcp_server.py                 # MCP 协议壳（自动注册 mcp_seedance_*）
+│   ├── seedance_uploads.py           # uguu 上传 + Ark API 调用（569 行 · 真业务）
+│   ├── .env.example                  # ARK_API_KEY 模板
+│   └── smoke_test.py                 # 冒烟测试（无需 MCP server）
+├── bin/                              # 🆕 v5.0 集成
+│   └── seedance-mcp-wrapper.sh       # 加载 .env → 启动 mcp_server.py
+├── references/                       # 33 份支撑文档
 │   ├── v8 写法核心（4 个 · 当前唯一标准）
 │   │   ├── v8-prompt-template.md                  # v8 prompt 模板
 │   │   ├── v8-workflow-7steps.md                  # v8 7 步工作流
@@ -179,14 +194,22 @@ picturebook-video/
 
 ---
 
-## 🧬 与 seedance2.0-tool 的关系
+## 🧬 seedance_mcp 集成（v5.0 起内置）
 
-| Skill | 定位 | 何时用 |
-|-------|------|--------|
-| **picturebook-video** | 绘本转视频专用 · v8 导演分镜 | 已有静态图 + 旁白 |
-| **seedance2.0-tool** | 通用即梦视频生成工具 · 含 CLI 命令 | 任意视频生成场景 |
+**v5.0 起 picturebook-video 自带 `seedance_mcp/` 集成**，**不再需要装 `seedance2.0-tool` 仓**。
 
-两者共享 `references/seedance-official-docs/`，保持同步更新。
+| 项 | 内容 |
+|---|---|
+| **真业务逻辑** | `seedance_mcp/seedance_uploads.py`（569 行）= uguu 上传 + 火山 Ark API 调用 |
+| **MCP 协议壳** | `seedance_mcp/mcp_server.py`（270 行）= 4 个工具：`generate_video` / `check_task` / `wait_and_download` / `verify_api_key` |
+| **wrapper** | `bin/seedance-mcp-wrapper.sh`（30 行）= 从 `.env` 加载 ARK_API_KEY → 启动 mcp_server.py |
+| **安装路径** | `git clone` picturebook-video 一份 = 全部就绪 |
+| **依赖外部** | 仅 uguu.se（图床）+ 火山引擎 Ark API（视频生成）= 都在 .env 配 ARK_API_KEY 即可 |
+
+**为何独立 seedance2.0-tool 仓可以保留**（你继续优化用）：
+- seedance2.0-tool 仓内含 spike 005/006 + 16k CLI 入口（绘本场景不用 CLI）
+- picturebook-video 集成版只取核心 ~800 行
+- 两仓并行不冲突；如 seedance2.0-tool 升级新能力，可选择性同步进 picturebook-video
 
 ---
 
@@ -194,7 +217,9 @@ picturebook-video/
 
 | 版本 | 日期 | 主要变化 |
 |------|------|---------|
-| **4.0.0** | 2026-06-16 | v8 终版：prompt 模板替代 v15/v6/v7 · #26/27/28 新铁律（参考图起点/简收尾/静默编排）· references 67→33（-50%）· scripts 8→2 · 新增 workflow-internal-vs-external-confirmation 元方法论 |
+| **5.0.0** | 2026-06-16 | 🆕 **单仓集成 seedance_mcp**（uguu + Ark API + MCP 壳共 ~800 行）· 不再依赖 seedance2.0-tool 仓 · INSTALL_TEST.sh 7 步一键验收 · mcp_server.py 域名修复（volcsandbox.com → volces.com）|
+| 4.0.1 | 2026-06-16 | patch：8 处 references 断链修复 + INSTALL.md Git HTTPS TLS 兜底 |
+| 4.0.0 | 2026-06-16 | v8 终版：prompt 模板替代 v15/v6/v7 · #26/27/28 新铁律（参考图起点/简收尾/静默编排）· references 67→33（-50%）· scripts 8→2 · 新增 workflow-internal-vs-external-confirmation 元方法论 |
 | 3.0.0 | 2026-06-14 | 4 元方法论 + 20 铁律按工作流顺序重排 · description 1338→986 |
 | 2.x | 2026-06-08~13 | v14/v15 范式迭代 · 多 agent 架构搭建 · 达尔文评估引入 |
 | 1.x | 2026-05-28~06-07 | 即梦官方 skill 移植 · 衔接设计规范 · 实战踩坑沉淀 |
@@ -219,6 +244,7 @@ picturebook-video/
 | 绘本 | 状态 | 关键沉淀 |
 |------|------|---------|
 | **Grandpa 爷爷**（v4.0 首秀）| ✅ 5 Clip · 32.44s · 8 张图全用 | 验证 v8 prompt 模板 + #26/27/28 铁律 · 流程内不确认方法论 |
+| **v5.0 单仓冒烟** | ✅ 1 Clip · 5.04s · 单图参考 | 验证 seedance_mcp 集成 · 单仓可用 · 不依赖 seedance2.0-tool |
 | Donkey 驴（v3.0 首秀）| ✅ 5 Clip · 46.46s · 8 张图全用 | 验证 #M3 旁白-镜头映射修复 v1 翻车 |
 | Cactus 仙人掌 | ✅ Cat 4a v3 标版 | 长旁白 v15.1 拆分规范 |
 | Mango 芒果 | ✅ | 绘本多图 v15 范式 |

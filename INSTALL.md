@@ -3,7 +3,13 @@
 > **目标读者**：在新机器上安装 hermes-agent + picturebook-video skill 仓的 AI 助手 / 工程师
 > **AI 可自动化程度**：100%（含验收测试 + 故障排查 + 子 skill 联动）
 > **安装总耗时**：约 10-15 分钟（含视频生成验收测试）
-> **当前稳定版本**：v4.0（v8 prompt 模板 · 2026-06-16）
+> **当前稳定版本**：v5.0（v8 prompt 模板 + seedance_mcp 集成 · 2026-06-16）
+
+---
+
+## 🎯 v5.0 重大变更
+
+**单仓可用** — v5.0 起 picturebook-video 自带 `seedance_mcp/` 集成（uguu 上传 + Ark API 调用 + MCP 协议壳），**不再依赖** `seedance2.0-tool` 仓。**克隆 1 个仓 = 完整可用**。
 
 ---
 
@@ -13,14 +19,15 @@
 
 | # | 组件 | 类型 | 必填 | 用途 |
 |---|---|---|---|---|
-| 1 | Python 3.11+ | 系统依赖 | ✅ | 运行 hermes-agent + seedance.py |
+| 1 | Python 3.11+ | 系统依赖 | ✅ | 运行 hermes-agent + seedance_mcp |
 | 2 | ffmpeg / ffprobe | 系统依赖 | ✅ | 视频抽帧 + 时长验证 |
 | 3 | git | 系统依赖 | ✅ | 拉取 skill 仓 |
 | 4 | hermes-agent | 主框架 | ✅ | AI agent 运行环境 |
-| 5 | seedance2.0-tool | 视频底层工具 | ✅ | 调用 Volcengine Seedance API |
-| 6 | picturebook-video | 本仓（绘本视频工作流）| ✅ | 7 步调度 + 4 子 agent + 28 铁律 |
-| 7 | lark-cli | 兄弟 skill（可选）| ⭕ | 飞书云盘/消息/文档 |
-| 8 | douyin-ops | 兄弟 skill（可选）| ⭕ | 抖音数据调研 + 发布 |
+| 5 | picturebook-video | 本仓（自带 seedance_mcp 集成）| ✅ | 7 步调度 + 28 铁律 + MCP 工具 |
+| 6 | lark-cli | 兄弟 skill（可选）| ⭕ | 飞书云盘/消息/文档 |
+| 7 | douyin-ops | 兄弟 skill（可选）| ⭕ | 抖音数据调研 + 发布 |
+
+> **v5.0 移除依赖**：`seedance2.0-tool` 不再需要装（功能已并入本仓 `seedance_mcp/`）。
 
 ### 0.2 必填环境变量
 
@@ -28,11 +35,13 @@
 |---|---|---|---|
 | `ARK_API_KEY` | ✅ | Volcengine Ark API（视频生成）| https://console.volcengine.com/ark |
 
+> **配置位置**：`<skill_dir>/seedance_mcp/.env`（wrapper.sh 自动加载，无需手动 source）
+
 ### 0.3 已废弃 / 不再需要
 
 | 变量 | 状态 | 替代方案 |
 |---|---|---|
-| `CHEVERETO_API_KEY` | ❌ 已废弃 | 本地图片上传改用 **uguu.se** 兜底路线（multipart field `files[]` 上传 + 直接 curl 调 ark API），无需任何 env 变量。详见 `picturebook-video/references/uguu-fallback-route.md` |
+| `CHEVERETO_API_KEY` | ❌ 已废弃 | 本地图片上传改用 **uguu.se** 兜底路线，无需任何 env 变量。详见 `references/uguu-fallback-route.md` |
 
 ---
 
@@ -90,7 +99,7 @@ mkdir -p ~/.hermes/profiles/huiben
 
 ---
 
-## 3. 安装 skill 仓（2 必装 + 2 可选）
+## 3. 安装 picturebook-video（v5.0 单仓 = 完整可用）
 
 ### 3.1 目录约定
 
@@ -98,99 +107,129 @@ mkdir -p ~/.hermes/profiles/huiben
 - `creative/`（创意类）
 - `social-media/`（社媒类）
 
-### 3.2 必装 2 仓
+### 3.2 必装：本仓（v5.0 单仓含 seedance_mcp 集成）
 
 ```bash
 HUIBEN_SKILLS=~/.hermes/profiles/huiben/skills
 
-# 1. seedance2.0-tool（视频底层工具 · Volcengine Seedance API）
-mkdir -p $HUIBEN_SKILLS/creative
-git clone https://github.com/leonluo2008-ops/seedance2.0-tool.git \
-    $HUIBEN_SKILLS/creative/seedance2.0-tool
-
-# 2. picturebook-video（本仓 · v4.0 v8 导演分镜稳定版）
-git clone -b v4.0 https://github.com/leonluo2008-ops/picturebook-video.git \
+# 克隆 picturebook-video v5.0（自带 seedance_mcp/）
+git clone -b v5.0 https://github.com/leonluo2008-ops/picturebook-video.git \
     $HUIBEN_SKILLS/creative/picturebook-video
+
+# 验证目录结构（必含 seedance_mcp/）
+ls $HUIBEN_SKILLS/creative/picturebook-video/
+# 预期输出应包含：
+#   SKILL.md  README.md  INSTALL.md  INSTALL_TEST.sh
+#   references/  seedance_mcp/  bin/  assets/  scripts/
 ```
 
-> ⚠️ **Git HTTPS TLS 间歇失败兜底**（v4.0 体检实测 · 部分网络环境 GnuTLS recv error）：
+> ⚠️ **Git HTTPS TLS 间歇失败兜底**（v5.0 体检实测 · 部分网络环境 GnuTLS recv error）：
 > 如果 `git clone https://...` 报 `GnuTLS recv error (-110)`，切 SSH：
 > ```bash
 > # 一次性：上传 SSH 公钥到 GitHub（https://github.com/settings/keys）
-> cat ~/.ssh/id_rsa.pub   # 没的话先 ssh-keygen
+> cat ~/.ssh/id_rsa.pub   # 没的话先 ssh-keygen -t rsa -b 4096
 >
 > # 然后用 SSH URL：
-> git clone git@github.com:leonluo2008-ops/seedance2.0-tool.git $HUIBEN_SKILLS/creative/seedance2.0-tool
-> git clone -b v4.0 git@github.com:leonluo2008-ops/picturebook-video.git $HUIBEN_SKILLS/creative/picturebook-video
+> git clone -b v5.0 git@github.com:leonluo2008-ops/picturebook-video.git \
+>     $HUIBEN_SKILLS/creative/picturebook-video
 > ```
 
-### 3.3 可选 2 仓
+### 3.3 部署 MCP wrapper.sh（自动加载 .env）
+
+```bash
+# 复制 wrapper.sh 到 profile bin 目录
+mkdir -p ~/.hermes/profiles/huiben/bin
+cp ~/.hermes/profiles/huiben/skills/creative/picturebook-video/bin/seedance-mcp-wrapper.sh \
+   ~/.hermes/profiles/huiben/bin/
+chmod +x ~/.hermes/profiles/huiben/bin/seedance-mcp-wrapper.sh
+
+# 验证 wrapper.sh 自动指向本仓路径
+head -25 ~/.hermes/profiles/huiben/bin/seedance-mcp-wrapper.sh | grep SKILL_DIR
+# 预期：SKILL_DIR="/home/.../.hermes/profiles/huiben/skills/creative/picturebook-video/seedance_mcp"
+```
+
+### 3.4 注册 MCP server 到 hermes-agent
+
+编辑 `~/.hermes/profiles/huiben/config.yaml`，在 `mcp_servers:` 段下添加：
+
+```yaml
+mcp_servers:
+  seedance:
+    command: /home/YOUR_USER/.hermes/profiles/huiben/bin/seedance-mcp-wrapper.sh
+    args: []
+    env: {}
+```
+
+> **注意**：把 `YOUR_USER` 替换为真实用户名（如 `luo`）。
+
+### 3.5 可选：lark-cli + douyin-ops（按需）
 
 ```bash
 HUIBEN_SKILLS=~/.hermes/profiles/huiben/skills
 
-# 3. lark-cli（飞书云盘/消息/文档 - 用到飞书时必装）
+# lark-cli（飞书云盘/消息/文档 - 用到飞书时必装）
 git clone https://github.com/leonluo2008-ops/lark-cli.git \
     $HUIBEN_SKILLS/lark-cli
 
-# 4. douyin-ops（抖音数据调研 + 内容发布）
+# douyin-ops（抖音数据调研 + 内容发布）
 git clone https://github.com/leonluo2008-ops/douyin-ops.git \
     $HUIBEN_SKILLS/social-media/douyin-ops
 ```
 
-### 3.4 相关但非依赖（与本 skill 业务上下游不直接相关）
+### 3.6 相关但非依赖
 
 | 仓 | 用途 | 是否必装 |
 |---|---|---|
-| `picturebook-creator` | 绘本前期（从 0 创作角色 + 生图）| ❌ **非依赖**——本 skill 接收现成图片 + 旁白，不需要从 0 创作。如有外部图源（飞书 tar 包 / 本地）= 不必装 |
+| `picturebook-creator` | 绘本前期（从 0 创作角色 + 生图）| ❌ **非依赖**——本 skill 接收现成图片 + 旁白，不需要从 0 创作 |
 
-### 3.5 验证 skill 仓
+### 3.7 验证 skill 仓
 
 ```bash
-# 必装 2 仓应都在
-ls $HUIBEN_SKILLS/creative/
-# 预期输出：picturebook-video  seedance2.0-tool
+# 本仓应包含 seedance_mcp/ 集成
+ls ~/.hermes/profiles/huiben/skills/creative/picturebook-video/seedance_mcp/
+# 预期：mcp_server.py  seedance_uploads.py  .env.example  smoke_test.py
 
-# 每个仓都应有 SKILL.md
-for d in picturebook-video seedance2.0-tool; do
-    if [ -f $HUIBEN_SKILLS/creative/$d/SKILL.md ]; then
-        echo "✅ $d/SKILL.md"
-    else
-        echo "❌ $d/SKILL.md 缺失"
-    fi
+# 每个核心文件都应在
+for f in SKILL.md INSTALL.md INSTALL_TEST.sh seedance_mcp/mcp_server.py seedance_mcp/seedance_uploads.py seedance_mcp/.env.example bin/seedance-mcp-wrapper.sh; do
+  if [ -f ~/.hermes/profiles/huiben/skills/creative/picturebook-video/$f ]; then
+    echo "✅ $f"
+  else
+    echo "❌ $f 缺失"
+  fi
 done
 ```
 
 ---
 
-## 4. 配置环境变量
+## 4. 配置 ARK_API_KEY
 
 ### 4.1 创建 `.env` 文件
 
 ```bash
-# seedance2.0-tool 仓自带 .env 模板
-SEEDANCE_DIR=~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool
-ls $SEEDANCE_DIR/.env.example 2>/dev/null && cp $SEEDANCE_DIR/.env.example $SEEDANCE_DIR/.env || true
+SKILL_DIR=~/.hermes/profiles/huiben/skills/creative/picturebook-video
+
+# 复制模板
+cp $SKILL_DIR/seedance_mcp/.env.example $SKILL_DIR/seedance_mcp/.env
 
 # 编辑 .env 填入真实凭据
-nano $SEEDANCE_DIR/.env
+nano $SKILL_DIR/seedance_mcp/.env
 ```
 
-### 4.2 必填环境变量（替换占位字符串）
+### 4.2 必填环境变量
 
 ```bash
-# === seedance2.0-tool/.env ===
+# === picturebook-video/seedance_mcp/.env ===
 # Volcengine Ark API Key（视频生成）
 ARK_API_KEY=<YOUR_ARK_API_KEY_HERE>
 ```
 
-> **注意**：**不再需要** `CHEVERETO_API_KEY`。本地图片上传改用 uguu.se 兜底路线（无需任何 env 配置，详见 `references/uguu-fallback-route.md`）。
-
-> **2 套加载路径**（v4.0 体检实测）：
-> - **CLI 路径**（手动跑 `seedance.py`）：用 `source .../.env` 注入 shell 环境变量
-> - **MCP 路径**（AI agent 自动调 `mcp_seedance_*` 工具）：由 `bin/seedance-mcp-wrapper.sh` 自动从 skill 仓的 `.env` 加载（**无需 source**）
+> **加载路径**（v5.0 体检实测）：
+> - **MCP 路径**（AI agent 自动调 `mcp_seedance_*` 工具）：由 `bin/seedance-mcp-wrapper.sh` 自动从 `seedance_mcp/.env` 加载（**无需 source**）
+> - **冒烟测试路径**（手动验证）：`smoke_test.py` 用 python-dotenv 自动读 `.env`
 >
-> **同一份 `.env` 服务 2 套路径**——只填一次 = CLI + MCP 都通
+> **同一份 `.env` 服务 MCP + 冒烟测试**——只填一次 = 都通
+
+> **不再需要** `CHEVERETO_API_KEY`。本地图片上传改用 uguu.se 兜底路线（无需任何 env 配置）。
 
 ### 4.3 可选环境变量
 
@@ -206,29 +245,30 @@ FEISHU_APP_SECRET=<YOUR_FEISHU_APP_SECRET_HERE>
 ### 4.4 验证 env 加载
 
 ```bash
-set -a
-source ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/.env
-set +a
+SKILL_DIR=~/.hermes/profiles/huiben/skills/creative/picturebook-video
 
-# 验证（注意：用 echo 会暴露真实 key，用 ${VAR:+set} 测试）
-if [ -n "$ARK_API_KEY" ] && [ "$ARK_API_KEY" != "<YOUR_ARK_API_KEY_HERE>" ]; then
-    echo "✅ ARK_API_KEY 已配置（长度 ${#ARK_API_KEY}）"
+if [ -f "$SKILL_DIR/seedance_mcp/.env" ]; then
+  KEY=$(grep '^ARK_API_KEY=*** "$SKILL_DIR/seedance_mcp/.env" | cut -d= -f2-)
+  echo "✅ .env 已配置 (ARK_API_KEY 长度 ${#KEY})"
 else
-    echo "❌ ARK_API_KEY 未配置或还是占位字符串"
+  echo "❌ .env 未创建"
 fi
-
-# 注：CHEVERETO_API_KEY 不再必填 = uguu 兜底路线自动处理
-echo "✅ 图床走 uguu 兜底（无需 env）"
 ```
 
 ---
 
-## 5. 依赖图与安装顺序
+## 5. 依赖图与安装顺序（v5.0 单仓简化）
 
 ```
 hermes-agent (主框架)
-    └── picturebook-video v4.0（本仓 · 调度中枢）
-        └── seedance2.0-tool（必装 · 视频生成 CLI）
+    └── picturebook-video v5.0（本仓 · 单仓含全部依赖）
+        ├── SKILL.md + 28 铁律 + 7 步工作流
+        ├── seedance_mcp/         # 集成
+        │   ├── mcp_server.py        # MCP 协议壳（自动注册 mcp_seedance_*）
+        │   ├── seedance_uploads.py  # uguu 上传 + Ark API 调用
+        │   ├── .env.example
+        │   └── smoke_test.py        # 冒烟测试脚本
+        └── bin/seedance-mcp-wrapper.sh  # 加载 .env → 启动 mcp_server.py
 
 可选扩展（按需）：
   ├── lark-cli（飞书云盘/消息）
@@ -242,146 +282,148 @@ hermes-agent (主框架)
 
 1. 系统依赖（Python / ffmpeg / git）
 2. hermes-agent
-3. 必装 skill 仓：seedance2.0-tool → picturebook-video
-4. env 变量
-5. 验收测试（跑通一个 5s 视频）
-6. 可选 skill 仓（按需）
+3. picturebook-video v5.0 单仓（含 seedance_mcp 集成）
+4. ARK_API_KEY（填 seedance_mcp/.env）
+5. 注册 MCP server 到 hermes-agent
+6. **跑 `INSTALL_TEST.sh` 验收**（必跑）
+7. 可选 skill 仓（按需）
 
 ---
 
 ## 6. 验收测试（必跑 · 5 分钟内完成）
 
-### 6.1 单 Clip 端到端测试
-
-**目的**：验证 2 必装 skill 仓 + env 变量全部正确配置。
+**v5.0 起单仓自带验收脚本**：
 
 ```bash
-# 创建测试目录
-mkdir -p /tmp/pic_install_test
-cd /tmp/pic_install_test
+SKILL_DIR=~/.hermes/profiles/huiben/skills/creative/picturebook-video
 
-# 准备 1 张测试图（任意 JPG）
-curl -sLo test.jpg https://picsum.photos/800/600
-
-# 准备 1 句测试旁白
-cat > narration.txt <<'EOF'
-A cat sitting on a chair, looking at the camera.
-EOF
-
-# 跑 1 个 Clip（5s 整数档）
-PROMPT="A cute cartoon cat@Image1 (orange tabby with green eyes) sitting on a wooden chair, looking at the camera with curious eyes, paper craft collage style, simple background, 5 second test clip."
-
-set -a
-source ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/.env
-set +a
-
-python3 ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seedance.py create \
-    --ref-images /tmp/pic_install_test/test.jpg \
-    --prompt "$PROMPT" \
-    --duration 5 \
-    --ratio 16:9 \
-    --resolution 720P \
-    --model doubao-seedance-2-0-fast-260128 \
-    --watermark false \
-    --generate-audio true
-
-# 应输出：
-# ✅ Task created: cgt-XXXXXXXX-XXXX
-# Use 'seedance.py status <task_id>' to check progress.
+# 一键验收（7 步检查 + 端到端视频生成）
+bash $SKILL_DIR/INSTALL_TEST.sh
 ```
 
-### 6.2 等待任务完成
+**验收内容（7 步全跑）**：
+
+| # | 检查项 | 通过条件 |
+|---|---|---|
+| 1 | skill 仓结构 | `seedance_mcp/` + `references/` + `SKILL.md` 都存在 |
+| 2 | `.env` 配置 | `ARK_API_KEY` 已填（长度 > 30）|
+| 3 | `wrapper.sh` 已部署 | `~/.hermes/profiles/huiben/bin/seedance-mcp-wrapper.sh` 存在 |
+| 4 | Python 依赖 | `mcp` / `httpx` / `python-dotenv` 都可用 |
+| 5 | API key 有效性 | 调 `verify_api_key` 返回 valid=true（不扣费）|
+| 6 | uguu.se 图床 | 上传测试图返回公网直链 |
+| 7 | 端到端视频 | 跑 1 个 5s 视频 · succeeded · 下载成功 |
+
+**全部通过** → 安装完成。**任一失败** → 看具体 step 的报错 + 跳到第 7 节故障排查。
+
+### 6.1 手动验收 MCP server 注册
 
 ```bash
-TASK_ID="cgt-XXXXXXXX-XXXX"  # 替换为上一步输出的 task_id
-for i in $(seq 1 20); do
-    STATUS=$(python3 ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seedance.py status $TASK_ID 2>&1)
-    if echo "$STATUS" | grep -q succeeded; then
-        echo "✅ Round $i: SUCCEEDED"
-        VIDEO_URL=$(echo "$STATUS" | grep -oE '"video_url":\s*"[^"]+"' | head -1 | sed 's/"video_url":\s*"//;s/"$//' | sed 's/\\u0026/\&/g')
-        curl -sLo /tmp/pic_install_test/test-output.mp4 "$VIDEO_URL"
-        echo "✅ 视频已下载：/tmp/pic_install_test/test-output.mp4"
-        break
-    elif echo "$STATUS" | grep -q failed; then
-        echo "❌ Round $i: FAILED"
-        echo "$STATUS" | tail -20
-        break
-    fi
-    echo "⏳ Round $i: 轮询中..."
-    sleep 15
-done
+# 启动 MCP server 一次，看 stdin/stdout 是否正常
+~/.hermes/profiles/huiben/bin/seedance-mcp-wrapper.sh < /dev/null
+# 预期：进程启动后等 stdin（mcp 协议），Ctrl+C 退出无报错
 ```
 
-### 6.3 验证视频
+### 6.2 手动验证 hermes-agent 加载 skill
 
 ```bash
-# 检查文件存在 + 时长
-ls -lh /tmp/pic_install_test/test-output.mp4
-ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \
-    /tmp/pic_install_test/test-output.mp4
-# 预期：约 5.0-5.5 秒（seedance 自动 ceiling）
+# 重启 hermes-agent 让 MCP server 重新加载
+# 然后用 hermes CLI 看 picturebook-video + mcp_seedance_* 工具是否可见
+hermes skills list --profile huiben | grep -E "picturebook|seedance"
 
-# 如有 ffmpeg 抽帧工具，看一眼 t=0.5s 是否正常
-ffmpeg -y -ss 0.5 -i /tmp/pic_install_test/test-output.mp4 -frames:v 1 /tmp/pic_install_test/frame.jpg
-ls -lh /tmp/pic_install_test/frame.jpg
+# 预期：
+#   │ picturebook-video       │ creative  │ local   │ enabled │
+#   │ seedance2.0-tool        │ creative  │ local   │ enabled │（可选，老仓）
 ```
 
-### 验收通过标准
-
-| 检查项 | 通过条件 |
-|---|---|
-| 任务创建 | 输出 Task ID 无报错 |
-| API 调用成功 | status = succeeded（不是 failed）|
-| 视频下载 | mp4 文件 > 100KB |
-| 时长正确 | 5-6 秒范围 |
-| env 配置正确 | `ARK_API_KEY` 已配置且不是占位 |
-
-**全部通过** → 安装完成。**任一失败** → 跳到第 7 节故障排查。
+> **mcp_seedance_* 工具注册**：MCP server 启动后自动注册（无需额外配置）。AI agent 调用 `mcp_seedance_generate_video` 等 4 个工具即可。
 
 ---
 
 ## 7. 故障排查
 
-### 7.1 `ARK_API_KEY not found`
+### 7.1 `ARK_API_KEY not found` 或 wrapper 报 FATAL
 
-**症状**：调用 seedance.py 时报 `KeyError: 'ARK_API_KEY'` 或 `ARK_API_KEY=<YOUR_ARK_API_KEY_HERE>`
+**症状**：wrapper.sh 报 `[seedance-mcp-wrapper] FATAL: .env 里没有 ARK_API_KEY`
 
 **修复**：
 ```bash
+SKILL_DIR=~/.hermes/profiles/huiben/skills/creative/picturebook-video
+
 # 1. 检查 .env 文件存在
-ls -la ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/.env
+ls -la $SKILL_DIR/seedance_mcp/.env
 
 # 2. 检查占位符已替换
-grep "YOUR_ARK_API_KEY" ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/.env
+grep "YOUR_ARK_API_KEY" $SKILL_DIR/seedance_mcp/.env
 # 如有输出 = 占位符还没替换
 
 # 3. 替换为真实 key（从 https://console.volcengine.com/ark 获取）
-nano ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/.env
+nano $SKILL_DIR/seedance_mcp/.env
 ```
 
-### 7.2 `Chevereto upload failed`（已废弃场景）
+### 7.2 MCP server 启动失败 / python 报错
 
-> **v1.0.3+pic13 起**：本 skill 已迁移到 **uguu 兜底路线**，不再依赖 Chevereto。
->
-> 如旧版 seedance.py 仍报 Chevereto 错误：
->
-> ```bash
-> # 升级 seedance2.0-tool 到最新版（v2.0+）
-> cd ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool
-> git pull origin main
->
-> # 或用 uguu 兜底脚本
-> # 详见 picturebook-video/references/uguu-fallback-route.md
-> ```
->
-> 测试图床上传：
-> ```bash
-> # uguu 测试
-> curl -sF 'files[]=@/tmp/pic_install_test/test.jpg' https://uguu.se/upload.php
-> # 预期返回 JSON：{"files":[{"url":"https://n.uguu.se/xxxxx.jpg",...}]}
-> ```
+**症状**：AI agent 说 `mcp_seedance_*` 工具不可用，或 wrapper.sh 报 ImportError
 
-### 7.3 ffmpeg 抽帧失败
+**修复**：
+```bash
+# 1. 检查 Python 版本 + 依赖
+/home/luo/.hermes/hermes-agent/venv/bin/python3 -c "import mcp, httpx, dotenv; print('OK')"
+# 如 ModuleNotFoundError：
+/home/luo/.hermes/hermes-agent/venv/bin/pip install mcp httpx python-dotenv
+
+# 2. 检查 seedance_uploads.py 能正常 import
+cd ~/.hermes/profiles/huiben/skills/creative/picturebook-video/seedance_mcp
+/home/luo/.hermes/hermes-agent/venv/bin/python3 -c "import seedance_uploads; print('OK')"
+
+# 3. 跑冒烟测试看具体错
+/home/luo/.hermes/hermes-agent/venv/bin/python3 smoke_test.py
+```
+
+### 7.3 uguu.se 上传失败
+
+**症状**：冒烟测试 step 6 报 ❌
+
+**修复**：
+```bash
+# 测试 uguu.se 可达性
+curl -sF "files[]=@/etc/hostname" https://uguu.se/upload.php
+# 预期返回 JSON: {"success":true,"files":[{"url":"https://h.uguu.se/xxxxx.jpg",...}]}
+```
+
+### 7.4 视频生成任务一直 running 不结束
+
+**症状**：`wait_and_download` timeout 后 status 还是 running
+
+**修复**：
+```bash
+# 1. 检查 seedance API 限额（console.volcengine.com）
+# 2. 减小并发（≤2/批 + 主 agent 续跑）
+# 3. 简化 prompt 长度（< 2000 字符）
+# 4. 减少时长（4-7s 短档优先）
+```
+
+### 7.5 验收测试任务失败（status = failed）
+
+**症状**：冒烟测试 step 7 报 failed
+
+**修复**：
+```bash
+# 1. 看完整错误信息（task_id 在失败前已打印）
+TASK_ID="cgt-XXXXXXXX-XXXX"
+
+# 2. 查 task 状态（裸 curl 调 API）
+curl -s -H "Authorization: Bearer $YOUR_KEY" \
+    "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks/$TASK_ID" \
+    | python3 -m json.tool
+
+# 3. 错误类型对照：
+# - 401 Unauthorized = ARK_API_KEY 错或失效
+# - 400 Bad Request = prompt 有敏感词 / 时长超 15s
+# - 429 Too Many Requests = API 限流，稍后重试
+# - 500 Server Error = Seedance 服务问题
+```
+
+### 7.6 ffmpeg 抽帧失败
 
 **症状**：`ffmpeg: command not found` 或 `no such file`
 
@@ -392,67 +434,13 @@ sudo apt-get install -y ffmpeg
 
 # macOS
 brew install ffmpeg
-
-# 验证
-ffmpeg -version
 ```
 
-### 7.4 skill 仓 SKILL.md 缺失
+### 7.7 Git HTTPS TLS 间歇失败
 
-**症状**：调用 skill 时报 `skill not found`
+**症状**：`git clone https://...` 报 `GnuTLS recv error (-110)`
 
-**修复**：
-```bash
-# 检查目录结构
-ls ~/.hermes/profiles/huiben/skills/creative/
-ls ~/.hermes/profiles/huiben/skills/creative/picturebook-video/SKILL.md
-
-# 重新克隆（如缺失）
-rm -rf ~/.hermes/profiles/huiben/skills/creative/picturebook-video
-git clone -b v4.0 https://github.com/leonluo2008-ops/picturebook-video.git \
-    ~/.hermes/profiles/huiben/skills/creative/picturebook-video
-```
-
-### 7.5 hermes-agent 找不到 skill 仓
-
-**症状**：AI 说 `skill picturebook-video not found`
-
-**修复**：
-```bash
-# 1. 检查 profile 路径
-ls ~/.hermes/profiles/huiben/skills/creative/picturebook-video/SKILL.md
-
-# 2. 路径必填 ~/.hermes/profiles/huiben/skills/（不是 ~/.hermes/skills/）
-# 全局 ~/.hermes/skills/ 会带进 apple/gaming/mlops 等无关 skill
-```
-
-### 7.6 视频生成任务一直 running 不结束
-
-**症状**：status 一直是 `running`，25 轮轮询都没 succeeded
-
-**修复**：
-```bash
-# 1. 检查 seedance API 限额
-# 2. 减小并发（≤2/批 + 主 agent 续跑）
-# 3. 简化 prompt 长度（< 2000 字符）
-# 4. 减少时长（4-7s 短档优先）
-```
-
-### 7.7 验收测试任务失败（status = failed）
-
-**症状**：验收测试跑出 failed
-
-**修复**：
-```bash
-# 1. 看完整错误信息
-python3 ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seedance.py status $TASK_ID 2>&1
-
-# 2. 检查错误类型
-# - 401 Unauthorized = ARK_API_KEY 错
-# - 400 Bad Request = prompt 有敏感词 / 时长超 15s
-# - 429 Too Many Requests = API 限流，稍后重试
-# - 500 Server Error = Seedance 服务问题
-```
+**修复**：见 §3.2 末尾的 SSH 兜底步骤。
 
 ---
 
@@ -463,17 +451,21 @@ python3 ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seedance.py s
 ```bash
 cd ~/.hermes/profiles/huiben/skills/creative/picturebook-video
 git fetch origin
-git checkout v4.0  # 或更新版本（查 https://github.com/leonluo2008-ops/picturebook-video/tags）
+git checkout v5.0  # 或更新版本（查 https://github.com/leonluo2008-ops/picturebook-video/tags）
 
-# 重启 hermes-agent 让 skill 重新加载
+# 重启 hermes-agent 让 MCP server 重新加载
+# 跑验收确认升级成功
+bash INSTALL_TEST.sh
 ```
 
 ### 8.2 回滚到旧版本
 
 ```bash
 cd ~/.hermes/profiles/huiben/skills/creative/picturebook-video
-git checkout v3.0  # 或已知稳定的旧 tag
+git checkout v4.0  # v4.0 仍可用（需另装 seedance2.0-tool 仓）
 ```
+
+> **回滚 v4.0 提示**：v4.0 依赖 `seedance2.0-tool` 仓，回滚后需要重新安装那个仓 + 部署对应 wrapper.sh。
 
 ### 8.3 查看 tag 列表
 
@@ -482,9 +474,10 @@ git ls-remote --tags https://github.com/leonluo2008-ops/picturebook-video.git
 ```
 
 当前稳定 tag：
-- `v4.0`（v8 导演分镜 · 2026-06-16 · 推荐）
+- `v5.0`（**单仓含 seedance_mcp 集成 · 2026-06-16 · 推荐**）
+- `v4.0.1`（v8 导演分镜 · 需另装 seedance2.0-tool 仓）
+- `v4.0`（v8 导演分镜首版）
 - `v3.0`（4 元方法论 + 20 铁律 · 2026-06-14）
-- `v2.0`（领读绘本稳定版 · 2026-06-08）
 
 ---
 
@@ -496,7 +489,7 @@ git ls-remote --tags https://github.com/leonluo2008-ops/picturebook-video.git
 # 测试 1：lark-cli 飞书消息
 python3 ~/.hermes/profiles/huiben/skills/lark-cli/lark.py send \
     --target feishu \
-    --message "✅ picturebook-video v4.0 安装完成"
+    --message "✅ picturebook-video v5.0 安装完成"
 
 # 测试 2：douyin-ops 抖音数据
 python3 ~/.hermes/profiles/huiben/skills/social-media/douyin-ops/douyin.py search_user \
@@ -509,7 +502,8 @@ python3 ~/.hermes/profiles/huiben/skills/social-media/douyin-ops/douyin.py searc
 
 ## 10. 维护说明
 
-- 本文档随 picturebook-video v4.0 同步发布
-- 验收测试必跑 · 不通过 = 安装未完成
+- 本文档随 picturebook-video v5.0 同步发布
+- **v5.0 单仓 = 完整可用**（不再依赖 seedance2.0-tool 仓）
+- 验收测试必跑（`INSTALL_TEST.sh`）· 不通过 = 安装未完成
 - 子 skill 联动验收 = 可选项 · 但建议跑通核心链路
 - 故障排查覆盖 7 类常见问题 · 95% 失败可在此解决
