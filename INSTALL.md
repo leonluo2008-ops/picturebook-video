@@ -113,6 +113,17 @@ git clone -b v4.0 https://github.com/leonluo2008-ops/picturebook-video.git \
     $HUIBEN_SKILLS/creative/picturebook-video
 ```
 
+> ⚠️ **Git HTTPS TLS 间歇失败兜底**（v4.0 体检实测 · 部分网络环境 GnuTLS recv error）：
+> 如果 `git clone https://...` 报 `GnuTLS recv error (-110)`，切 SSH：
+> ```bash
+> # 一次性：上传 SSH 公钥到 GitHub（https://github.com/settings/keys）
+> cat ~/.ssh/id_rsa.pub   # 没的话先 ssh-keygen
+>
+> # 然后用 SSH URL：
+> git clone git@github.com:leonluo2008-ops/seedance2.0-tool.git $HUIBEN_SKILLS/creative/seedance2.0-tool
+> git clone -b v4.0 git@github.com:leonluo2008-ops/picturebook-video.git $HUIBEN_SKILLS/creative/picturebook-video
+> ```
+
 ### 3.3 可选 2 仓
 
 ```bash
@@ -174,6 +185,12 @@ ARK_API_KEY=<YOUR_ARK_API_KEY_HERE>
 ```
 
 > **注意**：**不再需要** `CHEVERETO_API_KEY`。本地图片上传改用 uguu.se 兜底路线（无需任何 env 配置，详见 `references/uguu-fallback-route.md`）。
+
+> **2 套加载路径**（v4.0 体检实测）：
+> - **CLI 路径**（手动跑 `seedance.py`）：用 `source .../.env` 注入 shell 环境变量
+> - **MCP 路径**（AI agent 自动调 `mcp_seedance_*` 工具）：由 `bin/seedance-mcp-wrapper.sh` 自动从 skill 仓的 `.env` 加载（**无需 source**）
+>
+> **同一份 `.env` 服务 2 套路径**——只填一次 = CLI + MCP 都通
 
 ### 4.3 可选环境变量
 
