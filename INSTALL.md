@@ -3,7 +3,7 @@
 > **目标读者**：在新机器上安装 hermes-agent + picturebook-video skill 仓的 AI 助手 / 工程师
 > **AI 可自动化程度**：100%（含验收测试 + 故障排查 + 子 skill 联动）
 > **安装总耗时**：约 10-15 分钟（含视频生成验收测试）
-> **当前稳定版本**：v2.0（领读绘本稳定版）
+> **当前稳定版本**：v4.0（v8 prompt 模板 · 2026-06-16）
 
 ---
 
@@ -18,7 +18,7 @@
 | 3 | git | 系统依赖 | ✅ | 拉取 skill 仓 |
 | 4 | hermes-agent | 主框架 | ✅ | AI agent 运行环境 |
 | 5 | seedance2.0-tool | 视频底层工具 | ✅ | 调用 Volcengine Seedance API |
-| 6 | picturebook-video | 本仓（绘本视频工作流）| ✅ | 5 步调度 + 4 子 agent + 27+ 铁律 |
+| 6 | picturebook-video | 本仓（绘本视频工作流）| ✅ | 7 步调度 + 4 子 agent + 28 铁律 |
 | 7 | lark-cli | 兄弟 skill（可选）| ⭕ | 飞书云盘/消息/文档 |
 | 8 | douyin-ops | 兄弟 skill（可选）| ⭕ | 抖音数据调研 + 发布 |
 
@@ -32,7 +32,7 @@
 
 | 变量 | 状态 | 替代方案 |
 |---|---|---|
-| `CHEVERETO_API_KEY` | ❌ 已废弃 | 本地图片上传改用 **uguu.se** 兜底路线（multipart field `files[]` 上传 + 直接 curl 调 ark API），无需任何 env 变量。详见 `picturebook-video/references/uguu-fallback-route.md`（铁律 #71）|
+| `CHEVERETO_API_KEY` | ❌ 已废弃 | 本地图片上传改用 **uguu.se** 兜底路线（multipart field `files[]` 上传 + 直接 curl 调 ark API），无需任何 env 变量。详见 `picturebook-video/references/uguu-fallback-route.md` |
 
 ---
 
@@ -108,8 +108,8 @@ mkdir -p $HUIBEN_SKILLS/creative
 git clone https://github.com/leonluo2008-ops/seedance2.0-tool.git \
     $HUIBEN_SKILLS/creative/seedance2.0-tool
 
-# 2. picturebook-video（本仓 · v2.0 领读绘本稳定版）
-git clone -b v2.0 https://github.com/leonluo2008-ops/picturebook-video.git \
+# 2. picturebook-video（本仓 · v4.0 v8 导演分镜稳定版）
+git clone -b v4.0 https://github.com/leonluo2008-ops/picturebook-video.git \
     $HUIBEN_SKILLS/creative/picturebook-video
 ```
 
@@ -200,7 +200,7 @@ else
     echo "❌ ARK_API_KEY 未配置或还是占位字符串"
 fi
 
-# 注：CHEVERETO_API_KEY 不再必填 = uguu 兜底路线（铁律 #71）自动处理
+# 注：CHEVERETO_API_KEY 不再必填 = uguu 兜底路线自动处理
 echo "✅ 图床走 uguu 兜底（无需 env）"
 ```
 
@@ -210,7 +210,7 @@ echo "✅ 图床走 uguu 兜底（无需 env）"
 
 ```
 hermes-agent (主框架)
-    └── picturebook-video v2.0（本仓 · 调度中枢）
+    └── picturebook-video v4.0（本仓 · 调度中枢）
         └── seedance2.0-tool（必装 · 视频生成 CLI）
 
 可选扩展（按需）：
@@ -309,7 +309,7 @@ ffmpeg -y -ss 0.5 -i /tmp/pic_install_test/test-output.mp4 -frames:v 1 /tmp/pic_
 ls -lh /tmp/pic_install_test/frame.jpg
 ```
 
-| 验收通过标准 |
+### 验收通过标准
 
 | 检查项 | 通过条件 |
 |---|---|
@@ -344,7 +344,7 @@ nano ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/.env
 
 ### 7.2 `Chevereto upload failed`（已废弃场景）
 
-> **v1.0.3+pic13 起**：本 skill 已迁移到 **uguu 兜底路线**（铁律 #71），不再依赖 Chevereto。
+> **v1.0.3+pic13 起**：本 skill 已迁移到 **uguu 兜底路线**，不再依赖 Chevereto。
 >
 > 如旧版 seedance.py 仍报 Chevereto 错误：
 >
@@ -392,7 +392,7 @@ ls ~/.hermes/profiles/huiben/skills/creative/picturebook-video/SKILL.md
 
 # 重新克隆（如缺失）
 rm -rf ~/.hermes/profiles/huiben/skills/creative/picturebook-video
-git clone -b v2.0 https://github.com/leonluo2008-ops/picturebook-video.git \
+git clone -b v4.0 https://github.com/leonluo2008-ops/picturebook-video.git \
     ~/.hermes/profiles/huiben/skills/creative/picturebook-video
 ```
 
@@ -446,7 +446,7 @@ python3 ~/.hermes/profiles/huiben/skills/creative/seedance2.0-tool/seedance.py s
 ```bash
 cd ~/.hermes/profiles/huiben/skills/creative/picturebook-video
 git fetch origin
-git checkout v2.0  # 或更新版本（查 https://github.com/leonluo2008-ops/picturebook-video/tags）
+git checkout v4.0  # 或更新版本（查 https://github.com/leonluo2008-ops/picturebook-video/tags）
 
 # 重启 hermes-agent 让 skill 重新加载
 ```
@@ -455,7 +455,7 @@ git checkout v2.0  # 或更新版本（查 https://github.com/leonluo2008-ops/pi
 
 ```bash
 cd ~/.hermes/profiles/huiben/skills/creative/picturebook-video
-git checkout v1.0.0-darwin-audit  # 或已知稳定的旧 tag
+git checkout v3.0  # 或已知稳定的旧 tag
 ```
 
 ### 8.3 查看 tag 列表
@@ -465,8 +465,9 @@ git ls-remote --tags https://github.com/leonluo2008-ops/picturebook-video.git
 ```
 
 当前稳定 tag：
+- `v4.0`（v8 导演分镜 · 2026-06-16 · 推荐）
+- `v3.0`（4 元方法论 + 20 铁律 · 2026-06-14）
 - `v2.0`（领读绘本稳定版 · 2026-06-08）
-- `v1.0.0-darwin-audit`（达尔文审计版）
 
 ---
 
@@ -478,7 +479,7 @@ git ls-remote --tags https://github.com/leonluo2008-ops/picturebook-video.git
 # 测试 1：lark-cli 飞书消息
 python3 ~/.hermes/profiles/huiben/skills/lark-cli/lark.py send \
     --target feishu \
-    --message "✅ picturebook-video v2.0 安装完成"
+    --message "✅ picturebook-video v4.0 安装完成"
 
 # 测试 2：douyin-ops 抖音数据
 python3 ~/.hermes/profiles/huiben/skills/social-media/douyin-ops/douyin.py search_user \
@@ -491,28 +492,7 @@ python3 ~/.hermes/profiles/huiben/skills/social-media/douyin-ops/douyin.py searc
 
 ## 10. 维护说明
 
-- 本文档随 picturebook-video v2.0 同步发布
+- 本文档随 picturebook-video v4.0 同步发布
 - 验收测试必跑 · 不通过 = 安装未完成
 - 子 skill 联动验收 = 可选项 · 但建议跑通核心链路
 - 故障排查覆盖 7 类常见问题 · 95% 失败可在此解决
-
----
-
-## 11. 相关链接
-
-- **本仓**：https://github.com/leonluo2008-ops/picturebook-video
-- **视频底层**（必装）：https://github.com/leonluo2008-ops/seedance2.0-tool
-- **Hermes Agent**：https://hermes-agent.nousresearch.com/docs
-- **Volcengine Ark**：https://console.volcengine.com/ark
-
-**非依赖（仅作参考）**：
-- 绘本创作（picturebook-creator）：从 0 创作角色 + 生图，本 skill 接收现成图片+旁白，不需要此 skill
-
-**图床兜底（必读）**：
-- uguu-fallback-route.md：chevereto 废弃后的 uguu 兜底工作流（铁律 #71）
-
----
-
-## 12. 检索词
-
-`picturebook-video 安装` / `INSTALL.md` / `v2.0 领读绘本稳定版` / `AI 自动化安装` / `seedance2.0-tool 依赖` / `ARK_API_KEY 配置` / `验收测试` / `故障排查` / `子 skill 联动` / `huiben profile`
