@@ -32,11 +32,21 @@ metadata:
 | **4 运镜** | 镜头方向 + 主体位移方向 | 不写"定格/微动/末帧"约束 |
 | **末段约束** | 简洁 1 句（无主语、无情绪、无修饰） | 不用 4 句堆砌 |
 
-**多图 Clip 视觉覆盖规则（2026-06-17 多图 Clip 翻车沉淀 · 必走）**：
+**多图 Clip 视觉覆盖规则（2026-06-17 多图 Clip 翻车沉淀 · **2026-06-17 v5.0.7 扩展"@ImageN 跟随镜头段"** · 必走）**：
 
 - **每张参考图 = 必在 prompt 里有 ≥1 个该图独有的视觉特征**（不是合并描述 = 模型二选一时漏图）
 - 单图 Clip：跳过此规则
 - 多图 Clip（image_index = "1+2+3"）：每张图必 grep 命中 ≥ 1 个视觉关键词 → 任一图 0 命中 = 红线违规 = 必补 prompt 再提交
+- **多图蒙太奇 Clip（v5.0.7 新增 · 多图蒙太奇翻车沉淀）**：
+  - **@ImageN 跟随镜头段出现**（**不**堆在段 1 开头）= 镜头切换 = @ImageN 切换
+  - 单图 Clip 不变（@ImageN 在段 1 主体定义里即可）
+  - **核心机制（v5.0.7 澄清）**：合并 Clip 内 = **按时序分镜切换参考图**（前 5s @Image1 → 后 5s @Image2）= **不是** 1 个画面里 2 个主体同时出现
+  - **任何参考图都允许合并**（不相关图也能按时序切换 = seedance 模型能力覆盖）
+  - 多图蒙太奇 Clip 写法（**2 种范本都接受**）：
+    - **范本 A · 英文官方版**：`from 0.0s to 5.0s @Image1 is the first shot, ...; from 5.0s to 10.0s @Image2 is the second shot, ...;`
+    - **范本 B · 中文镜头 N 版**：`镜头 1（0-5s）：参考 @Image1，...; 镜头 2（5-10s）：参考 @Image2，...;`
+  - 范式来源：Seedance 2.0 官方文档（"分镜图参考"案例：`参考@图片3中的分镜构图...接着镜头向右横摇，切换至@图片4的画面和构图...`）
+  - **反模式（必避）**：❌ 多图 Clip 把所有 @ImageN 堆在段 1 开头（模型在段 2-4 不知道参考哪张图 = 镜头切换时主体混乱）❌ 1 个画面里塞多个主体（违反分时序切换 = 必拆独立 Clip）❌ 镜头切换时仍引用同一个 @ImageN（= 主体视觉不一致）❌ 单图 Clip 也用"镜头 N 跟随 @ImageN"写法（过度复杂 = 浪费 token）
 
 ---
 
@@ -194,3 +204,53 @@ for img in clip*-image-index.txt; do
       || echo "❌ 图 $ref 视觉未覆盖 → 必补 prompt 再提交"
   done
 done
+
+# 检查 6: 多图蒙太奇 Clip @ImageN 跟随镜头段（v5.0.7 新增 · 多图蒙太奇翻车沉淀）
+# 多图 Clip（image_index 含 + 号）必含"@ImageN 跟随镜头段"写法
+# **兼容 2 种范本**：A 英文 `from X.Xs to Y.Ys @ImageN is the ... shot` 或 B 中文 `镜头 N ... @ImageN`
+# 期望：每个 @ImageN 必出现在对应镜头段中，**不**只堆在段 1 开头
+for img in clip*-image-index.txt; do
+  if grep -q "+" "$img"; then
+    for ref in $(cat "$img"); do
+      ref_num="${ref#@}"  # 去掉 @ 前缀
+      # 兼容 2 种范本：A 英文版 或 B 中文版
+      grep -E "(from [0-9.]+s to [0-9.]+s @Image${ref_num} is|镜头 [0-9]+.*@Image${ref_num})" "${img%-image-index.txt}-prompt.txt" >/dev/null \
+        || echo "❌ 多图 Clip @Image${ref_num} 未跟随镜头段出现（兼容 A/B 范本）→ 必改 prompt（参考官方分镜图参考写法）"
+    done
+  fi
+done
+
+# 检查 7: 多图 Clip 按"镜头 N"或"from X.Xs to Y.Ys"分段（v5.0.7 新增 · Seedance 官方分镜时序）
+# 多图 Clip（image_index 含 + 号）必按分镜时序分段，**兼容** 2 种范本
+# **不**用散文式 4 段
+for img in clip*-image-index.txt; do
+  if grep -q "+" "$img"; then
+    # 兼容 2 种范本：A 英文版 或 B 中文版
+    grep -E "(镜头 [0-9]+：|from [0-9.]+s to [0-9.]+s @Image[0-9]+ is)" "${img%-image-index.txt}-prompt.txt" >/dev/null \
+      || echo "❌ 多图 Clip 未按分镜时序分段（兼容 A/B 范本）→ 必改 prompt"
+  fi
+done
+
+# 检查 8: 拟时长计算（v5.0.7 核心约束 · TTS 旁白时长能装下）
+# 期望：每个 Clip 拟时长 ∈ [4, 15] · 总时长 ≈ TTS 总时长
+# 拟时长 = 该 Clip 内所有旁白段 TTS 总时长 + 0.5s 末帧微动空间
+TTS_TOTAL=30  # 替换为实际 TTS 总时长
+for clip in clip*-prompt.txt; do
+  # 从 clip-N-prompt.txt 提取 duration 字段（如果存在）
+  CLIP_DURATION=$(grep -E "^duration:" "$clip" 2>/dev/null | head -1 | awk '{print $2}')
+  if [ -n "$CLIP_DURATION" ]; then
+    if (( $(echo "$CLIP_DURATION < 4" | bc -l 2>/dev/null) )); then
+      echo "❌ $clip 拟时长 $CLIP_DURATION < 4s → 拆太碎 = 必合并更多旁白段"
+    elif (( $(echo "$CLIP_DURATION > 15" | bc -l 2>/dev/null) )); then
+      echo "❌ $clip 拟时长 $CLIP_DURATION > 15s → 旁白装不下 = 必拆 Clip"
+    fi
+  fi
+done
+CLIP_SUM=$(grep -E "^duration:" clip*-prompt.txt 2>/dev/null | awk '{sum += $2} END {if (NR>0) print sum; else print 0}')
+if [ "$CLIP_SUM" != "0" ]; then
+  DIFF=$(echo "$CLIP_SUM - $TTS_TOTAL" | bc)
+  ABS_DIFF=${DIFF#-}
+  if (( $(echo "$ABS_DIFF > 1" | bc -l) )); then
+    echo "❌ Clip 总时长 = $CLIP_SUM 偏离 TTS $TTS_TOTAL 超过 1s → 必重新划分"
+  fi
+fi
