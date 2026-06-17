@@ -254,3 +254,16 @@ if [ "$CLIP_SUM" != "0" ]; then
     echo "❌ Clip 总时长 = $CLIP_SUM 偏离 TTS $TTS_TOTAL 超过 1s → 必重新划分"
   fi
 fi
+
+# 检查 9: 领读型绘本旁白识别（v5.0.8 新增 · 多图蒙太奇绘本旁白实测沉淀）
+# 判定逻辑：旁白文件 = 包含"独立英文列"+"中文列含英文嵌入" = 领读型 → 启用铁律 #35
+# 自动识别特征：旁白行同时含 "纯英文句（句末 .!?）" 和 "中文含嵌入英文（如 'XX，xxx xxx'）"
+# 期望：识别为领读型时只算中文列（独立英文列 = 展示用 = 不算时长）
+if grep -E "^\s*[0-9]+\s+[A-Z][a-z]+.*[.!?]\s+[^\x00-\x7f]" narration.txt 2>/dev/null >/dev/null; then
+  echo "📖 检测到领读型旁白结构（独立英文列 + 中文列含嵌入英文）→ 启用铁律 #35"
+  echo "   TTS 实测只读中文列 → AI 测算只算中文列（嵌入英文按英文 1.4 词/秒）"
+  echo "   实测匹配目标：算的总时长尽量跟用户给 TTS 匹配（差 ≤ 5s）"
+  # 校验：独立英文列不应计入 TTS 时长
+  EN_TOTAL_WORDS=$(grep -E "^\s*[0-9]+\s+[A-Z][a-z]+.*[.!?]\s+[^\x00-\x7f]" narration.txt 2>/dev/null | head -1 | awk '{print $1}' | wc -w 2>/dev/null || echo "0")
+  echo "   ⚠️ 独立英文列字数: $EN_TOTAL_WORDS（**不计入 TTS 时长**）"
+fi
