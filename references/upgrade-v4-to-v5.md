@@ -6,6 +6,44 @@
 
 **v5.0 的核心变化**：seedance_mcp 已并入 picturebook-video 仓，**不再需要 seedance2.0-tool 仓**。克隆 1 个仓 = 完整可用。
 
+**v5.0.2 修正**：INSTALL_TEST.sh 现在自动检测 HERMES_ROOT（不硬编码用户名），wrapper 路径支持 `profiles/huiben/bin/` 和 `bin/` 两个候选位置。如果你之前升级到 v5.0 但 INSTALL_TEST.sh 跑失败，重新拉 v5.0.2 即可。
+
+---
+
+## Step -1 · 环境适配（v5.0.2 必跑）
+
+**重要**：本指令不再硬编码 `/home/luo/` 路径。在执行后续步骤前，先检测本机实际环境：
+
+```bash
+# 1. 检测当前用户名（可能是 ubuntu / luo / 其他）
+echo "当前用户: $(whoami)"
+echo "HOME: $HOME"
+
+# 2. 检测 HERMES 根目录（不假设是 /home/luo/.hermes）
+#    策略：找到 config.yaml 实际在哪
+HERMES_ROOT=$(dirname "$(readlink -f ~/.hermes/config.yaml 2>/dev/null)" 2>/dev/null)
+if [ -z "$HERMES_ROOT" ] || [ "$HERMES_ROOT" = "/" ]; then
+  # 兜底：XDG 标准路径
+  HERMES_ROOT="$HOME/.hermes"
+fi
+echo "HERMES_ROOT: $HERMES_ROOT"
+
+# 3. 检测 profile 目录名（可能是 huiben / work / 其他）
+PROFILE_DIR="$HERMES_ROOT/profiles/huiben"
+[ ! -d "$PROFILE_DIR" ] && PROFILE_DIR=$(ls -d $HERMES_ROOT/profiles/*/ 2>/dev/null | head -1)
+echo "PROFILE_DIR: $PROFILE_DIR"
+
+# 4. 导出供后续步骤使用
+export HERMES_ROOT PROFILE_DIR
+SKILL_DIR="$PROFILE_DIR/skills/creative/picturebook-video"
+WRAPPER_BIN_CANDIDATES=(
+  "$PROFILE_DIR/bin"
+  "$HERMES_ROOT/bin"
+)
+```
+
+把上面 4 步的输出**告诉用户**，确认检测到的路径正确（特别是 `HERMES_ROOT` 不是 `/home/luo/.hermes` 时要明确说"云服检测到 root = X"）。**不要假设路径**——后续所有步骤都用 `$HERMES_ROOT` / `$PROFILE_DIR` / `$SKILL_DIR` 变量。
+
 ---
 
 ## Step 0 · 确认当前状态

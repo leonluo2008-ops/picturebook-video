@@ -9,12 +9,32 @@
 set -e
 
 # ===== 配置 =====
-# 注：$HOME 在 hermes-agent 内可能被重定向到 profile/home，不能直接用
-HERMES_ROOT="/home/luo/.hermes"
-SKILL_DIR="$HERMES_ROOT/profiles/huiben/skills/creative/picturebook-video"
+# v5.0.2: 自动检测 HERMES_ROOT，不硬编码用户名（云服是 ubuntu，本地是 luo）
+# 策略：从 INSTALL_TEST.sh 自己所在的绝对路径反推（最可靠）
+#   /path/to/.hermes/profiles/huiben/skills/creative/picturebook-video/INSTALL_TEST.sh
+#   → HERMES_ROOT = /path/to/.hermes
+SCRIPT_PATH="$(readlink -f "$0")"
+SKILL_DIR="$(dirname "$SCRIPT_PATH")"
+HERMES_ROOT="$(dirname "$(dirname "$(dirname "$(dirname "$(dirname "$SKILL_DIR")")")")")"
 PROFILE_BIN="$HERMES_ROOT/profiles/huiben/bin"
 TEST_DIR="/tmp/picturebook_install_test_$$"
-PY="/home/luo/.hermes/hermes-agent/venv/bin/python3"
+
+# Python 解释器：优先用 hermes-agent 的 venv，找不到就退化到系统 python3
+if [ -x "$HERMES_ROOT/hermes-agent/venv/bin/python3" ]; then
+  PY="$HERMES_ROOT/hermes-agent/venv/bin/python3"
+elif command -v python3 >/dev/null 2>&1; then
+  PY="$(command -v python3)"
+else
+  echo "❌ 找不到 python3"
+  exit 1
+fi
+
+# 调试输出（让用户知道检测到啥）
+echo "  SCRIPT_PATH=$SCRIPT_PATH"
+echo "  SKILL_DIR=$SKILL_DIR"
+echo "  HERMES_ROOT=$HERMES_ROOT"
+echo "  PY=$PY"
+echo ""
 
 # 颜色
 GREEN='\033[0;32m'
@@ -68,17 +88,29 @@ echo -e "${GREEN}✅ ARK_API_KEY 已配置 (长度 ${#ARK_KEY})${NC}"
 echo ""
 
 # ===== Step 3: wrapper.sh 已部署 =====
+# v5.0.2: wrapper 可能部署在两个常见位置（看用户选择）
+#   A) $HERMES_ROOT/profiles/huiben/bin/  ← INSTALL_TEST.sh 首选
+#   B) $HERMES_ROOT/bin/                  ← v5.0 升级文档推荐
+# 策略：先 A 后 B，找到后 echo 实际位置 + 对比 config.yaml
 echo -e "${YELLOW}[3/7] 检查 MCP wrapper.sh...${NC}"
-WRAPPER="$PROFILE_BIN/seedance-mcp-wrapper.sh"
-if [ ! -f "$WRAPPER" ]; then
-  echo -e "${YELLOW}⚠️  wrapper.sh 未部署,自动复制:${NC}"
+WRAPPER=""
+for CAND in "$PROFILE_BIN/seedance-mcp-wrapper.sh" "$HERMES_ROOT/bin/seedance-mcp-wrapper.sh"; do
+  if [ -f "$CAND" ]; then
+    WRAPPER="$CAND"
+    break
+  fi
+done
+
+if [ -z "$WRAPPER" ]; then
+  echo -e "${YELLOW}⚠️  wrapper.sh 未部署,自动复制到 $PROFILE_BIN/:${NC}"
   mkdir -p "$PROFILE_BIN"
-  cp "$SKILL_DIR/bin/seedance-mcp-wrapper.sh" "$WRAPPER"
-  chmod +x "$WRAPPER"
+  cp "$SKILL_DIR/bin/seedance-mcp-wrapper.sh" "$PROFILE_BIN/seedance-mcp-wrapper.sh"
+  chmod +x "$PROFILE_BIN/seedance-mcp-wrapper.sh"
   # patch SKILL_DIR 路径
-  sed -i "s|/skills/creative/seedance2.0-tool|/skills/creative/picturebook-video/seedance_mcp|g" "$WRAPPER"
-  sed -i "s|spikes/001-mcp-uguu-server/mcp_server.py|mcp_server.py|g" "$WRAPPER"
-  echo -e "${GREEN}✅ wrapper.sh 已部署并修正路径${NC}"
+  sed -i "s|/skills/creative/seedance2.0-tool|/skills/creative/picturebook-video/seedance_mcp|g" "$PROFILE_BIN/seedance-mcp-wrapper.sh"
+  sed -i "s|spikes/001-mcp-uguu-server/mcp_server.py|mcp_server.py|g" "$PROFILE_BIN/seedance-mcp-wrapper.sh"
+  WRAPPER="$PROFILE_BIN/seedance-mcp-wrapper.sh"
+  echo -e "${GREEN}✅ wrapper.sh 已部署到 $WRAPPER${NC}"
 else
   # 检查是否指向新路径
   if grep -q "seedance2.0-tool" "$WRAPPER"; then
@@ -86,7 +118,18 @@ else
     sed -i "s|/skills/creative/seedance2.0-tool|/skills/creative/picturebook-video/seedance_mcp|g" "$WRAPPER"
     sed -i "s|spikes/001-mcp-uguu-server/mcp_server.py|mcp_server.py|g" "$WRAPPER"
   fi
-  echo -e "${GREEN}✅ wrapper.sh 已就位${NC}"
+  echo -e "${GREEN}✅ wrapper.sh 已就位: $WRAPPER${NC}"
+fi
+
+# 交叉验证：与 config.yaml 的 seedance.command 一致？
+if [ -f "$HERMES_ROOT/config.yaml" ] && command -v grep >/dev/null 2>&1; then
+  CFG_CMD=$(grep -A3 "seedance:" "$HERMES_ROOT/config.yaml" 2>/dev/null | grep -E "^\s*command:" | head -1 | sed 's/.*command:[[:space:]]*//' | tr -d '"' | tr -d "'" | xargs)
+  if [ -n "$CFG_CMD" ] && [ "$CFG_CMD" != "$WRAPPER" ]; then
+    echo -e "${YELLOW}⚠️  config.yaml 指向 $CFG_CMD 与实际 wrapper $WRAPPER 不一致${NC}"
+    echo "   建议：保持一致（改 config.yaml 或重部署 wrapper.sh）"
+  elif [ -n "$CFG_CMD" ]; then
+    echo -e "${GREEN}✅ config.yaml 与 wrapper 路径一致${NC}"
+  fi
 fi
 echo ""
 
