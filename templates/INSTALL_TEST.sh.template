@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# 单仓集成验收测试脚本模板（class-level · 跨 skill 适用）
+# ====================================================
+# 基于 picturebook-video v5.0 INSTALL_TEST.sh 沉淀
+# 用途：任何集成外部依赖的 skill（内联后）都可用此模板
+# 必走：7 步检查 + 端到端验证 = 5 分钟内跑通
+# 失败 = 看每个 step 的输出 + 跳到对应故障排查
+
+set -e
+
+# ===== 配置 =====
+# ⚠️ 必用绝对路径：hermes-agent 内 $HOME 被重定向到 ~/.hermes/profiles/huiben/home
+HERMES_ROOT="/home/luo/.hermes"
+SKILL_DIR="$HERMES_ROOT/profiles/huiben/skills/creative/<SKILL_NAME>"
+PROFILE_BIN="$HERMES_ROOT/profiles/huiben/bin"
+TEST_DIR="/tmp/<skill_name>_install_test_$$"
+PY="/home/luo/.hermes/hermes-agent/venv/bin/python3"
+
+# ===== 颜色 =====
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo ""
+echo "================================================="
+echo "<SKILL_NAME> 安装验收测试"
+echo "================================================="
+echo ""
+
+# ===== Step 1: skill 仓结构 =====
+echo -e "${YELLOW}[1/7] 检查 skill 仓结构...${NC}"
+if [ ! -d "$SKILL_DIR/<INTEGRATED_DIR>" ]; then
+  echo -e "${RED}❌ 缺失: $SKILL_DIR/<INTEGRATED_DIR>/${NC}"
+  exit 1
+fi
+echo -e "${GREEN}✅ skill 仓结构完整${NC}"
+echo ""
+
+# ===== Step 2: .env 配置 =====
+echo -e "${YELLOW}[2/7] 检查 .env 配置...${NC}"
+if [ ! -f "$SKILL_DIR/<INTEGRATED_DIR>/.env" ]; then
+  echo -e "${YELLOW}⚠️  .env 不存在,自动创建模板:${NC}"
+  cp "$SKILL_DIR/<INTEGRATED_DIR>/.env.example" "$SKILL_DIR/<INTEGRATED_DIR>/.env"
+  echo -e "${RED}❌ 请编辑后重跑:${NC}"
+  echo "   nano $SKILL_DIR/<INTEGRATED_DIR>/.env"
+  echo "   替换 <API_KEY_VAR>=<YOUR_...ERE> 为真实值"
+  exit 1
+fi
+
+# 提取 API key（跳过注释行 + 占位符检查）
+API_KEY=$(grep '^<API_KEY_VAR>=*** "$SKILL_DIR/<INTEGRATED_DIR>/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d ' ')
+if [ -z "$API_KEY" ] || [[ "$API_KEY" == *"<YOUR_"* ]]; then
+  echo -e "${RED}❌ <API_KEY_VAR> 还未替换为真实值${NC}"
+  echo "   nano $SKILL_DIR/<INTEGRATED_DIR>/.env"
+  exit 1
+fi
+echo -e "${GREEN}✅ <API_KEY_VAR> 已配置 (长度 ${#API_KEY})${NC}"
+echo ""
+
+# ===== Step 3: wrapper 部署 =====
+echo -e "${YELLOW}[3/7] 检查 wrapper.sh...${NC}"
+WRAPPER="$PROFILE_BIN/<wrapper>.sh"
+if [ ! -f "$WRAPPER" ]; then
+  echo -e "${YELLOW}⚠️  wrapper.sh 未部署,自动复制:${NC}"
+  mkdir -p "$PROFILE_BIN"
+  cp "$SKILL_DIR/bin/<wrapper>.sh" "$WRAPPER"
+  chmod +x "$WRAPPER"
+  echo -e "${GREEN}✅ wrapper.sh 已部署${NC}"
+else
+  echo -e "${GREEN}✅ wrapper.sh 已就位${NC}"
+fi
+echo ""
+
+# ===== Step 4: Python 依赖 =====
+echo -e "${YELLOW}[4/7] 检查 Python 依赖...${NC}"
+cd "$SKILL_DIR/<INTEGRATED_DIR>" && $PY -c "
+import <deps_list>
+print('✅ <deps_list> 全部可用')
+"
+echo ""
+
+# ===== Step 5: API key 有效性 =====
+echo -e "${YELLOW}[5/7] 验证 <API_KEY_VAR> 有效性（不扣费）...${NC}"
+cd "$SKILL_DIR/<INTEGRATED_DIR>" && $PY smoke_test.py 2>&1 | tail -3
+echo ""
+
+# ===== Step 6: 外部依赖可达性 =====
+echo -e "${YELLOW}[6/7] 验证 <EXTERNAL_SERVICE> 可达...${NC}"
+mkdir -p "$TEST_DIR"
+# 替换为实际的可达性测试（如 uguu.se 上传测试、ping 服务）
+curl -sF "files[]=@/etc/hostname" <EXTERNAL_SERVICE_URL> | grep -q '"success":true' && echo -e "${GREEN}✅ <EXTERNAL_SERVICE> 可达${NC}" || echo -e "${RED}❌ <EXTERNAL_SERVICE> 不可达${NC}"
+echo ""
+
+# ===== Step 7: 端到端 smoke test =====
+echo -e "${YELLOW}[7/7] 端到端测试（5s clip）...${NC}"
+echo "  提交任务..."
+TASK_ID=$(cd "$SKILL_DIR/<INTEGRATED_DIR>" && $PY -c "
+import asyncio, sys, json
+sys.path.insert(0, '.')
+sys.path.insert(0, '$TEST_DIR')
+import <MODULE>
+from <MODULE> import call_tool
+
+PROMPT = '''<SMOKE_TEST_PROMPT>
+
+保持无字幕。
+不要生成水印。
+不要生成 Logo。
+无人声、无歌唱、无配音、无朗读。'''
+
+async def main():
+    result = await call_tool('<TOOL_NAME>', {
+        'prompt': PROMPT,
+        'image': '<REFERENCE_IMAGE_URL>',
+        'duration': 5,
+        'ratio': '16:9',
+        'watermark': 'none',
+        'generate_audio': False,
+    })
+    text = result[0].text
+    data = json.loads(text)
+    if 'task_id' in data:
+        print(data['task_id'])
+    else:
+        print('ERROR: ' + text, file=sys.stderr)
+        sys.exit(1)
+
+asyncio.run(main())
+" 2>&1 | tail -1)
+
+if [ -z "$TASK_ID" ] || [[ "$TASK_ID" == ERROR* ]]; then
+  echo -e "${RED}❌ 任务提交失败: $TASK_ID${NC}"
+  exit 1
+fi
+echo "  task_id: $TASK_ID"
+
+echo "  等待完成（最长 240s）..."
+cd "$SKILL_DIR/<INTEGRATED_DIR>" && $PY -c "
+import asyncio, sys, json
+sys.path.insert(0, '.')
+import <MODULE>
+from <MODULE> import call_tool
+
+async def main():
+    result = await call_tool('wait_and_download', {
+        'task_id': '$TASK_ID',
+        'output_path': '$TEST_DIR/test-output.mp4',
+        'timeout_sec': 240,
+        'poll_interval_sec': 20,
+    })
+    print(result[0].text)
+
+asyncio.run(main())
+" 2>&1 | tail -3
+
+if [ -f "$TEST_DIR/test-output.mp4" ]; then
+  SIZE=$(ls -lh "$TEST_DIR/test-output.mp4" | awk '{print $5}')
+  echo -e "${GREEN}✅ 测试通过: 视频已生成 ($SIZE)${NC}"
+  echo ""
+  echo "================================================="
+  echo -e "${GREEN}<SKILL_NAME> 安装验收完成 ✅${NC}"
+  echo "================================================="
+  echo ""
+  echo "测试产物: $TEST_DIR/test-output.mp4"
+  echo "（可手动 rm -rf $TEST_DIR 清理）"
+  exit 0
+else
+  echo -e "${RED}❌ 视频文件未生成${NC}"
+  exit 1
+fi

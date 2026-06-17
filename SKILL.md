@@ -1,6 +1,6 @@
 ---
 name: picturebook-video
-description: "绘本转儿童动画视频标准流程（v8 终版 · 2026-06-16 Run 跑跨本验证）。Step 1 接收需求 → Step 2 vision 自检（5 项必查：主体位置/朝向/景别/姿态/招牌）→ Step 3 时长分配（5 档语速对比 + 1.4/4.0 领读短句档为默认 + 用户给 TTS 优先）→ Step 4 Clip 划分（5 项一致性合并决策）→ Step 5 prompt 写（v8 4 段骨架 = 1 镜 1 核心动作 + 1 组情绪外化 + 1 运镜 + 方向锚点 + 故事弧 4 步；绝对不用 v15 4 段 / v6 5 段 / v7 首尾帧范式）→ Step 6 seedance 提交（`--generate-audio true` + `--ref-images` 多图 + 整数时长 4-15s）→ Step 7 端到端验证 + 发飞书（不抽帧自检）。默认 16:9 · 视频总时长 = TTS + 5s 冗余（用户说严格匹配则不加）· 单 Clip ≤ 15s · v8 末段约束只写 1 句不堆砌（镜头持续核心动作循环不切断不冻结）。**4 元方法论**：#M1 整本节奏（贯穿 Step 3-5）· #M2 规则推导 · #M3 旁白-镜头映射（Step 5 核心）· #M4 skill 蒸馏治理（跨 skill 通用）。**28 铁律按工作流顺序**（详见顶部纠错表）。**3 类核心反模式必避**（RP-26a 原地动词陷阱 / RP-26b 情绪修饰词陷阱 / RP-26c 故事弧缺失）。**用户元偏好 · 2026-06-16 强约束**：不要有多版本，以本轮测试的提示词写法为准；取长补短，生成一个终版；历史案例不需要保留。触发词：绘本视频、绘本转视频、绘本动画、绘本生成视频、picturebook video、绘本做视频、整本故事分镜、整本节奏优先、旁白-镜头映射、v8 写法。"
+description: "绘本转儿童动画视频标准流程（v5.0 单仓集成 · 2026-06-16）。**单仓含 seedance_mcp/ 集成（uguu + Ark API + MCP 协议壳）** = 克隆 1 仓 = 完整可用，不依赖 seedance2.0-tool 仓。v8 prompt 模板 + 7 步流程 + 28 铁律。Step 1 接收需求 → Step 2 vision 自检（5 项必查）→ Step 3 时长分配（1.4/4.0 领读短句档默认）→ Step 4 Clip 划分（5 项一致性合并）→ Step 5 v8 4 段骨架手写 prompt（不用 v15/v6/v7）→ Step 6 seedance 提交（mcp_seedance_* 工具 + 整数时长 4-15s）→ Step 7 端到端验证。**安装**：`git clone -b v5.0` + 拷 wrapper.sh + 填 .env + 跑 INSTALL_TEST.sh。**4 元方法论** #M1 整本节奏 / #M2 规则推导 / #M3 旁白-镜头映射 / #M4 skill 蒸馏治理。**3 类核心反模式** RP-26a/b/c。触发词：绘本视频、绘本转视频、绘本动画、v8 写法、单仓安装。"
 license: Apache-2-2
 metadata:
   hermes:
@@ -212,7 +212,9 @@ C → 删索引条目
 | **27** | **Step 3-5** 时长设计 | **静默/情节填充 = 编排工具不是义务 · 时长优先遵循用户给 TTS · v8 简洁收尾**（**v8 终版 · 用户原话级**）| **用户原话**："没有必要必须使用静默和强制强制间隔，或者说设计很很多不必要的情节去填充画面。视频的时长优先遵循我提供给我的 TTS 时长" · **核心命题**（v8 终版）：① **静默 = 编排工具不是义务** = 故事连贯 = 无静默 / 视觉断点 = 短静默 / **不**硬塞 ≥ 2s 末帧静默（强化铁律 #6）② **情节填充 = 不必** = 不为了"显得饱满"凭空加转折/铺垫/收势 = 真实叙事秒数 = 几秒就几秒 ③ **时长 = 用户给 TTS 优先**（强化铁律 #7）→ 默认 TTS + 5s 冗余 / 用户说"严格匹配 TTS"或"TTS 有冗余" = 视频总时长 = 用户给 TTS（不加 5s）④ **v8 简洁收尾 = 末段约束只写 1 句** = "镜头持续[核心动作]循环不切断不冻结" = 自然末态 = **不**堆砌 4 段冗余（详 #28）· **判定口诀**："**够用就好 = 不为饱满凑数**" = 旁白 4s = 4s，旁白 6s = 6s，**不**为了"显得时长饱满"凑到 8s/10s· **反模式（必避）**：❌ 每段硬塞 2s 末帧静默 ❌ 凭印象加"镜头推近→切中景→点头→再张开"4 步铺垫 ❌ 真实 TTS 4s 凑到 8s/10s"显得饱满" ❌ 整本故事 N 个 2s 静默叠加 = 节奏断裂 ❌ 末段写 4 句堆砌（末帧定格 + 1s 动作元素 + 不得成为定格海报 + 末帧微动重复）❌ 隐含"定格"反暗示（"定格在...瞬间" = 模型执行"定格" = 翻车）· **3 类常见"为饱满而填"动作**：① 末帧静默 ≥ 2s（给旁白"消化时间"但绘本短句 = 不必）② 镜头内"缓缓推近→切中景→特写"3 步铺垫（短句 = 直接切）③ 末段 4 句冗余堆砌（v15 模板默认段 4 写法 = 翻车，详 #28）· **配套 references**：`references/v8-tts-rate.md`（5 档速率 + 严格匹配范式）+ `references/v8-prompt-template.md` §5（v8 简洁收尾 + 自检命令）|
 | **28** | **Step 5** prompt 写法 | **末帧段落冗余 = 反模式 · v8 简洁收尾 = 末段只写 1 句不堆砌**（**v8 终版 · 用户原话级**）| **用户原话**："你是不是给每段旁白对应的参考图结尾都加了画面静止类似的约束？" · **根因**：#27 升铁律时**没有指出 v15 模板段 4 的默认写法本身就是反模式** → 我虽然知道 #27 但写 prompt 时**仍在套模板** → 每个镜头都套 4 段冗余收尾 = **4 句堆砌**：① 末帧微动：[主体]定格在[姿态]瞬间 ② 1s 内至少 1 个动作元素（[清单]）③ 末帧定格前持续微动不得成为定格海报 ④ （隐含"必须微动"反暗示）· **问题**：4 句冗余 + 隐含"定格"反暗示 = 模型把"必须定格"当字面执行 = **画面静止** = 翻车· **修复（v8 简洁收尾）**：**末段约束只写 1 句** = "镜头持续[核心动作]循环不切断不冻结" 或 "画面自然流动有运动感" = 自然末态 = 不需要额外约束 · **反模式（必避）**：❌ 4 段冗余段 4（末帧定格 + 1s 动作元素 + 不得成为定格海报 + 末帧微动重复）❌ 隐含"定格"反暗示（"定格在...瞬间"= 模型执行"定格"）❌ 用 v15 模板默认段 4 写法当填空模板（模板作者默认用户后期手动加约束 = 跟 #27 不自洽）❌ 用 v6 5 段范式（"声波/速度线/动作元素"段 5 也属于堆砌 = 详 v8 替代）· **判定口诀**："**写完 prompt 必 grep 末帧段落冗余 = 0 处**" = `grep -E "末帧定格|末帧微动|不得成为定格海报|1s 内至少 1 个动作元素|定格在.*瞬间" clip*-prompt.txt` 期望 0 命中 · **v8 范式取代**：v15 4 段骨架（主体+动作+声音+收尾）/ v6 5 段骨架（v15+段 5 char_floats）= **全部被 v8 取代** · **跨 skill 适用**：任何用 v15/v6 4 段骨架的 skill（绘本/漫剧/AI 短剧）· **配套 references**：`references/v8-prompt-template.md` §5（v8 简洁收尾 + 完整 v8 prompt 范本）+ `references/v8-rpa-rpb-rpc-three-core-antipatterns.md`（RP-26a/b/c 3 类反模式）|
 
-**铁律口诀**:**"凭印象 = 翻车 · 必查必算 = 标准 · 过度约束 = 僵硬 · 信任参考图 = 自然 · 漏字断章 = 错全意 · 建议 ≠ 红线 · 凭空捏造 = 必删 · 不要 X 堆砌 = 污染 · 镜头脱节旁白 = 没故事性 · 5 档对比才稳 · 反推拟合 ≠ 真实 · 位置/朝向/景别必查 = 参考图驱动 · 末帧段落冗余 = 必删"**(MCP timeout 等详细见 #19)
+| **29** | **Step 5** prompt 写法 | **`@ImageN` 必含 · 多图 Clip 视觉覆盖**（**2026-06-17 多图 Clip 翻车沉淀 · 第 1 次跨本验证**）| **用户原话**："提示词里连参考图的 `@` 都没有，难道 skill 里就是这么规范的吗？" · **核心命题** = **`@ImageN` = 唯一参考帧绑定** = `from X.Xs to Y.Ys @ImageN is the ... shot, ...` 是 seedance 官方语法 = 模型靠这个锚定参考图 = **不写 = 模型不知道参考图是谁 = 翻车** · **必含规则**（**主 agent 路径必读 · 子层铁律升主层**）：① 每段 prompt 开头必含 `@ImageN`（N = 该镜头对应图编号）② 单图 Clip = 1 个 `@ImageN` · 多图 Clip = N 个 `@ImageN`（每个独立段）③ 每个 `@ImageN` 必带 ≥1 个该图独有的视觉特征（不是合并描述 = 模型二选一时漏图）④ `ref_images` 列表长度必 = image_index 图数量（缺任一 = 不提交）· **历史教训**：`@ImageN` 必含规则**只写在子 agent 文档 `agents/storyboard-design/SKILL.md` 里**（line 364）· 主 agent 路径的 `SKILL.md` / `v8-workflow-7steps.md` / `v8-prompt-template.md` 全部 0 处提 = 主 agent 不读子 agent 文档 = **蒸馏漏洞** = 翻车根因 · **修复**：`v8-prompt-template.md` 4 段骨架表段 1 加必含 + 自检命令加检查 4（`@ImageN` 必含 grep）+ 检查 5（多图视觉覆盖 grep）；`v8-workflow-7steps.md` Step 5 加 `@ImageN` 必含段；本铁律 #29 升主层 · **反模式（必避）**：❌ prompt 0 处 `@Image`（云服多图 Clip 翻车原文）❌ "参考图 N" 中文别名（官方语法 = `@ImageN`）❌ 多图 Clip 把 3 张图视觉特征合并到 1 段描述（必每图独立段）❌ `ref_images` 漏传（路径数 < image_index 图数）❌ 拼凑 v15/v6 范式带 char_floats 段 5（已废弃 = 详 #28）· **判定口诀**："**`@ImageN` 必含 + 多图每图独有特征 + ref_images 长度匹配** = 3 必走 = 任一缺失 = 红线违规" · **跨 skill 适用**：所有用 seedance ref_images 的场景（绘本 / 漫剧 / AI 短剧 / 多图参考视频生成）· **配套 references**：`references/v8-prompt-template.md`（4 段骨架表 + 自检命令 4+5）+ `references/v8-workflow-7steps.md` Step 5（`@ImageN` 必含段）+ Step 6（ref_images 红线 + wait_and_download 红线）|
+
+**铁律口诀**:**"凭印象 = 翻车 · 必查必算 = 标准 · 过度约束 = 僵硬 · 信任参考图 = 自然 · 漏字断章 = 错全意 · 建议 ≠ 红线 · 凭空捏造 = 必删 · 不要 X 堆砌 = 污染 · 镜头脱节旁白 = 没故事性 · 5 档对比才稳 · 反推拟合 ≠ 真实 · 位置/朝向/景别必查 = 参考图驱动 · 末帧段落冗余 = 必删 · `@ImageN` 必含 + 多图覆盖 + ref_images 长度匹配"**(MCP timeout 等详细见 #19)
 
 ---
 
@@ -1416,6 +1418,51 @@ done
 
 ---
 
+## 安装与验收（**v5.0.2 · 路径自动检测 · 跨 skill 通用**）
+
+> **沉淀背景**：2026-06-16 云服按本 skill 升级到 v5.0 后跑 `INSTALL_TEST.sh`，发现 7 步验收脚本硬编码 `/home/luo/.hermes/...` → 云服是 `ubuntu` 用户 → **必失败**。修复 = v5.0.2。
+
+### 5 条铁律（任何 hermes skill 验收脚本必走）
+
+1. **不硬编码用户名/路径**（`/home/luo` / `~/.hermes` 假设 = 翻车根因）
+2. **从 `$0` 反推 HERMES_ROOT**：`SCRIPT_PATH=$(readlink -f "$0")` → `dirname $SCRIPT_PATH` = SKILL_DIR → **5 次 dirname** = HERMES_ROOT（路径有 5 段 = profiles/huiben/skills/creative/picturebook-video + .hermes = 共 6 段，dirname 5 次削掉 5 段剩 .hermes）
+3. **wrapper 部署兼容多位置**：遍历 `$PROFILE_DIR/bin` → `$HERMES_ROOT/bin`，找到哪个用哪个；与 `config.yaml` 的 `seedance.command` 交叉对比，不一致时 warn
+4. **PY 解释器兜底**：先 `$HERMES_ROOT/hermes-agent/venv/bin/python3` → 没有退化 `command -v python3`
+5. **头部 echo 检测结果**：跑脚本前 4 行先打印 SCRIPT_PATH / SKILL_DIR / HERMES_ROOT / PY，让用户立刻看到检测到啥
+
+### 反模式（v5.0.1 翻车教训）
+
+- ❌ `HERMES_ROOT="/home/luo/.hermes"` + `PROFILE_BIN="$HERMES_ROOT/profiles/huiben/bin"` = 本地行，云服挂
+- ❌ `$HOME` 直接用 = hermes-agent 内可能重定向到 profile/home = 路径错
+- ❌ `dirname` 次数写错（少 1 = 多一层 / 多 1 = 削到 `profiles/`）→ **必实测**别凭印象
+
+### 跨 skill 适用
+
+任何 hermes skill 自带验收脚本（INSTALL_TEST.sh / smoke.sh / validate.sh ...）都该用这 5 条铁律。**根因同源** = 硬编码本地路径假设 = 跨用户/跨主机必然挂。
+
+### 升级手册必含 Step -1 环境适配
+
+给云服执行的升级指令（如 `references/upgrade-v4-to-v5.md`）**必加 Step -1**：
+
+```bash
+# 1. 检测实际用户名 + HOME
+whoami; echo "HOME=$HOME"
+
+# 2. 检测 HERMES_ROOT（从 config.yaml 反推，最可靠）
+HERMES_ROOT=$(dirname "$(readlink -f ~/.hermes/config.yaml 2>/dev/null)" 2>/dev/null)
+[ -z "$HERMES_ROOT" ] && HERMES_ROOT="$HOME/.hermes"
+
+# 3. 检测 profile 目录名（huiben / work / 其他）
+PROFILE_DIR=$(ls -d $HERMES_ROOT/profiles/*/ 2>/dev/null | head -1)
+
+# 4. 告诉用户检测到的路径（不是直接猜）= 让用户拍板
+echo "检测到: HERMES_ROOT=$HERMES_ROOT PROFILE_DIR=$PROFILE_DIR"
+```
+
+详见 `references/upgrade-v4-to-v5.md`（含 Step -1 实测命令）+ `references/install-script-autodetect.md`（**完整范式 + dirname 次数速算表 + 实战案例** · 待补）。
+
+---
+
 ## 工具位置（**v8 终版 · 2026-06-16 清理后**）
 
 - **TTS 速率方案校对**：`scripts/tts_rate_calculator.py`（**Step 3 必跑**·5 档对比 · 选最优档 · 见 `references/v8-tts-rate.md`）
@@ -1459,6 +1506,7 @@ done
 ### v8 元方法论支撑
 
 - `references/reference-image-as-starting-point.md` · **参考图是起点，不是限制**（铁律 #26 升级版）· 核心命题 = 视频 = 读者脑补的动画 · 5 次翻车根因（v1 凭印象 / v2 过度枷锁 / v3-v4 防御约束 / v5 真理解）· v5 vs v1 真实对比表 · 修复流程
+- `references/install-script-autodetect.md` · **安装验收脚本路径自动检测范式**（v5.0.2 沉淀 · 跨 skill 通用）· 反模式 = 硬编码用户名 / 路径假设 / dirname 次数凭印象 · 正模式 = readlink 反推 SCRIPT_PATH → dirname N 次到 HERMES_ROOT → 多候选 wrapper → PY 兜底 → 头部 echo · 5 步走模板可直接 copy · 实战 case + 自检命令
 - `references/story-arc-and-no-fabrication-pitfall.md` · **2 类 prompt 反模式**（Run 跑第 1 次跨本验证 · **暂未升铁律** · 等 ≥ 3 次）· ① 缺故事弧（3 镜平铺 vs 4 步固定结构）② 凭空添加参考图没有的元素（"笑着/脚步轻快/飞奔"等修饰词）· **关键**：用户原话"凭空添加" = 这是要删的约束，不是要加的反模式（v8 prompt 写法必删）
 - `references/references-hygiene-health-check.md` · **references 健康度体检 SOP** · 4 步体检（tracked vs actual diff / 死引用 / 跨 skill 错放 / 旧版本）· Run 跑 v8 后真实事故 = 8 个 tracked references 磁盘丢失
 - `references/skill-distillation-governance.md` · **skill 蒸馏治理**（元方法论 #M4）· 3 层架构 + 3 次原则升铁律 + sibling 防污染 + 3-way 分类法 + 5 项自检
