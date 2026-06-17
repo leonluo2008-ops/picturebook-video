@@ -448,7 +448,7 @@ def build_body(args: dict, resolved_urls: dict = None) -> dict:
     - duration 默认 5（绘本场景推荐）
     - watermark 默认 false（绘本场景专精；老 seedance.py 默认 true 是坑）
     - watermark 字符串枚举（'none'/'platform'/'seedance_ai'）→ bool 映射
-    - generate_audio 默认 false（绘本无 BGM）
+    - generate_audio 默认 true（绘本有声场景 · v5.0.6 升级 = 自动加音效 + 旁白；BGM 在 prompt 末尾约束排除）
     - seed/camera_fixed/draft/return_last_frame/service_tier 全部顶层（**不**嵌套 parameters）
     """
     body = {
@@ -465,11 +465,13 @@ def build_body(args: dict, resolved_urls: dict = None) -> dict:
         body["watermark"] = True
     elif watermark in ("none", "platform"):
         body["watermark"] = False
-    # generate_audio 绘本默认 false（避免莫名说话声）
+    # generate_audio 绘本默认 true（v5.0.6 起 = 自动加音效 + 旁白）
+    # 关键约束：绘本**不要 BGM**（用户原话："后期可以很容易分离人声，但是无法分离音乐"）
+    # BGM 由 prompt 末尾约束"No background music"排除，agent 不必在参数层禁
     if "generate_audio" in args:
         body["generate_audio"] = args["generate_audio"]
     else:
-        body["generate_audio"] = False
+        body["generate_audio"] = True
     if args.get("resolution"):
         body["resolution"] = args["resolution"]
 

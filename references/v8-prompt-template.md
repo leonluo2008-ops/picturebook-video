@@ -155,7 +155,7 @@ metadata:
 
 Critical constraints: NO static loop, NO frozen pose at the end, NO last-frame hold. The dog must have continuous spatial displacement across the frame from start to finish — never stopping in place. Camera and subject both in motion throughout.
 
-No human voice, no singing, no narration, no background music, no on-screen text.]
+No background music, no on-screen text.]
 ```
 
 ---

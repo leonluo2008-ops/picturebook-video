@@ -469,7 +469,7 @@ done
 | model | `doubao-seedance-2-0-fast-260128` | 默认 fast |
 | duration | 整数 [4, 15] | 用户 TTS ÷ Clip 数 = 向上取整 |
 | ratio | 16:9（绘本）/ 9:16（抖音）/ 1:1（朋友圈）| 平台决定 |
-| generate_audio | **true**（绘本有声场景）| user-pinned 不可覆盖 |
+| generate_audio | **true**（绘本有声场景 · 自动加音效 + 旁白，不加 BGM）| v5.0.6 起绘本场景默认开音频；BGM 由 prompt 末尾约束 No background music 排除（详铁律 #17）|
 | watermark | `none`（绘本）| 不加 AI 水印 |
 | resolution | 720p（生产）/ 480p（spike）| spike 用 480p 省钱 |
 | ref_images | 单图 Clip = 1 个路径 / 多图 Clip = N 个路径（必 = image_index 图数量）| **红线**：缺任一路径 = 不提交（v5.0.3 沉淀）|
