@@ -165,7 +165,7 @@ metadata:
 
 Critical constraints: NO static loop, NO frozen pose at the end, NO last-frame hold. The dog must have continuous spatial displacement across the frame from start to finish — never stopping in place. Camera and subject both in motion throughout.
 
-No background music, no on-screen text.]
+无字幕、无 Logo、无水印、无背景音乐。]
 ```
 
 ---
@@ -267,3 +267,14 @@ if grep -E "^\s*[0-9]+\s+[A-Z][a-z]+.*[.!?]\s+[^\x00-\x7f]" narration.txt 2>/dev
   EN_TOTAL_WORDS=$(grep -E "^\s*[0-9]+\s+[A-Z][a-z]+.*[.!?]\s+[^\x00-\x7f]" narration.txt 2>/dev/null | head -1 | awk '{print $1}' | wc -w 2>/dev/null || echo "0")
   echo "   ⚠️ 独立英文列字数: $EN_TOTAL_WORDS（**不计入 TTS 时长**）"
 fi
+
+# 检查 10: 末尾约束合规性（v5.0.9 新增 · 多图蒙太奇绘本末尾约束误删画面文字元素沉淀）
+# 期望：每段 prompt 末尾必含"无字幕、无 Logo、无水印、无背景音乐"（官方 2-系列提示词指南 §5.3 原话中文版）
+# 失败：❌ prompt 0 处末尾约束 = 必补 · 缺任一关键词 = 必改
+# 触发场景：多图蒙太奇绘本末尾约束写错 = seedance 误删参考图画面文字元素（如字母拼贴标题）
+for clip in clip*-prompt.txt; do
+  if ! grep -q "无字幕.*无 Logo.*无水印.*无背景音乐" "$clip" 2>/dev/null; then
+    echo "❌ $clip 末尾约束缺失/不完整（必含：无字幕、无 Logo、无水印、无背景音乐 · 详铁律 #36）"
+    echo "   修复：复制 seedance 官方 2-系列提示词指南 §5.3 原话中文版（禁止改写/翻译/合并）"
+  fi
+done
