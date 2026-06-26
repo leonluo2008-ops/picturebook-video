@@ -1,0 +1,36 @@
+{
+  "name": "picturebook-video",
+  "version": "5.0.13",
+  "owner": "leonluo2008-ops (maintainer)",
+  "updated_at": "2026-06-26",
+  "status": "active",
+  "maturity_tier": "production",
+  "lifecycle_stage": "library",
+  "context_budget_tier": "production",
+  "review_cadence": "monthly",
+  "target_platforms": [
+    "openai",
+    "claude",
+    "generic",
+    "agent-skills-compatible",
+    "vscode"
+  ],
+  "factory_components": [
+    "templates",
+    "references",
+    "scripts",
+    "reports",
+    "agents",
+    "evals",
+    "assets"
+  ],
+  "runtime_dependencies": [
+    "seedance_mcp (sub-module)"
+  ],
+  "external_dependencies": [
+    "Python 3.11+",
+    "ffmpeg / ffprobe",
+    "ARK_API_KEY (火山引擎视频生成)"
+  ],
+  "governance_notes": "v5.0.10.1 (2026-06-24) Potato SRT 实测 4 BUG 修复。BUG 1+2: clip_merger 加 suggested_duration (ceil) + srt_span + duration_ok 字段 + srt_span>15s 安全网 (Potato 8 段自动合并出 17s clip 触发)。BUG 3: v8.1 模板段 2/3 改按事件分镜 (镜头 1/2/3) + 不写精确 SRT 时间戳, 修复 100ms 强时间锁违反 Seedance 官方'模型对精确时间不稳定'原则。BUG 4: verify_prompt R1/R4 时间锚点检查从 FAIL 降级为 WARN, 4 个按事件分镜 prompt 不再误判 fail。"
+}
