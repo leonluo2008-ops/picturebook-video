@@ -1,0 +1,92 @@
+{
+  "source_file": "/home/luo/.hermes/cache/documents/doc_0d656459543b_6月23日.srt",
+  "total_duration_s": 30.2,
+  "total_segments": 8,
+  "rate_calibration": {
+    "chinese_chars": 40,
+    "english_words": 8,
+    "speech_seconds": 22.5,
+    "pause_seconds": 7.7,
+    "chinese_rate": 1.78,
+    "english_rate": 0.36
+  },
+  "pause_distribution": {
+    "lt_0.3s": 0,
+    "0.3_to_0.8s": 0,
+    "gte_0.8s": 7
+  },
+  "segments": [
+    {
+      "idx": 1,
+      "start": 0.066,
+      "end": 1.8,
+      "duration": 1.734,
+      "text": "生菜Lettuce",
+      "pause_after": 1.133,
+      "pause_type": "段间停顿"
+    },
+    {
+      "idx": 2,
+      "start": 2.933,
+      "end": 6.9,
+      "duration": 3.967,
+      "text": "一颗圆圆的绿生菜Lettuce",
+      "pause_after": 0.933,
+      "pause_type": "段间停顿"
+    },
+    {
+      "idx": 3,
+      "start": 7.833,
+      "end": 10.6,
+      "duration": 2.767,
+      "text": "褶皱的叶子Lettuce",
+      "pause_after": 1.233,
+      "pause_type": "段间停顿"
+    },
+    {
+      "idx": 4,
+      "start": 11.833,
+      "end": 14.433,
+      "duration": 2.6,
+      "text": "一层又一层lettuce",
+      "pause_after": 1.2,
+      "pause_type": "段间停顿"
+    },
+    {
+      "idx": 5,
+      "start": 15.633,
+      "end": 18.066,
+      "duration": 2.433,
+      "text": "摘生菜lettuce脆",
+      "pause_after": 1.4,
+      "pause_type": "段间停顿"
+    },
+    {
+      "idx": 6,
+      "start": 19.466,
+      "end": 22.466,
+      "duration": 3.0,
+      "text": "脆的生菜lettuce",
+      "pause_after": 0.934,
+      "pause_type": "段间停顿"
+    },
+    {
+      "idx": 7,
+      "start": 23.4,
+      "end": 26.233,
+      "duration": 2.833,
+      "text": "美味的生菜卷Lettuce",
+      "pause_after": 0.867,
+      "pause_type": "段间停顿"
+    },
+    {
+      "idx": 8,
+      "start": 27.1,
+      "end": 30.266,
+      "duration": 3.166,
+      "text": "大叶子小叶子Lettuce",
+      "pause_after": 0.0,
+      "pause_type": "末段"
+    }
+  ]
+}

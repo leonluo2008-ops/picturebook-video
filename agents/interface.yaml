@@ -1,0 +1,112 @@
+interface:
+  display_name: "Picturebook Video"
+  short_description: "绘本转儿童动画视频标准流程 · 7 步法 + v8 prompt 模板 + seedance_mcp 集成"
+  default_prompt: "Use $picturebook-video to turn a picturebook (description + images + narration + TTS target) into a children animation video via seedance MCP."
+
+compatibility:
+  canonical_format: "agent-skills"
+  adapter_targets:
+    - "openai"
+    - "claude"
+    - "generic"
+    - "agent-skills-compatible"
+    - "vscode"
+  activation:
+    mode: "manual"
+    paths: []
+  execution:
+    context: "inline"
+    shell: "bash"
+  trust:
+    source_tier: "local"
+    remote_inline_execution: "forbid"
+    remote_metadata_policy: "allow-metadata-only"
+  degradation:
+    openai: "metadata-adapter"
+    claude: "neutral-source-plus-adapter"
+    generic: "neutral-source"
+    vscode: "agent-skills-source-with-vscode-notes"
+    agent-skills-compatible: "agent-skills-source"
+
+runtime:
+  requires:
+    - name: "python3"
+      version: ">=3.11"
+    - name: "ffmpeg"
+    - name: "ARK_API_KEY"
+      env: true
+  optional:
+    - name: "lark-cli"
+      purpose: "飞书云盘/消息/文档同步"
+  python_path:
+    - "scripts/verify_prompt.py"
+    - "scripts/tts_rate_calculator.py"
+    - "scripts/validate_durations.py"
+    - "scripts/skill-changes-check.sh"
+
+sub_agents:
+  - id: "L2-A"
+    name: "storyboard-style"
+    role: "风格定义"
+    trigger: "Step 1 后"
+    path: "agents/storyboard-style/"
+  - id: "L2-B"
+    name: "storyboard-narration"
+    role: "旁白量化"
+    trigger: "Step 1 后"
+    path: "agents/storyboard-narration/"
+  - id: "L2-C"
+    name: "storyboard-design"
+    role: "分镜设计(11 维 JSON)"
+    trigger: "Step 2 后"
+    path: "agents/storyboard-design/"
+  - id: "L2-D"
+    name: "video-executor"
+    role: "seedance 提交执行"
+    trigger: "Step 6"
+    path: "agents/video-executor/"
+  - id: "L3"
+    name: "prompt-reviewer"
+    role: "v8 prompt 视觉逻辑审查"
+    trigger: "Step 5.5 必调"
+    path: "agents/prompt-reviewer/"
+    version: "1.0.0"
+    added: "v5.0.9"
+
+scripts:
+  - id: "verify_prompt"
+    name: "verify_prompt.py"
+    purpose: "v8 prompt 硬规则检查"
+    covers_laws: ["#28", "#29", "#26", "#33", "#37"]
+    trigger: "Step 5.5 必走"
+    path: "scripts/verify_prompt.py"
+  - id: "tts_rate"
+    name: "tts_rate_calculator.py"
+    purpose: "TTS 速率方案校对"
+    covers_laws: ["#21", "#27", "##35"]
+    trigger: "Step 3 后"
+    path: "scripts/tts_rate_calculator.py"
+  - id: "skill_changes_check"
+    name: "skill-changes-check.sh"
+    purpose: "守门 SKILL.md 铁律改动"
+    trigger: "SKILL.md 改动后"
+    path: "scripts/skill-changes-check.sh"
+  - id: "validate_durations"
+    name: "validate_durations.py"
+    purpose: "时长校验"
+    trigger: "Step 4 后"
+    path: "scripts/validate_durations.py"
+
+authoritative_docs:
+  - id: "clip-划分方法论"
+    version: "1.0"
+    priority: "highest"
+    purpose: "Step 4 唯一权威依据"
+    path: "references/clip-划分方法论.md"
+    user_provided: true
+    date: "2026-06-23"
+
+governance:
+  review_cadence: "monthly"
+  owner: "leonluo2008-ops"
+  yao_validation_required: true
