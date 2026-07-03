@@ -1,3 +1,13 @@
+---
+name: git-merge-sop
+description: "picturebook-video 仓库维护的 Git SOP（开新分支 / 合并 main / 多 profile 同步）。与绘本视频制作无关，纯 DevOps 内部踩坑沉淀。"
+license: Apache-2-2
+metadata:
+  hermes:
+    tags: [git, sop, devops, hygiene, picturebook-video]
+    related_skills: [picturebook-video]
+---
+
 # Git 合并 SOP · 2026-06-24 Potato 4 BUG 修复后踩坑沉淀
 
 > **来源**: 本 skill 仓库维护过程的 DevOps 内部踩坑笔记,与绘本视频制作无关。
