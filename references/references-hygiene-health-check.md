@@ -85,6 +85,28 @@ ls references/ | grep -E "v0\.7\.0|v1\.0\.[0-3]|pic12|\.docx$" | head -20
 # 任何一项异常 = 写入下次 commit message
 ```
 
+### 类型 4：SKILL.md 悬挂引用（文件被 commit 删除但正文未同步）
+
+**触发条件**：SKILL.md 大量引用 `scripts/X.py` / `agents/Y/` / `references/Z.md`，但文件实际不存在。
+
+**根因**：某次 commit 删除了文件（可能是重构/清理），但忘了同步清理 SKILL.md 中的引用。`git diff --stat -- <file>` 可以定位是哪个 commit 删除的。
+
+**检测方法**：
+```bash
+# 从 SKILL.md 提取所有 scripts/ / agents/ / references/ 引用，逐个检查文件是否存在
+grep -oP 'scripts/[^\s`]+|agents/[^\s`]+|references/[^\s`]+' SKILL.md | sort -u | while read f; do
+  [ ! -e "$f" ] && echo "MISSING: $f"
+done
+```
+
+**修复**（二选一）：
+1. 文件仍存在于其他分支（如 `baseline/local-stable-*`）：`git checkout <branch> -- <files>` 恢复
+2. 文件确实废弃：清理 SKILL.md 中所有引用
+
+**实战案例**（2026-07-03）：`srt_parser.py` / `clip_merger.py` / `agents/prompt-reviewer/SKILL.md` / `references/clip-划分方法论.md` 从 main 丢失但仍存在于 `baseline/local-stable-2026-06-30`。SKILL.md 中 45+ 处引用指向空文件。通过 `git checkout baseline/... -- <files>` 恢复（commit 7d09f71）。
+
+**预防**：每次删除 skill 文件后，必须同步 grep SKILL.md 清理引用。
+
 ## 沉淀原则（新增铁律配套）
 
 - **tracked ≠ 存在** = git 里有不代表磁盘在 = 必须 `ls` 双重确认
@@ -102,4 +124,7 @@ ls references/ | grep -E "v0\.7\.0|v1\.0\.[0-3]|pic12|\.docx$" | head -20
 - "references 清理"
 - "跨 skill 错放"
 - "旧版本 references"
+- "悬挂引用"
+- "文件从 main 丢失"
+- "SKILL.md 引用但文件不存在"
 - "cleanup references"

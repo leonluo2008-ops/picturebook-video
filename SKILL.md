@@ -19,16 +19,7 @@ metadata:
 
 **触发词**: 绘本视频、绘本转视频、绘本动画、v8.1 写法、SRT 时间戳、动作模板、单仓安装、音频路由、generate_audio、无 BGM、有声视频。
 
-**v5.0.10.1 核心修复**(用户 Potato SRT 实测翻车驱动):
-- **clip_merger 整数时长 < SRT 跨度翻车** → v5.0.10 用 `int()` 向下取整 vs 实际 SRT 跨度 6.166s/7.633s。v5.0.10.1 强制 `ceil()` + `suggested_duration` 字段 + `duration_ok` 校验 + 任何 srt_span > 15s 必 WARNING 拆 clip。
-- **v8.1 强时间锁违反官方** → v5.0.10 段 2 强制 `00:00.0-00:01.0` 100ms 精度违反 Seedance 官方"模型对精确时间不稳定"原则。v5.0.10.1 改为按事件分镜 (`镜头 1/2/3`), 段 3 改"念到 X 词时 Y 动作"事件对应。
-- **verify_prompt R1/R4 FAIL 误判** → v5.0.10 强制必含 `MM:SS.mmm` 时间戳让 4 个按事件分镜 prompt 全 fail。v5.0.10.1 降级为 WARN(跟官方对齐)。
-
-**v5.0.13 核心改动**(用户 Beet Pepper SRT 实测翻车驱动):
-- **默认音频路由翻车** → v5.0.12 规则下"领读型=false / 有声绘本=true"二分法容易选错。Beet Pepper v1 给 SRT 但直接发视频场景误判为 false → 4 个 Clip 全无声。
-- **v5.0.13 新规则**: 默认 generate_audio=true,通过路径 A/B/C/D 路由决策,通过段 5 内容区分旁白 vs 音效。
-- **硬约束 #1 = 永远无 BGM**: 任何 prompt 末尾约束必须包含"无背景音乐"——音效 + 旁白 OK,BGM ❌。
-- **案例 #38** 新增: 默认音频路由翻车记录。
+**版本历史**: v5.0.10.1(Potato SRT 修复) → v5.0.13(音频路由) → v5.0.14(实测沉淀)。详见 `CHANGELOG.md`。
 
 **必读**: `manifest.json` / `INSTALL.md` / `references/clip-划分方法论.md`(**Step 4 唯一权威依据**)。
 
@@ -127,7 +118,7 @@ metadata:
 >
 > **v5.0.10.1 核心修正** — Potato 实测发现 v5.0.10 强时间锁(`00:00.0-00:01.0`)违反 Seedance 官方"模型对精确时间不稳定"原则。改为"按事件分镜"(镜头 1/2/3),时间戳降级为 WARN。
 
-> 完整模板: `references/v8-action-template.md`(v5.0.10 新增, v5.0.10.1 按事件分镜修正)
+> 完整模板: `references/v8-action-template-blueprint.md`(v5.0.10 新增, v5.0.10.1 按事件分镜修正)
 
 **4 段结构(v8.1 动作版 · v5.0.10.1 按事件分镜 · v5.0.12 蓝本约束)**:
 - **段 1 · 主体+视觉基底**: 主体 + 景别 + `@ImageN` + 视觉特征
@@ -222,30 +213,11 @@ metadata:
 
 **输出纪律**: 跟用户确认 = 必用纯文本 + 标题 + 列表,严禁 GFM 表格(飞书渲染问题)。
 
-**Polling pitfall ⚠️ 2026-06-25 firefighter 实测踩坑 + 2026-07-01 Van 实测补充**:
-- ❌ **不要循环调用 `mcp_seedance_check_task`** — 一次任务需要 30+ 次轮询才能完成(每个任务 ~2-3 分钟),既浪费 token 又触发 loop 警告
-- ✅ **正确做法**: submit 多个任务后,**直接调一次 `wait_and_download` 等待全部完成**(`poll_interval_sec=30`, `timeout_sec=600`)。wait_and_download 内部已实现智能轮询,返回就是下载好的 mp4
-- ✅ 极端情况(spike 单测想立刻看):可以调 1-2 次 `check_task` 探进度,看到 succeeded 后立即 `wait_and_download` 下载,**不要超过 5 次轮询**
-- ⚠️ **wait_and_download MCP 超时 fallback**(2026-07-01 Van 实测): MCP 调用有 120s 硬超时,任务实际 ~2-3 分钟。wait_and_download 超时后任务仍在跑,不要放弃。正确做法: `check_task` → succeeded → 用 `curl -o` 手动下载 `video_url`(用 `video_url` 完整 URL,带 query string)。**不要重复 submit**
-- 三个并发任务 → 三个并行 `wait_and_download` → 都返回 = 都下载完成 → 进入 Step 7
-
-**Resolution 参数陷阱 ⚠️ 2026-07-01 Van 实测**:
-- ❌ `resolution="1080p"` + `model="doubao-seedance-2-0-fast"` → **API 报 400**: "the parameter resolution specified in the request is not valid for model doubao-seedance-2-0-fast"
-- ✅ fast 模型只支持 720p,1080p 必须切到 `model="doubao-seedance-2-0"`(高质量慢)
-- 绘本场景默认 fast + 720p 即可,不需要 1080p
-
-**禁止自作主张加 spike 静默测试 ⚠️ 2026-07-01 Van 实测 · 用户明确否决**:
-- ❌ **v5.0.13 路径 C (spike 静默) 默认开启的做法在本用户工作流里禁用** — 用户原话:"你这是在给自己加戏,禁止再这样做"
-- ✅ 用户说 "OK" 或 "批量" = **直接全部带 generate_audio=true 提交**,不要先跑一个静默 spike 再批量
-- ✅ 如果用户明确说 "spike"/"先测一下" → 才走路径 C (`generate_audio=false`)
-- **判定口诀**: 用户的 "OK" = "全部带声音按计划出" ,**不是**"先做一个静默验证"。加戏就是加成本。
-- 4 确认点流程(约束 2)依然适用,但确认点 #4 (Spike 跑完后视觉确认) 在用户没主动要求 spike 时直接跳过,合并到确认点 #2 (prompt 确认) 里
-
-**发飞书 pitfall ⚠️ 2026-06-25 firefighter 实测踩坑**:
-- ❌ **不要先提取视频封面再发送** — `lark-cli drive +cover` 在 video 文件刚上传后报 HTTP 404(预览未生成),且多次尝试 -spec default/icon/big 都失败
-- ❌ **不要用 `lark-cli drive +upload --video --video-cover`** — v1.0.53 的 drive +upload 不支持 video 子命令,只支持 +cover 单独流程(但 +cover 也失败)
-- ✅ **正确做法**: 直接用 `send_message` + `MEDIA:/path/to/video.mp4`,Hermes 原生支持 Feishu 视频消息,自动 inline 渲染
-- 用户偏好(2026-06-25):"不需要你提取封面，直接把视频发给我" — 视频就用 MEDIA: 直接发,不要中间夹任何 cover 提取步骤
+**Step 6 pitfall 集合**:
+- **Polling**: ❌ 循环 `check_task`(浪费 token + loop 警告)。✅ 直接 `wait_and_download`(内部智能轮询)。⚠️ MCP 120s 硬超时但任务仍在跑 → `check_task` 确认 succeeded → `curl -o` 手动下载 `video_url`。**不要重复 submit**。
+- **Resolution**: ❌ `resolution="1080p"` + fast 模型 → API 400。✅ fast 只支持 720p。
+- **Spike 静默**: ❌ 默认加静默 spike 是"给自己加戏"。✅ 用户说"OK"/"批量"= 全部带声音提交。只有用户明确说"spike"才走路径 C。
+- **飞书视频**: ❌ 提取封面 → 404。✅ 直接 `send_message` + `MEDIA:/path.mp4`。
 
 ### Step 7 · 端到端验证 → 发飞书 + 完整证据链
 
@@ -261,7 +233,7 @@ metadata:
 | `scripts/clip_merger.py` | 时间轴 → clip 划分(v5.0.10 新) | 真实秒数合并 + [4,15] 区间 + 对齐用户 TTS |
 | `scripts/verify_prompt.py` | v8.1 prompt 硬规则 | v5.0.9 8 项(#29/#28/#26/#33/#21+#27+#37 等) + v5.0.10 新增 3 项 + **v5.0.10.1 调整**: R1/R4 时间锚点从 FAIL 降级为 WARN(跟官方"不强制限制每段时长"对齐) · R3 凝固语 · WARN R1 主体动作 · v5.0.11 R6-R9 Potato 蓝本结构 · **v5.0.12 R10 音频描述**(generate_audio=True 时, `--generate-audio` 开关) |
 | `scripts/tts_rate_calculator.py` | TTS 速率方案校对(路径 B fallback) | 5 档对比 + 总和 vs 用户 TTS 差 ≤ 5s |
-| `scripts/skill-changes-check.sh` | 守门 SKILL.md 铁律改动 | 检测铁律新增/删除 + 编号连续性 |
+
 | `scripts/validate_durations.py` | 时长校验 | 总时长对齐用户 TTS |
 | `agents/prompt-reviewer/` | L3 视觉逻辑审查 | `@ImageN` 必含 / 视觉覆盖 / 时长差 / 旁白映射 |
 
@@ -305,52 +277,9 @@ metadata:
 | Step 5 后 | 跟用户确认 4 确认点 #2(每个 Clip 中文 prompt) | 不确认不进 Step 6 |
 | Step 6.0 spike 前 | 跟用户确认 4 确认点 #3(单测参数) | 不确认不提交 |
 | Spike 跑完后 | 跟用户确认 4 确认点 #4(视觉质量 + 批量) | 不确认不批量 |
-| 任何 SKILL.md 改动 | 跑 `scripts/skill-changes-check.sh` | 有铁律改动 = 必用户拍板 |
 
-**开新分支踩坑**(2026-06-23 实测):
-- 本地 `master` 分支 ≠ 上游 `master`!上游默认分支可能是 v5.0.8,而最新工作在 `fix/runtime-stability-2026-06-23` 之类的 fix/feat 分支
-- 开新分支前**必查**:`git branch -a` + `git log --all --oneline | head -10` 确认 HEAD 在哪个版本
-- 推荐从最新 production 版本(v5.0.9 / v5.0.10 等)的 fix/feat 分支拉新分支,而不是从 master
 
-**"合并到 main" 必先验证祖先关系 + 5 步标准 SOP**(2026-06-24 Potato 4 BUG 修复后踩坑 · 重要):
-
-**踩坑根因**:本地 install 仓的起点 commit(`23fd594 "picturebook-video official install (dev branch)"`)**不在** 远程 `origin/main`(v3.0)或 `origin/dev`(v5.0.11)上 → 三条线**完全独立 commit 历史**。v5 系列产品本地 install 仓和远程 `dev` 分支的 v5.0.x 是**两套独立演进**,同名不同源 → 跨线合并只能 cherry-pick,不能 ff。
-
-**5 步强制 SOP**(用户说"合并到 main" / "推到 origin/X" / "覆盖 remote X" 任何一种措辞时,必走):
-
-1. **`git fetch origin --prune`** — 同步真实远程分支状态(避免本地缓存过期误判)
-2. **`git branch -r`** — 列出全部远程分支,**不**假设远程"只有 main"或"只有 dev"
-3. **`git log origin/<branch> --oneline -3`** — 看目标远程分支 HEAD 状态(版本号 / commit message / 起点 author)
-4. **`git merge-base --is-ancestor <my-HEAD> origin/<branch>`** — 验证祖先关系(是祖先 → 可 ff;不是 → 只能 cherry-pick,不可直接 push)
-5. **选操作模式**:
-   - **A · ff merge**(祖先关系 ✅) → `git checkout <X>` + `git merge --ff-only <my-HEAD>` + `git push origin <X>`(无 --force)
-   - **B · cherry-pick**(非祖先,跨线合并) → 大量冲突(尤其 SKILL.md/manifest),逐文件手动解冲突,**预期会修整版本号**
-   - **C · 强制覆盖**(用户明确授权"直接覆盖"/"随便推") → `git push --force-with-lease`(比 `--force` 安全,会先检查 remote 没被别人改过)
-   - **D · 本地软合并**(临时方案) → 本地新建分支,不推远程
-
-**任何 `git push origin <branch>` 前必先做前 4 步**,**不**把本地独立 install 仓的工作直接当 ff merge 推到远程(本会话曾创建过孤儿 `origin/master` 分支 = 跟远程 main/dev 零 commit 共享的独立线,后被 --delete 删掉)。
-
-**用户授权"直接覆盖"执行模板**:
-```bash
-# 1. 在 v5.0.10.1 HEAD 起本地 main(注意: 不叫 master,叫 main 跟远程对齐)
-git branch -f main HEAD
-git checkout main
-# 2. 强制 push(用户授权)
-git push --force-with-lease origin main
-# 3. 删其他分支
-git push origin --delete dev fix/runtime-stability-2026-06-23
-git branch -D feature/srt-driven-clip-v5.0.10 master
-# 4. 同步远程 HEAD
-git remote set-head origin main
-```
-
-**多 profile 同步**(主 + huiben 独立副本):
-- huiben profile 落后主 profile 1+ commit 时 → `git pull --ff-only` 不行(diverging) → 用 `git reset --hard origin/main` 强制同步
-- 同步前**必先确认 origin/main 是用户授权覆盖的最终版本**(否则会丢 huiben 本地独有工作)
-- huiben 备份分支(如 `backup-before-v5.0.10-*`)如用户表态"都不需要" → `git branch -D` 全删
-- 验证两边一致:`diff <(git log main --oneline -1) <(git log origin/main --oneline -1)` 必须相同
-
-**反射**:本会话 2 次踩坑(①没 ff 验证就 push origin master 创孤儿 ②huiben 落后 1 commit 用 pull 而非 reset),都已沉淀到 SOP。跟 `cross-profile-shared-facility` 第 19 段同源(那边侧重"main 是歧义词"原理,这边侧重"5 步 SOP"操作)。
+**Git 仓库维护**(开分支 / 合并到 main / 多 profile 同步)详细 SOP 见 `references/git-merge-sop.md`(与绘本视频制作无关,纯 DevOps 内部踩坑)。
 
 ## 6. 子 agent 列表
 
