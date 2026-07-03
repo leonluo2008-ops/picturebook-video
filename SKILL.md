@@ -57,9 +57,11 @@ metadata:
 
 ### Step 1 · 接收需求(绘本简介 + 图片 + 旁白 + 目标平台 + TTS 数值)
 
-- 必收 `user_tts_seconds` = 视频总时长基准
 - 必收 `readme.txt`(若有)→ 角色对位优先级 = readme > vision(约束 5)
 - 必收所有 N 张图 + 旁白文件(中文列含嵌入英文 = 领读型)
+- **TTS 数值按路径决定**:
+  - **有 SRT 文件时**: 不问用户要 TTS 数值,SRT 总跨度即为总时长基准(路径 A 精确模式)
+  - **无 SRT 文件时**: 必收 `user_tts_seconds` = 视频总时长基准(路径 B 估算回落)
 
 ### Step 2 · vision 自检 + 通读旁白(必全 N 张图)
 
@@ -162,6 +164,9 @@ metadata:
 - "强时间锁" 是 v5.0.10 修正过头(100ms 精度)→ 违反官方"模型对精确时间不稳定"原则,v5.0.10.1 改为按事件分镜
 - **"逐图混写"** 是 v5.0.11 新增根因(2026-06-24 Potato vs Lettuce 实测对比发现):Lettuce 把多图混在一段写不分别描述 = seedance 不知道两张图区别 = 镜头切换不自然
 - **"旁白-动作脱节"** 是 v5.0.11 新增根因:只写"念到 X 词时 Y 动作"不列完整旁白原文 = seedance 不知道整段旁白是什么 = 时间点对不齐
+- **"自创力学约束"** 是 v5.0.14 新增根因(2026-06-30 See You 实测):人物姿态出问题后,agent 自创"不踮脚不单脚/重心居中两脚平分"等否定式身体力学约束 → 违反简洁原则 + 不是官方文档推荐的写法 → 正确做法是**跟图走**(参考图里什么姿态就描述什么姿态的延续运动),不自创约束(详见 §7 官方文档兜底)
+- **"过度展开提示词"** 是 v5.0.14 新增根因(2026-06-30 See You 实测):读完官方文档后把每个镜头的动作描述过度展开(加主体定义块、动作过渡衔接、程度量化、情绪外化等) → 提示词过长违反简洁规定 → 正确做法是**最小改动原则**:只替换有问题的部分,不动已经稳定的结构
+- **"不看参考图就写提示词"** 是 v5.0.14 新增根因(2026-06-30 See You 实测):改提示词前没先 vision_analyze 参考图 → 不知道图中人物实际姿态(站立/行走/跳跃) → 写出的姿态约束跟参考图矛盾 → **写段 2 动作序列前必须先 vision_analyze 对应参考图**
 
 **末尾约束分流**(约束 4 · v5.0.13 硬约束 #1 = **永远无 BGM**):
 
@@ -217,11 +222,24 @@ metadata:
 
 **输出纪律**: 跟用户确认 = 必用纯文本 + 标题 + 列表,严禁 GFM 表格(飞书渲染问题)。
 
-**Polling pitfall ⚠️ 2026-06-25 firefighter 实测踩坑**:
+**Polling pitfall ⚠️ 2026-06-25 firefighter 实测踩坑 + 2026-07-01 Van 实测补充**:
 - ❌ **不要循环调用 `mcp_seedance_check_task`** — 一次任务需要 30+ 次轮询才能完成(每个任务 ~2-3 分钟),既浪费 token 又触发 loop 警告
 - ✅ **正确做法**: submit 多个任务后,**直接调一次 `wait_and_download` 等待全部完成**(`poll_interval_sec=30`, `timeout_sec=600`)。wait_and_download 内部已实现智能轮询,返回就是下载好的 mp4
 - ✅ 极端情况(spike 单测想立刻看):可以调 1-2 次 `check_task` 探进度,看到 succeeded 后立即 `wait_and_download` 下载,**不要超过 5 次轮询**
+- ⚠️ **wait_and_download MCP 超时 fallback**(2026-07-01 Van 实测): MCP 调用有 120s 硬超时,任务实际 ~2-3 分钟。wait_and_download 超时后任务仍在跑,不要放弃。正确做法: `check_task` → succeeded → 用 `curl -o` 手动下载 `video_url`(用 `video_url` 完整 URL,带 query string)。**不要重复 submit**
 - 三个并发任务 → 三个并行 `wait_and_download` → 都返回 = 都下载完成 → 进入 Step 7
+
+**Resolution 参数陷阱 ⚠️ 2026-07-01 Van 实测**:
+- ❌ `resolution="1080p"` + `model="doubao-seedance-2-0-fast"` → **API 报 400**: "the parameter resolution specified in the request is not valid for model doubao-seedance-2-0-fast"
+- ✅ fast 模型只支持 720p,1080p 必须切到 `model="doubao-seedance-2-0"`(高质量慢)
+- 绘本场景默认 fast + 720p 即可,不需要 1080p
+
+**禁止自作主张加 spike 静默测试 ⚠️ 2026-07-01 Van 实测 · 用户明确否决**:
+- ❌ **v5.0.13 路径 C (spike 静默) 默认开启的做法在本用户工作流里禁用** — 用户原话:"你这是在给自己加戏,禁止再这样做"
+- ✅ 用户说 "OK" 或 "批量" = **直接全部带 generate_audio=true 提交**,不要先跑一个静默 spike 再批量
+- ✅ 如果用户明确说 "spike"/"先测一下" → 才走路径 C (`generate_audio=false`)
+- **判定口诀**: 用户的 "OK" = "全部带声音按计划出" ,**不是**"先做一个静默验证"。加戏就是加成本。
+- 4 确认点流程(约束 2)依然适用,但确认点 #4 (Spike 跑完后视觉确认) 在用户没主动要求 spike 时直接跳过,合并到确认点 #2 (prompt 确认) 里
 
 **发飞书 pitfall ⚠️ 2026-06-25 firefighter 实测踩坑**:
 - ❌ **不要先提取视频封面再发送** — `lark-cli drive +cover` 在 video 文件刚上传后报 HTTP 404(预览未生成),且多次尝试 -spec default/icon/big 都失败
