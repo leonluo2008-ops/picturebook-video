@@ -1,6 +1,6 @@
 ---
 name: picturebook-video
-description: "绘本转儿童动画视频标准流程（v5.0.13 音频路由 · 2026-06-26）。**单仓含 seedance_mcp/ 集成（uguu + Ark API + MCP 协议壳）** = 克隆 1 仓 = 完整可用，不依赖 seedance2.0-tool 仓。v8.1 动作模板（按事件分镜 · 替代 v8 运镜模板 · Potato BUG 修复） + 7 步流程 + 5 硬约束（含硬约束 #1 = 永远无 BGM） + 7 案例 + SRT 驱动工作流 + 音频路由（路径 A 有 SRT = 旁白+音效 / 路径 B 无 SRT = 纯音效 / 路径 C/D spike/静默）。Step 1 接收需求 + SRT → Step 2 vision 自检（5 项必查）→ Step 3 解析 SRT 真实时间戳 + 反推速率 → Step 4 旁白优先逐段合并（按真实秒数 [4,15] + suggested_duration 整数保证）→ Step 5 v8.1 动作模板（主体本身动 + 按事件分镜 + 不凝固收尾 + 段 5 音频描述）→ Step 6 seedance 提交（v5.0.13 路由规则）→ Step 7 端到端验证。**安装**：`git clone -b v5.0` + 拷 wrapper.sh + 填 .env + 跑 INSTALL_TEST.sh。触发词：绘本视频、绘本转视频、绘本动画、v8.1 写法、按事件分镜、SRT 驱动、动作模板、单仓安装、音频路由、generate_audio。"
+description: "绘本转儿童动画视频标准流程（v5.0.13 音频路由 · 2026-06-26）。**单仓含 seedance_mcp/ 集成（uguu + Ark API + MCP 协议壳）** = 克隆 1 仓 = 完整可用，不依赖 seedance2.0-tool 仓。v8.1 动作模板（按事件分镜 · 替代 v8 运镜模板 · Potato BUG 修复） + 7 步流程 + 6 硬约束（含硬约束 #1 = 永远无 BGM） + 9 案例 + SRT 驱动工作流 + 音频路由（路径 A 有 SRT = 旁白+音效 / 路径 B 无 SRT = 纯音效 / 路径 C/D spike/静默）。Step 1 接收需求 + SRT → Step 2 vision 自检（5 项必查）→ Step 3 解析 SRT 真实时间戳 + 反推速率 → Step 4 旁白优先逐段合并（按真实秒数 [4,15] + suggested_duration 整数保证）→ Step 5 v8.1 动作模板（主体本身动 + 按事件分镜 + 不凝固收尾 + 段 5 音频描述）→ Step 6 seedance 提交（v5.0.13 路由规则）→ Step 7 端到端验证。**安装**：`git clone -b v5.0` + 拷 wrapper.sh + 填 .env + 跑 INSTALL_TEST.sh。触发词：绘本视频、绘本转视频、绘本动画、v8.1 写法、按事件分镜、SRT 驱动、动作模板、单仓安装、音频路由、generate_audio。"
 license: Apache-2-2
 metadata:
   hermes:
@@ -19,7 +19,7 @@ metadata:
 
 **触发词**: 绘本视频、绘本转视频、绘本动画、v8.1 写法、SRT 时间戳、动作模板、单仓安装、音频路由、generate_audio、无 BGM、有声视频。
 
-**版本历史**: v5.0.10.1(Potato SRT 修复) → v5.0.13(音频路由) → v5.0.14(实测沉淀)。详见 `CHANGELOG.md`。
+**版本**: v5.0.14。变更历史见 `CHANGELOG.md`。
 
 **必读**: `manifest.json` / `INSTALL.md` / `references/clip-划分方法论.md`(**Step 4 唯一权威依据**)。
 
@@ -235,9 +235,9 @@ metadata:
 | `scripts/validate_durations.py` | 时长校验 | 总时长对齐用户 TTS |
 | `agents/prompt-reviewer/` | L3 视觉逻辑审查 | `@ImageN` 必含 / 视觉覆盖 / 时长差 / 旁白映射 |
 
-## 4. 案例库(7 个 · references/cases/)
+## 4. 案例库(9 个)
 
-每个案例 ≤ 300 字,**只列反复触发的隐性陷阱**。完整内容见 `references/cases/{name}.md`。
+每个案例 ≤ 300 字,**只列反复触发的隐性陷阱**。详见下方案例表。
 
 > **元注释**(用户偏好 · 2026-06-23 反复确认): "反对铁律泛滥 / 案例不超 6 个"。v5.0.9 已删 18 条铁律,v5.0.10 只新增 1 个 case (#37)。**规则不超 5 条,案例不超 7 个,超出 = 搬到 references/**。这是用户长期偏好,不是临时约束。
 
