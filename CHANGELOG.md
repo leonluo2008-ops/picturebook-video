@@ -20,7 +20,39 @@
 
 ---
 
-## [Unreleased]
+## [5.0.14] - 2026-07-03
+
+### 修复
+- **Step 1 TTS 路径区分**:有 SRT 跳过估算 / 无 SRT 必收 `user_tts_seconds`(避免默认 4.0 字/秒假设与真实速率偏差 125%+)
+- **Step 5 新增 3 条反模式根因**:自创力学约束 / 过度展开 / 不看图就写(基于 See You + Van 2026-06-30 ~ 07-01 实战)
+- **Step 6 新增 3 条 pitfall**:`wait_and_download` MCP 超时 fallback / Resolution 1080p 陷阱 / 禁止自作主张 spike
+- **恢复 4 个从 main 丢失的文件**:`scripts/srt_parser.py` (SRT 解析器 v5.0.10) / `scripts/clip_merger.py` (时间轴 clip 划分器 v5.0.10) / `agents/prompt-reviewer/SKILL.md` (L3 视觉逻辑审查 agent) / `references/clip-划分方法论.md` (Step 4 唯一权威依据)
+- **manifest.json 元数据同步**:`version` 5.0.13 → 5.0.14 / `updated_at` 2026-06-26 → 2026-07-03 / `governance_notes` 重写为 v5.0.14 完整修复链
+
+### 实战
+- **See You (2026-06-30)**:TTS 路径不区分 → 默认估算路径严重偏差,实测驱动 Step 1 路径区分规则
+- **Van (2026-07-01)**:3 条反模式根因 + 3 条 pitfall 全是 Van 项目踩出来的
+
+## [5.0.13] - 2026-06-26
+
+### 修复
+- **默认音频路由翻车**:v5.0.12 规则下"领读型=false / 有声绘本=true"二分法容易选错(Beet Pepper v1 给 SRT 但直接发视频场景误判为 false → 4 个 Clip 全无声)
+- **v5.0.13 新规则**:默认 `generate_audio=true`,通过路径 A/B/C/D 路由决策,通过段 5 内容区分旁白 vs 音效
+
+### 新增
+- **R10 音频路由规则**(硬约束 #1 = 永远无 BGM):任何 prompt 末尾约束必须包含"无背景音乐"——音效 + 旁白 OK,BGM ❌
+- **verify_prompt 重构**:支持 `--has-srt` / `--no-srt` / `--generate-audio` 三个新参数,把音频路由检查编入硬规则
+
+## [5.0.10.1] - 2026-06-24
+
+### 修复
+- **clip_merger 整数时长 < SRT 跨度翻车**:v5.0.10 用 `int()` 向下取整 vs 实际 SRT 跨度 6.166s/7.633s。v5.0.10.1 强制 `ceil()` + `suggested_duration` 字段 + `duration_ok` 校验 + 任何 `srt_span > 15s` 必 WARNING 拆 clip
+- **v8.1 强时间锁违反官方**:v5.0.10 段 2 强制 `00:00.0-00:01.0` 100ms 精度违反 Seedance 官方"模型对精确时间不稳定"原则。v5.0.10.1 改为按事件分镜(`镜头 1/2/3`),段 3 改"念到 X 词时 Y 动作"事件对应
+- **verify_prompt R1/R4 FAIL 误判**:v5.0.10 强制必含 `MM:SS.mmm` 时间戳让 4 个按事件分镜 prompt 全 fail。v5.0.10.1 降级为 WARN(跟官方对齐)
+
+### 实战
+- **Potato SRT (2026-06-23)**:8 段自动合并出 17s clip → 触发 srt_span > 15s 安全网修复
+
 
 ## [3.0.0] - 2026-06-14
 
