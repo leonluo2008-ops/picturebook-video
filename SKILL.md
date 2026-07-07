@@ -231,7 +231,7 @@ metadata:
 |---|---|---|
 | `scripts/srt_parser.py` | SRT → JSON 时间轴(v5.0.10 新) | 段起止毫秒精度 + 段间停顿 + 反推真实速率 |
 | `scripts/clip_merger.py` | 时间轴 → clip 划分(v5.0.10 新) | 真实秒数合并 + [4,15] 区间 + 对齐用户 TTS |
-| `scripts/verify_prompt.py` | v8.1 prompt 硬规则 | v5.0.9 8 项(#29/#28/#26/#33/#21+#27+#37 等) + v5.0.10 新增 3 项 + **v5.0.10.1 调整**: R1/R4 时间锚点从 FAIL 降级为 WARN(跟官方"不强制限制每段时长"对齐) · R3 凝固语 · WARN R1 主体动作 · v5.0.11 R6-R9 Potato 蓝本结构 · **v5.0.12 R10 音频描述**(generate_audio=True 时, `--generate-audio` 开关) |
+| `scripts/verify_prompt.py` | v8.1 prompt 硬规则 | v5.0.9 8 项(#29/#28/#26/#33/#21+#27+#37 等) + v5.0.10 新增 3 项 + **v5.0.10.1 调整**: R1/R4 时间锚点从 FAIL 降级为 WARN(跟官方"不强制限制每段时长"对齐) · R3 凝固语 · WARN R1 主体动作 · v5.0.11 R6-R9 Potato 蓝本结构 · **v5.0.12 R10 音频描述**(generate_audio=True 时, `--generate-audio` 开关) · **v5.0.16 R11 镜头 4 件套**(运镜动词 + 空间目标双项 FAIL 级硬规则 · 硬约束 #6 唯一执行抓手 · 详见 §1 + `references/four-piece-shot-spec-v5.0.16.md`) |
 | `scripts/tts_rate_calculator.py` | TTS 速率方案校对(路径 B fallback) | 5 档对比 + 总和 vs 用户 TTS 差 ≤ 5s |
 
 | `scripts/validate_durations.py` | 时长校验 | 总时长对齐用户 TTS |
