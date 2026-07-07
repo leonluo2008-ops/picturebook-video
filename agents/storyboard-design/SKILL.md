@@ -47,8 +47,8 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
   "task": "storyboard-design",
   "status": "failed",
   "error_code": "v7_paradigm_not_for_C",
-  "error_message": "检测到 v7 范式任务（2图=1Clip 合并 · 领读型 · 5 条件全过）· 走主 agent 直拼 cactus 8 段 prompt，不调 C 子 agent。详细路由见 picturebook-video/references/v7-vs-v15-paradigm-routing.md（v1.0.4 新增）",
-  "fallback": "主 agent 走 v7 范式：直接读 assets/example-prompts/cactus-clip1-v7.txt 真模板 + 改字段生成 8 段 prompt，不调 C"
+  "error_message": "检测到 v7 范式任务（2图=1Clip 合并 · 领读型 · 5 条件全过）· 走主 agent 直拼 5 段 prompt（v8.1 蓝本），不调 C 子 agent。**v5.0.16 起 v7 范式已被 v8.1 5 段结构覆盖**：主 agent 必走 picturebook-video/references/v8-action-template-blueprint.md + v5.0.16 镜头 4 件套（references/four-piece-shot-spec-v5.0.16.md）",
+  "fallback": "主 agent 走 v8.1 范式：直接读 picturebook-video/references/v8-action-template-blueprint.md + 改字段生成 5 段 prompt（段 1 主体 / 段 2 镜头 4 件套动作 / 段 3 旁白-动作对应 / 段 4 收尾不凝固 / 段 5 音频），不调 C"
 }
 ```
 
@@ -59,13 +59,13 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 4. 图片风格统一
 5. 总图数 6-10 张
 
-**5 条件全过 → v7 范式（主 agent 直拼）· 任一不满足 → v15 4 段（调 C）**。
+**5 条件全过 → v8.1 5 段范式（主 agent 直拼 v8.1 蓝本）· 任一不满足 → 调 C 子 agent**。
 
-详细路由见 `picturebook-video/references/v7-vs-v15-paradigm-routing.md`。
+**v5.0.16 路由更新**：v7 范式已被 v8.1 5 段结构覆盖。主 agent 必走 `picturebook-video/references/v8-action-template-blueprint.md`（v8.1 蓝本）+ `picturebook-video/references/four-piece-shot-spec-v5.0.16.md`（v5.0.16 镜头 4 件套）。
 
 ### 🔥 例外 · ≤ 4 Clip 主 agent 直干（v1.0.5+pic18 Banana #3 修复）
 
-> **背景**：v1.0.0 主路径"主 agent 必调 C"是**默认**而非**强制**。Banana 报告（2026-06-11）实战 3 Clip 简易绘本 = 5 分钟**主 agent 直干**完成（直产 JSON + 直填 fill_v15_template），而调子 agent delegate = 启动 + 上下文传递 + 多步 vision = 5+ 分钟 + 600s timeout 风险（Pic3 9 Clip 实战翻车）。
+> **背景**：v1.0.0 主路径"主 agent 必调 C"是**默认**而非**强制**。Banana 报告（2026-06-11）实战 3 Clip 简易绘本 = 5 分钟**主 agent 直干**完成（直产 JSON + 直拼 v8.1 5 段 prompt），而调子 agent delegate = 启动 + 上下文传递 + 多步 vision = 5+ 分钟 + 600s timeout 风险（Pic3 9 Clip 实战翻车）。**v5.0.16 起，主 agent 直干时必走 v8.1 蓝本 + v5.0.16 镜头 4 件套（fill_v15_template.py 已弃用 = v5.0.16 起不再维护）**。
 
 **触发条件**（任一满足即直干，**不**调 C）：
 - Clip 数 ≤ 4（< 5 段 + 简易认知/领读型）
@@ -75,7 +75,7 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 **直干 SOP**（4 步）：
 1. 主 agent 看 N 张图（native vision）
 2. 直产 11 维原料 JSON（time_breakdown / characters / text_position / end_frame_microaction / target_word_emphasis / seedance_visual_checklist）
-3. 用 `scripts/fill_v15_template.py` 填 11 变量 = 终稿 prompt
+3. 用 v8.1 5 段结构填 11 变量 = 终稿 prompt（**v5.0.16 起替代 fill_v15_template.py**，详见 picturebook-video/references/v8-action-template-blueprint.md）
 4. 跳过 `delegate_task(goal=...)`
 
 **数据对比**：
@@ -227,7 +227,7 @@ C 子 agent **强制按档位表选节奏**，**避免凭印象**。
 }
 ```
 
-**红线**（参见本文底部"红线 #9"）：**C 子 agent 必不写 `prompt_draft` 字段**。主 agent 拿到 C 的 11 维原料后，**用 `picturebook-video/scripts/fill_v15_template.py` 填 v15 4 段模板 = 终稿 prompt**，写到 `clips/clipN-prompt.txt`。
+**红线**（参见本文底部"红线 #9"）：**C 子 agent 必不写 `prompt_draft` 字段**。主 agent 拿到 C 的 11 维原料后，**用 v8.1 5 段结构填模板 = 终稿 prompt**（**v5.0.16 起替代 fill_v15_template.py** = 已弃用），写到 `clips/clipN-prompt.txt`。详见 picturebook-video/references/v8-action-template-blueprint.md。
 
 ## 决策规则
 
@@ -577,11 +577,11 @@ result = delegate_task(
 **主 agent 后续动作**（不归 C 子 agent 负责）：
 
 ```bash
-# 1. 跑 picturebook-video/scripts/fill_v15_template.py 把 9 个 clipN.json → 9 个 clipN-prompt.txt
-python3 /home/luo/.hermes/profiles/huiben/skills/creative/picturebook-video/scripts/fill_v15_template.py \
-  --clips-dir ~/.hermes/profiles/huiben/work/<日期-项目>/clips
+# 1. 用 v8.1 5 段结构把 9 个 clipN.json → 9 个 clipN-prompt.txt
+# v5.0.16 起替代 fill_v15_template.py（已弃用），详见 picturebook-video/references/v8-action-template-blueprint.md
+# 模板填法: 段 1 主体（@ImageN + 视觉基底）/ 段 2 镜头 4 件套（运镜+动作+位置+音频）/ 段 3 旁白对应 / 段 4 收尾 / 段 5 音频
 
-# 2. 验证 9 个 prompt.txt 都写出 + 4 段结构齐全
+# 2. 验证 9 个 prompt.txt 都写出 + 5 段结构齐全
 ls -la ~/.hermes/profiles/huiben/work/<日期-项目>/clips/clip*-prompt.txt
 
 # 3. 调 D（主 agent 干 · ≤2/批 + 续跑）

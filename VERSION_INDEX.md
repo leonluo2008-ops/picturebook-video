@@ -1,27 +1,18 @@
-# 范式版本索引（速查表）
+# 范式版本索引（速查表 · v5.0.16 精简版）
 
-> 用途：遇到问题先来这里找哪个范式有相关经验。
-> 详细实测日志：references/versions/vN.md
+> **v5.0.16 精简**: 删除 v3-v14 死链（这些版本文件不存在/已合并到 git history），仅保留 v8.1 + v5.0.16 + v15 范式说明
+> **当前主用 = v8.1**（5 段结构 + R6-R10 强制 + v5.0.16 镜头 4 件套 + **R11 运镜必写**）
+> **详细实测日志**：`references/v8-action-template-blueprint.md`（v8.1 蓝本）+ `references/four-piece-shot-spec-v5.0.16.md`（v5.0.16 镜头 4 件套）+ `references/versions/v15.md`（v15 与 v8.1 平行范式）
+> **历史版本** = git commit history 可查（v3-v14 已删除实体文件，保留在 commit log）
 
-## 全景表
+## 全景表（v5.0.16 精简版 · 只列当前相关范式）
 
 | 范式 | 核心 | 状态 | 何时选 | 详情 |
 |------|------|------|--------|------|
-| v3 | 叙述法过渡 | ❌ 废弃 | 永不选 | [v3.md](versions/v3.md) |
-| v4 | 静态分镜 | ⚠️ 验证性 | 验证切换时序 | [v4.md](versions/v4.md) |
-| v5 | 显式分镜时序 | ✅ 切点 | 需精准切换 | [v5.md](versions/v5.md) |
-| v6 | v5+精准动作 | ✅ 动效 | 需精准动效 | [v6.md](versions/v6.md) |
-| v7 | v6+音频控制 | ✅ **里程碑** | 需控 BGM/人声 | [v7.md](versions/v7.md) |
-| v8 | v7+多 Clip 准备 | ⚠️ 备选 | 极少用 | [v8.md](versions/v8.md) |
-| v9 | v7+首尾帧实验 | ⚠️ 备选 | 不选首尾帧 | [v9.md](versions/v9.md) |
-| v10 | 跨 Clip 共享 BGM 主题 | ✅ **里程碑** | 领读型多 Clip | [v10.md](versions/v10.md) |
-| v11-α | 早期多 Clip 实验 | ❌ 废弃 | 永不选 | [v11-α.md](versions/v11-α.md) |
-| v11-β | no_hold_pose + camera_drift | ⚠️ 备选 | 备选知识库 | [v11-β.md](versions/v11-β.md) |
-| v12 | 音频驱动模式 | ❌ 失败 | 不选 | [v12.md](versions/v12.md) |
-| v13 | v12+主体定义 | ⚠️ 部分 | 中间态 | [v13.md](versions/v13.md) |
-| v14 | 多图分镜+主体+风格+BGM | ✅ **绘本默认（升级版）** | v14 仍可用，v15 升级后默认 | [v14.md](versions/v14.md) |
-| v15 | v14+运镜调性+音效密集型 | ✅ **绘本默认 2026-06-05 起** | 启动必跑 6 必问 + 选 v7-Say 子范式 | [v15.md](versions/v15.md) |
-| **v15.1** | **长旁白单图多 Clip 拆分** | ✅ **Cat 4a v3 标版** | 单图朗读 + 留白 > 15s 上限时必走 | [长旁白拆分规范-v15.1.md](长旁白拆分规范-v15.1.md) |
+| **v8.1** | **5 段结构 + R6-R10 强制** | ✅ **当前主用** | **绘本默认 v5.0.10+** | [v8.1 蓝本](v8-action-template-blueprint.md) + [v5.0.16 镜头 4 件套](four-piece-shot-spec-v5.0.16.md) |
+| v15 | v14 骨架（4 段）+ 6 必问 + 撤回运镜三禁 + 音效密集型 | ⚠️ **平行范式** | 已被 v8.1 覆盖，保留作 v14 升级历史 | [v15.md](versions/v15.md) |
+| v8 | v7+多 Clip 准备（4 段）| ⚠️ DEPRECATED | 已被 v8.1 覆盖 | [v8-prompt-template.md](v8-prompt-template.md) |
+| v3-v14 | 早期范式实验 | ❌ 已废弃 | git commit history 可查 | ❌ 文件已删（v5.0.16 去污染） |
 
 ## Phase 5 启动前必读三铁律（2026-06-05 Say 说绘本踩坑沉淀）
 

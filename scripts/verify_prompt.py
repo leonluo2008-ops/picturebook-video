@@ -9,6 +9,8 @@ verify_prompt.py · v8.1 prompt 硬规则检查脚本 (v5.0.13 路由增强)
      v5.0.12 新增 R10 音频描述规则(generate_audio=True 时必写段 5 音频描述)。
      v5.0.13 路由调整: 音效必写,人声旁白仅路径 A(SRT)必写 (路径 B 无 SRT 可选)
                       + 末尾约束硬约束 #1 = 永远无 BGM。
+     v5.0.16 新增 R11 镜头 4 件套硬规则 (硬约束 #6 · 2026-07-07 Autumn 翻车沉淀):
+                      段 2 镜头段必含运镜动词 + 必含空间目标 = 防止"固定镜头+主体原地动"翻车。
 本脚本 = 把规则自动化。
 
 用法:
@@ -403,6 +405,93 @@ def check_audio_description(text: str, generate_audio: bool = False, has_srt: bo
     return failures
 
 
+def check_camera_four_piece(text: str) -> list[str]:
+    """v5.0.16 R11 镜头 4 件套硬规则 (硬约束 #6 · 2026-07-07 Autumn 翻车沉淀)。
+
+    触发场景: v8 → v8.1 升级时丢掉了"运镜 + 方向锚点"段 2 写法
+    → seedance 默认输出"固定镜头 + 主体原地动"(大雁原地抖翅膀/松鼠原地蹬腿)。
+
+    必检 (FAIL 级):
+    - 段 2 镜头段 (含"镜头 N"或"@ImageN + 镜头") 必须有运镜动词
+      (横移/推近/跟拍/俯冲/固定/平视/侧面/低角度/缓慢推/拉远/特写/全景/中景/from behind 等)
+    - 主体位移方向必须有空间目标 (从画面/出画面/穿过中央/由近及远/跑出/飞向/out of frame/exits 等)
+
+    根因: v8.1 5 段结构 (段 1 主体 / 段 2 镜头 4 件套动作 / 段 3 旁白对应 / 段 4 收尾 / 段 5 音频)
+    段 2 必须含 4 件套 = 运镜 + 主体动作 + 位置空间变化 + 音频信息 (Seedance 2.0 官方提示词指南 §2)
+
+    详见 references/four-piece-shot-spec-v5.0.16.md (v5.0.16 镜头 4 件套规范 + RP-26a 反模式)。
+    """
+    failures = []
+
+    # 镜头段匹配: 找所有"镜头 N"开头的段
+    shot_pattern = re.compile(r"镜头\s*(\d+)\s*[（(]", re.MULTILINE)
+    shot_matches = list(shot_pattern.finditer(text))
+
+    if not shot_matches:
+        # 没找到镜头段 → 整个 prompt 不是按 v8.1 段 2 结构写, R11 跳过 (让 R7 镜头-旁白绑定先报警)
+        return failures
+
+    # 运镜动词 (中英双语)
+    camera_keywords = [
+        # 中文
+        "横移", "推近", "推镜", "跟拍", "俯冲", "固定", "平视",
+        "侧面", "低角度", "缓慢推", "拉远", "特写", "全景", "中景",
+        "广角", "长焦", "微距", "升", "降", "摇", "移",
+        # 英文 (Seedance 2.0 官方)
+        "camera follows", "tracking shot", "pan", "tilt", "zoom in", "zoom out",
+        "dolly", "from behind", "from the side", "low-angle", "high-angle",
+        "fixed camera", "static shot", "wide shot", "close-up", "medium shot",
+        "from above", "from below", "aerial", "panning",
+    ]
+    camera_regex = re.compile("|".join(re.escape(kw) for kw in camera_keywords), re.IGNORECASE)
+
+    # 空间目标 (v8 范本 3 类: 画面内方向 / 出画面 / 镜头位移)
+    space_keywords = [
+        # 画面内方向
+        "画面左侧", "画面右侧", "画面中央", "画面中央",
+        "画面顶部", "画面底部", "画面左", "画面右",
+        "从左侧", "从右侧", "从顶部", "从底部",
+        "由近及远", "由远及近", "由左", "由右",
+        "穿过", "横穿", "飞越", "跑过",
+        # 出画面 (最干脆的位移终点)
+        "出画面", "跑出画面", "飞出画面", "走出画面", "游出画面", "驶出画面",
+        "离开镜头", "off-screen", "out of frame", "exits", "runs off",
+        "消失在天际", "消失于", "消失",
+        # 镜头位移
+        "镜头跟随", "镜头横移", "镜头跟拍",
+        "camera follows", "camera pans", "camera tracks",
+    ]
+    space_regex = re.compile("|".join(re.escape(kw) for kw in space_keywords), re.IGNORECASE)
+
+    # 必填模式: 含 @ImageN + 段 N 旁白绑定 (R7 已查过, 这里复用)
+    for i, m in enumerate(shot_matches):
+        shot_start = m.start()
+        # 镜头段结束 = 下一个"镜头"或"段 N 念"或文件结尾
+        next_shot = shot_matches[i + 1].start() if i + 1 < len(shot_matches) else len(text)
+        # 取镜头段: 从"镜头 N ("到下一个镜头/旁白段之前
+        shot_text = text[shot_start:next_shot]
+
+        has_camera = bool(camera_regex.search(shot_text))
+        has_space = bool(space_regex.search(shot_text))
+
+        if not has_camera:
+            failures.append(
+                f"FAIL R11: 镜头 {m.group(1)} 缺运镜 (镜头 4 件套缺件 1) — "
+                f"v5.0.16 硬约束 #6: 任何镜头段必写运镜动词 (横移/推近/跟拍/固定/平视/侧面/低角度/特写/全景/中景 等), "
+                f"否则 seedance 默认输出固定镜头+主体原地动 (Autumn 2026-07-07 翻车根因)。 "
+                f"详见 references/four-piece-shot-spec-v5.0.16.md"
+            )
+        if not has_space:
+            failures.append(
+                f"FAIL R11: 镜头 {m.group(1)} 缺空间目标 (镜头 4 件套缺件 3) — "
+                f"v5.0.16 硬约束 #6: 主体位移必带空间目标 (从画面 X 边缘 Y / 出画面 / 穿过中央 / 由近及远 / 跑出 / 飞向 等), "
+                f"否则主体原地运动 (v8 范本 RP-26a 反模式)。 "
+                f"详见 references/four-piece-shot-spec-v5.0.16.md"
+            )
+
+    return failures
+
+
 def verify_prompt(
     text: str,
     ref_images: int | None = None,
@@ -427,6 +516,7 @@ def verify_prompt(
     failures.extend(check_full_narration_text(text))                  # v5.0.11 R8
     failures.extend(check_specific_closing(text))                      # v5.0.11 R9
     failures.extend(check_audio_description(text, generate_audio, has_srt))  # v5.0.12 R10 + v5.0.13 路由
+    failures.extend(check_camera_four_piece(text))                            # v5.0.16 R11 (硬约束 #6)
     if tts_seconds is not None:
         failures.extend(check_tts_diff(text, tts_seconds))
 

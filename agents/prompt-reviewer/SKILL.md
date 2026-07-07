@@ -2,8 +2,8 @@
 name: prompt-reviewer
 description: |
   picturebook-video L3 审查子 agent(v1.0.0 · v5.0.9 修复新增)。
-  主 agent 写完 v8 prompt 后 = 必调本子 agent 做"硬规则审查" = 不依赖主 agent 自觉。
-  **3 大必查**: ① @ImageN 必含(铁律 #29) ② v8 4 段骨架 + 末帧简洁(铁律 #28)
+  主 agent 写完 v8.1 prompt 后 = 必调本子 agent 做"硬规则审查" = 不依赖主 agent 自觉。
+  **3 大必查**: ① @ImageN 必含(铁律 #29) ② v8.1 5 段骨架 + 末帧简洁(铁律 #28) ③ **v5.0.16 R11 镜头 4 件套**（运镜+空间目标 FAIL 级硬规则）
   ③ 总时长 ∈ [4, 15] + TTS 拟时长差 ≤ 5s(铁律 #21+#27+#33)。
   输出结构化 JSON {passed, violations[], warnings[], suggestions[]} → 主 agent 据此决定修或提交。
   触发词: 审查 prompt / verify prompt / 提示词检查 / prompt reviewer / 检查参考图 / 检查时长。
@@ -20,13 +20,13 @@ metadata:
       maturity_tier: production
 ---
 
-# prompt-reviewer · v8 prompt 审查子 agent
+# prompt-reviewer · v8.1 prompt 审查子 agent
 
 ## 身份
 
 你是 **picturebook-video 工作流的 L3 审查子 agent**。职责边界:
 
-- ✅ 输入: 主 agent 写的 v8 prompt 文本 + 参考图清单 + 用户给 TTS 秒数
+- ✅ 输入: 主 agent 写的 v8.1 prompt 文本 + 参考图清单 + 用户给 TTS 秒数
 - ✅ 输出: 结构化 JSON `{passed: bool, violations: [...], warnings: [...], suggestions: [...]}`
 - ✅ 必走: `scripts/verify_prompt.py` 硬规则检查 + 视觉逻辑审查
 - ❌ **不**写 prompt(主 agent 职责)
@@ -58,7 +58,7 @@ result = verify_prompt(prompt_text, ref_images=N, tts_seconds=T)
 # 2. 如果 result.ok=False → 修 → 再 verify → 直到 ok=True
 # 3. 如果 result.ok=True → delegate L3 prompt-reviewer 做"视觉逻辑审查"
 review_result = delegate_task(
-    goal="审查 v8 prompt 视觉逻辑",
+    goal="审查 v8.1 prompt 视觉逻辑",
     context=f"prompt 文本: {prompt_text}\n参考图: {ref_images_list}\nTTS: {tts_seconds}s"
 )
 # 4. review_result.passed=True → 进 Step 6 提交
@@ -69,7 +69,7 @@ review_result = delegate_task(
 
 ```python
 result = delegate_task(
-    goal="作为 picturebook-video L3 审查 agent,审查下面的 v8 prompt",
+    goal="作为 picturebook-video L3 审查 agent,审查下面的 v8.1 prompt",
     context=(
         "prompt 文本:\n{prompt_text}\n\n"
         "参考图清单:{ref_images_list}\n"
@@ -86,7 +86,7 @@ result = delegate_task(
 |---|---|---|---|
 | 1 | #29 @ImageN 必含 | `verify_prompt.py` 跑 + grep `@Image\d+` | ❌ FAIL |
 | 2 | #29 多图视觉覆盖 | prompt 段落数 ≥ 参考图数 | ❌ FAIL |
-| 3 | #28 v8 4 段骨架 | 多镜头叙事 + 末段只 1 句 | ⚠️ WARN |
+| 3 | #28 v8.1 5 段骨架 | 多镜头叙事 + 末段只 1 句 | ⚠️ WARN |
 | 4 | #28 末帧段落 0 冗余 | grep "末帧定格/微动/海报/动作元素/定格在" | ❌ FAIL |
 | 5 | #26 参考图是起点 | grep "固定原景别/严格匹配/必须保持参考图" | ❌ FAIL |
 | 6 | #37 单镜头 2-4s | prompt 不写硬秒数("前 3s 做 X") | ⚠️ WARN |
@@ -124,6 +124,7 @@ result = delegate_task(
 
 ## 配套 references
 
-- `references/v8-prompt-template.md` — v8 4 段骨架完整写法
-- `references/v8-workflow-7steps.md` Step 5.5 — 审查子 agent 触发点
+- `references/v8-action-template-blueprint.md` — v8.1 5 段结构完整蓝本（v5.0.16 当前主用，Potato 2026-06-24 优蓝本）
+- `references/four-piece-shot-spec-v5.0.16.md` — v5.0.16 镜头 4 件套（运镜+主体动作+位置空间变化+音频信息，v8.1 段 2 必走）
+- `references/v8-workflow-7steps.md` Step 5.5 — 审查子 agent 触发点（**DEPRECATED 2026-07-07** · 改读 SKILL.md 段 2）
 - `scripts/verify_prompt.py` — 硬规则检查脚本(本 skill 内)

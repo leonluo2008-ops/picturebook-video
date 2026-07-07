@@ -1,6 +1,6 @@
 ---
 name: picturebook-video
-description: "绘本转儿童动画视频标准流程（v5.0.13 音频路由 · 2026-06-26）。**单仓含 seedance_mcp/ 集成（uguu + Ark API + MCP 协议壳）** = 克隆 1 仓 = 完整可用，不依赖 seedance2.0-tool 仓。v8.1 动作模板（按事件分镜 · 替代 v8 运镜模板 · Potato BUG 修复） + 7 步流程 + 6 硬约束（含硬约束 #1 = 永远无 BGM） + 9 案例 + SRT 驱动工作流 + 音频路由（路径 A 有 SRT = 旁白+音效 / 路径 B 无 SRT = 纯音效 / 路径 C/D spike/静默）。Step 1 接收需求 + SRT → Step 2 vision 自检（5 项必查）→ Step 3 解析 SRT 真实时间戳 + 反推速率 → Step 4 旁白优先逐段合并（按真实秒数 [4,15] + suggested_duration 整数保证）→ Step 5 v8.1 动作模板（主体本身动 + 按事件分镜 + 不凝固收尾 + 段 5 音频描述）→ Step 6 seedance 提交（v5.0.13 路由规则）→ Step 7 端到端验证。**安装**：`git clone -b v5.0` + 拷 wrapper.sh + 填 .env + 跑 INSTALL_TEST.sh。触发词：绘本视频、绘本转视频、绘本动画、v8.1 写法、按事件分镜、SRT 驱动、动作模板、单仓安装、音频路由、generate_audio。"
+description: "绘本转儿童动画视频标准流程（v5.0.16 镜头 4 件套运镜必写 · 2026-07-07）。**单仓含 seedance_mcp/ 集成（uguu + Ark API + MCP 协议壳）** = 克隆 1 仓 = 完整可用，不依赖 seedance2.0-tool 仓。v8.1 动作模板（按事件分镜 · 替代 v8 运镜模板 · Potato BUG 修复） + 7 步流程 + 7 硬约束（v5.0.16 加 #6 = 镜头 4 件套 = 运镜+主体动作+位置空间变化+音频信息；含硬约束 #1 = 永远无 BGM） + 9 案例 + SRT 驱动工作流 + 音频路由（路径 A 有 SRT = 旁白+音效 / 路径 B 无 SRT = 纯音效 / 路径 C/D spike/静默）。Step 1 接收需求 + SRT → Step 2 vision 自检（5 项必查）→ Step 3 解析 SRT 真实时间戳 + 反推速率 → Step 4 旁白优先逐段合并（按真实秒数 [4,15] + suggested_duration 整数保证）→ Step 5 v8.1 动作模板（**镜头 4 件套 = 运镜+主体动作+位置空间变化+音频信息** + 按事件分镜 + 不凝固收尾 + 段 5 音频描述）→ Step 6 seedance 提交（v5.0.13 路由规则）→ Step 7 端到端验证。**安装**：`git clone -b v5.0` + 拷 wrapper.sh + 填 .env + 跑 INSTALL_TEST.sh。触发词：绘本视频、绘本转视频、绘本动画、v8.1 写法、按事件分镜、SRT 驱动、动作模板、单仓安装、音频路由、generate_audio、镜头 4 件套、运镜必写。"
 license: Apache-2-2
 metadata:
   hermes:
@@ -9,9 +9,9 @@ metadata:
   toolkit_role: picturebook-video-orchestrator
 ---
 
-# picturebook-video · 绘本视频标准制作流程 v5.0.13
+# picturebook-video · 绘本视频标准制作流程 v5.0.16
 
-> **核心**: 旁白优先 · 画面跟随旁白走 · 不凑时长 · 不抢画面 · 装不下就拆。v5.0.13 = SRT 驱动 + v8.1 动作模板 + 音频路由（默认有声 + 永远无 BGM）。
+> **核心**: 旁白优先 · 画面跟随旁白走 · 不凑时长 · 不抢画面 · 装不下就拆。v5.0.16 = SRT 驱动 + v8.1 动作模板 + 音频路由（默认有声 + 永远无 BGM）+ **镜头 4 件套运镜必写（v5.0.16 新增硬约束 #6，修复 v8 → v8.1 升级时丢运镜的 BUG）**。
 
 ## 0. 这是什么
 
@@ -19,7 +19,7 @@ metadata:
 
 **触发词**: 绘本视频、绘本转视频、绘本动画、v8.1 写法、SRT 时间戳、动作模板、单仓安装、音频路由、generate_audio、无 BGM、有声视频。
 
-**版本**: v5.0.14。变更历史见 `CHANGELOG.md`。
+**版本**: v5.0.16。变更历史见 `CHANGELOG.md`。**v5.0.16 关键变更**：新增硬约束 #6「镜头 4 件套 = 运镜+主体动作+位置空间变化+音频信息」（v8 → v8.1 升级时丢运镜的 BUG 修复，详见 `references/four-piece-shot-spec-v5.0.16.md`）。
 
 **必读**: `manifest.json` / `INSTALL.md` / `references/clip-划分方法论.md`(**Step 4 唯一权威依据**)。
 
@@ -27,9 +27,10 @@ metadata:
 - `references/seedance-official-docs/` — Seedance 2.0 官方教程（3 篇：教程/提示词指南/视频生成教程）
 - `references/ai-drama-sop/` — 即梦(Dreamina)官方工作流 SOP（9 篇：从创意发散到成片全流程）
 
-## 1. 6 条硬约束（v5.0.13 加 #0 = 永远无 BGM）
+## 1. 7 条硬约束（v5.0.16 加 #6 = 镜头 4 件套运镜必写）
 
 > **v5.0.13 新增硬约束 #0**: 任何 prompt 末尾约束必须包含"无背景音乐"。音效 + 旁白 OK,BGM ❌。这条优先级最高,不受其他规则影响。
+> **v5.0.16 新增硬约束 #6**: 镜头 4 件套 = 运镜 + 主体动作 + 位置空间变化 + 音频信息（v8 → v8.1 升级时丢运镜的 BUG 修复,详见 `references/four-piece-shot-spec-v5.0.16.md`）。任何 prompt 段 2 写"主体动作"时必须同时写明运镜方式（横移 / 推近 / 跟拍 / 固定 / 俯冲 / 缓慢推镜 等），且主体位移方向必须有明确空间目标（画面内方向 / 出画面 / 镜头位移,见 v8 范本 3 类空间目标）。
 
 | # | 约束 | 触发场景 | 对应案例 / 脚本 |
 |---|---|---|---|
@@ -39,8 +40,9 @@ metadata:
 | 3 | **seedance ≤3 并发 · 多轮分批** | Step 6 提交 | 案例 #31 |
 | 4 | **末尾约束按参考图分 2 类** | Step 5 prompt 末尾 | 案例 #36 |
 | 5 | **readme 文字 vs vision 视觉冲突 = 默认按 readme 文字** | Step 1 角色对位 | 案例 #23 |
+| **6** | **镜头 4 件套 · 运镜必写** | Step 5 段 2 主体动作序列 | `references/four-piece-shot-spec-v5.0.16.md` / v8 范本 RP-26a 反模式 |
 
-**注意**: v5.0.9 删除了 v5.0.8 的 18 条铁律段。v5.0.13 在原 5 条基础上**新增 #0(永远无 BGM)** = 共 6 条硬约束 + 案例库(§4)+ 权威文档(§3 Step 4)。
+**注意**: v5.0.9 删除了 v5.0.8 的 18 条铁律段。v5.0.13 在原 5 条基础上**新增 #0(永远无 BGM)** = 共 6 条硬约束。v5.0.16 在 6 条基础上**新增 #6(镜头 4 件套运镜必写)** = 共 7 条硬约束 + 案例库(§4)+ 权威文档(§3 Step 4)。
 
 **元方法论状态**: `#M1 整本节奏` **降级为参考原则**(优先级 = 最低),被权威文档"旁白优先"覆盖。`#M2 #M3 #M4` 保留为参考方法论,不作为硬约束。
 
@@ -229,7 +231,7 @@ metadata:
 |---|---|---|
 | `scripts/srt_parser.py` | SRT → JSON 时间轴(v5.0.10 新) | 段起止毫秒精度 + 段间停顿 + 反推真实速率 |
 | `scripts/clip_merger.py` | 时间轴 → clip 划分(v5.0.10 新) | 真实秒数合并 + [4,15] 区间 + 对齐用户 TTS |
-| `scripts/verify_prompt.py` | v8.1 prompt 硬规则 | v5.0.9 8 项(#29/#28/#26/#33/#21+#27+#37 等) + v5.0.10 新增 3 项 + **v5.0.10.1 调整**: R1/R4 时间锚点从 FAIL 降级为 WARN(跟官方"不强制限制每段时长"对齐) · R3 凝固语 · WARN R1 主体动作 · v5.0.11 R6-R9 Potato 蓝本结构 · **v5.0.12 R10 音频描述**(generate_audio=True 时, `--generate-audio` 开关) |
+| `scripts/verify_prompt.py` | v8.1 prompt 硬规则 | v5.0.9 8 项(#29/#28/#26/#33/#21+#27+#37 等) + v5.0.10 新增 3 项 + **v5.0.10.1 调整**: R1/R4 时间锚点从 FAIL 降级为 WARN(跟官方"不强制限制每段时长"对齐) · R3 凝固语 · WARN R1 主体动作 · v5.0.11 R6-R9 Potato 蓝本结构 · **v5.0.12 R10 音频描述**(generate_audio=True 时, `--generate-audio` 开关) · **v5.0.16 R11 镜头 4 件套**(运镜动词 + 空间目标双项 FAIL 级硬规则 · 硬约束 #6 唯一执行抓手 · 详见 §1 + `references/four-piece-shot-spec-v5.0.16.md`) |
 | `scripts/tts_rate_calculator.py` | TTS 速率方案校对(路径 B fallback) | 5 档对比 + 总和 vs 用户 TTS 差 ≤ 5s |
 
 | `scripts/validate_durations.py` | 时长校验 | 总时长对齐用户 TTS |
@@ -286,7 +288,7 @@ metadata:
 | L2-B | `agents/storyboard-narration/` | 旁白量化 | Step 1 后 |
 | L2-C | `agents/storyboard-design/` | 分镜设计(11 维 JSON) | Step 2 后(主 agent 决定 delegate 还是直干) |
 | L2-D | `agents/video-executor/` | seedance 提交执行 | Step 6 |
-| **L3** | **`agents/prompt-reviewer/`(v5.0.9 新)** | **v8 prompt 视觉逻辑审查** | **Step 5.5 必调** |
+| **L3** | **`agents/prompt-reviewer/`(v5.0.9 新)** | **v8.1 prompt 视觉逻辑审查（v5.0.16 加 R11 镜头 4 件套）** | **Step 5.5 必调** |
 
 **delegate vs 直干判定**(v5.0.9 修订):
 - 1-2 Clip = 主 agent 直干

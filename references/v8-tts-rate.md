@@ -1,14 +1,21 @@
 ---
 name: v8-tts-rate
-description: v8 写法 TTS 速率方案 — 5 档语速对比 + 兜底公式 + 严格匹配范式 + 合并配方。整合 5-tier-rate-anti-pattern + tts-duration-merge-recipe + tts-rate-calibration-workflow + tts-strict-match-paradigm 4 个老 references 的核心方法论。
+description: ⚠️ DEPRECATED 2026-07-07 (v5.0.16) — 本文件 v8 时代 TTS 5 档速率方案已被 SKILL.md 段 2 Step 3 路径 B 完全吸收（同样 3 档 + 1.4/4.0 默认）。本文件保留作 v8 时代速率方案历史参考。
 license: Apache-2-2
 metadata:
   hermes:
-    tags: [v8, tts, rate, calibration, 2026-06-16]
-  related_skills: [picturebook-video, seedance2.0-tool]
+    tags: [DEPRECATED, v8, v5.0.16, history-only]
+    related_skills: [picturebook-video, seedance2.0-tool]
 ---
 
-# v8 写法 TTS 速率方案
+> **⚠️ DEPRECATED 2026-07-07 (v5.0.16)**：本文件 v8 时代 TTS 5 档速率方案已被 **SKILL.md 段 2 Step 3 路径 B** 完全吸收（同样 3 档 + 1.4/4.0 默认）。本文件保留作 v8 时代速率方案历史参考。
+> **当前必走**：`picturebook-video` SKILL.md 段 2 Step 3 路径 B
+> **重复造轮子判定**：本文件 v8 5 档 = 重复造轮子，SKILL.md 段 2 Step 3 路径 B 已经覆盖（1.4/4.0 默认 + 3 档速率）。
+
+# v8 写法 TTS 速率方案（**历史范本 · 已被 SKILL.md 段 2 Step 3 路径 B 取代 · 勿作主用**）
+
+> **历史地位**（2026-06-16 Run 跑 v8 验证）：整合 5-tier-rate-anti-pattern + tts-duration-merge-recipe + tts-rate-calibration-workflow + tts-strict-match-paradigm 4 个老 references 的核心方法论
+> **当前主用** = SKILL.md 段 2 Step 3 路径 B（TTS 速率匹配 + 反推速率）
 
 > **整合**：5 档语速 + 合并配方 + 校对 + 严格匹配
 > **核心口诀**：绘本短句领读型 = 1.4/4.0 档为默认起点
