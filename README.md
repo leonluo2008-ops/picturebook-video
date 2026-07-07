@@ -150,12 +150,12 @@ picturebook-video/
 │   └── smoke_test.py                 # 冒烟测试（无需 MCP server）
 ├── bin/                              # 🆕 v5.0 集成
 │   └── seedance-mcp-wrapper.sh       # 加载 .env → 启动 mcp_server.py
-├── references/                       # 33 份支撑文档
-│   ├── v8 写法核心（4 个 · 当前唯一标准）
-│   │   ├── v8-prompt-template.md                  # v8 prompt 模板
-│   │   ├── v8-workflow-7steps.md                  # v8 7 步工作流
-│   │   ├── v8-tts-rate.md                         # v8 TTS 速率方案
-│   │   └── v8-rpa-rpb-rpc-three-core-antipatterns.md  # 3 类核心反模式
+├── references/                       # 5 份主用 + 若干 DEPRECATED（v5.0.16 去污染）
+│   ├── v8.1 写法核心（2 个 · 当前唯一标准）
+│   │   ├── v8-action-template-blueprint.md         # v8.1 5 段结构蓝本（Potato 2026-06-24 优）
+│   │   └── four-piece-shot-spec-v5.0.16.md         # v5.0.16 镜头 4 件套（运镜+主体动作+位置空间+音频）
+│   ├── 反模式支撑
+│   │   └── v8-rpa-rpb-rpc-three-core-antipatterns.md  # 3 类核心反模式（跨本验证）
 │   ├── 元方法论支撑
 │   │   ├── rule-derivation-methodology.md         # #M2 规则推导
 │   │   ├── skill-distillation-governance.md       # #M4 蒸馏治理

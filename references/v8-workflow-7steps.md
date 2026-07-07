@@ -1,18 +1,25 @@
 ---
 name: v8-workflow-7steps
-description: v8 写法 7 步工作流 — Step 1 收需求 → Step 2 vision 自检 → Step 3 时长分配 → Step 4 Clip 划分 → Step 5 prompt 写 → Step 6 提交 → Step 7 验证。整合了 standard-picturebook-workflow-5steps + narration-shot-mapping + clip-pacing + director-cut-merge 4 个老 references 的核心方法论。
+description: ⚠️ DEPRECATED 2026-07-07 (v5.0.16) — 本文件 v8 时代 7 步工作流已被 SKILL.md 段 2「7 步标准流程」完全吸收。本文件保留作 v8 时代工作流历史参考。当前写 prompt **必走** SKILL.md 段 2 + 段 3 v8.1 蓝本 + v5.0.16 镜头 4 件套。
 license: Apache-2-2
 metadata:
   hermes:
-    tags: [v8, workflow, 7-steps, storyboard, 2026-06-16]
-  related_skills: [picturebook-video, seedance2.0-tool]
+    tags: [DEPRECATED, v8, v5.0.16, history-only]
+    related_skills: [picturebook-video, seedance2.0-tool]
 ---
 
-# v8 写法 7 步工作流
+> **⚠️ DEPRECATED 2026-07-07 (v5.0.16)**：本文件 v8 时代 7 步工作流已被 **SKILL.md 段 2「7 步标准流程」** 完全吸收。本文件保留作 v8 时代工作流历史参考。
+> **当前必走**：
+> - 7 步流程：`picturebook-video` SKILL.md 段 2
+> - Step 5 prompt 写法：`references/v8-action-template-blueprint.md`（v8.1 蓝本）+ `references/four-piece-shot-spec-v5.0.16.md`（镜头 4 件套）
+>
+> **重复造轮子判定**：本文件 v8 7 步 = 重复造轮子，因为 SKILL.md 段 2 已经覆盖 + 增量更新（v5.0.13 音频路由 + v5.0.16 镜头 4 件套）。
 
-> **整合**：5 步工作流 + 旁白-镜头映射（#M3）+ 整本节奏 + 合并配方
-> **每步必跑** = 漏 1 步 = 翻车
-> **Step 5 prompt 写法** = 见 `v8-prompt-template.md`
+# v8 写法 7 步工作流（**历史范本 · 已被 SKILL.md 段 2 取代 · 勿作主用**）
+
+> **历史地位**（2026-06-16 Run 跑 v8 验证）：整合 standard-picturebook-workflow-5steps + narration-shot-mapping + clip-pacing + director-cut-merge 4 个老 references 的核心方法论
+> **当前主用** = SKILL.md 段 2「7 步标准流程」（已含 v5.0.13 音频路由 + v5.0.16 镜头 4 件套）
+> **Step 5 prompt 写法** = 见 `v8-action-template-blueprint.md`（v8.1 蓝本）+ `four-piece-shot-spec-v5.0.16.md`（v5.0.16 镜头 4 件套）
 
 ---
 

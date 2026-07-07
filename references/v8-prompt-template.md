@@ -1,19 +1,30 @@
 ---
 name: v8-prompt-template
-description: v8 写法核心 prompt 模板 — 1 镜 1 核心动作 + 1 组情绪外化 + 1 运镜 + 方向锚点 + 故事弧 4 步。基于 2026-06-16 Run 跑绘本 8 轮迭代验证，是当前唯一标准的 prompt 写法。
+description: ⚠️ DEPRECATED 2026-07-07 (v5.0.16) — 本文件 v8 4 段结构（主体/动作/情绪/运镜）已被 v8.1 5 段结构（v8-action-template-blueprint.md）取代。本文件保留作 v8 范本历史参考。当前写 prompt **必走** v8.1 蓝本（SKILL.md 段 3）+ v5.0.16 镜头 4 件套（references/four-piece-shot-spec-v5.0.16.md）。v8 → v8.1 升级时丢运镜的 BUG 已修。
 license: Apache-2-2
 metadata:
   hermes:
-    tags: [v8, prompt-template, anti-pattern, story-arc, 2026-06-16]
-  related_skills: [picturebook-video, seedance2.0-tool]
+    tags: [DEPRECATED, v8, v5.0.16, history-only]
+    related_skills: [picturebook-video, seedance2.0-tool]
 ---
 
-# v8 写法核心 prompt 模板
+> **⚠️ DEPRECATED 2026-07-07 (v5.0.16)**：本文件 v8 4 段结构（主体/动作/情绪/运镜）已被 v8.1 5 段结构（v8-action-template-blueprint.md）取代。本文件保留作 v8 范本历史参考。
+> **当前写 prompt 必走**：
+> - v8.1 蓝本：`references/v8-action-template-blueprint.md`（Potato 2026-06-24 优蓝本 · 5 段结构）
+> - v5.0.16 镜头 4 件套：`references/four-piece-shot-spec-v5.0.16.md`（v8 → v8.1 升级时丢运镜的 BUG 修复）
+> - v8 范本的 3 类空间目标 + RP-26a/b/c 反模式 已被 v5.0.16 镜头 4 件套完全吸收并增量更新
+>
+> **v8 → v8.1 升级丢的"运镜"已修复**：v8.1 段 2「主体动作序列」v5.0.16 起必带镜头 4 件套（运镜 + 主体动作 + 位置空间变化 + 音频信息）= 本文件 v8 范本的"运镜"段内容以新形式回到 v8.1 流程。
 
-> **唯一标准**（2026-06-16 Run 跑 v8 验证）= 替代 v6/v7/v15 各种 4 段骨架范式
-> **3 类反模式 RP-26a/b/c** = 必避
-> **方向锚点** = 必带空间目标
-> **故事弧 4 步** = 出现 → 转折 → 高潮 → 收尾
+---
+
+# v8 写法核心 prompt 模板（**历史范本 · 已被 v8.1 5 段结构取代 · 勿作主用**）
+
+> **历史地位**（2026-06-16 Run 跑 v8 验证）= 替代 v6/v7/v15 各种 4 段骨架范式
+> **当前主用 = v8.1 5 段结构**（v8-action-template-blueprint.md）+ v5.0.16 镜头 4 件套
+> **3 类反模式 RP-26a/b/c** = 仍有效（被 v5.0.16 镜头 4 件套完全吸收）
+> **方向锚点** = 必带空间目标（被 v5.0.16 镜头 4 件套完全吸收）
+> **故事弧 4 步** = 仍有效（被 v8.1 段 2 镜头叙事沿用）
 
 ---
 
@@ -318,5 +329,30 @@ for clip in clip*-prompt.txt; do
       echo "❌ $clip 时长 $CLIP_DURATION > 5s 但仅 $LENS_COUNT 个镜头标识 = 单镜头过长易机械（详铁律 #37）"
       echo "   修复：拆 2-4 个镜头（\"镜头 1：...\" / \"镜头 2：...\"）= 每镜头 2-4s + 不卡秒数"
     fi
+  fi
+done
+
+# 检查 12: v5.0.16 镜头 4 件套规范（2026-07-07 Autumn 大雁/松鼠翻车沉淀）
+# 期望：每个镜头段必含 4 件套 = 运镜首句 + 主体动作 + 方向锚点 + 环境联动
+# 1. 运镜首句检测：镜头段首句含 "镜头" + 运镜方式关键词
+# 2. 方向锚点检测：复用检查 1 的关键词集合
+# 3. 环境联动检测：含 "带起"/"被带起"/"轻摇"/"晃动"/"响应"/"飘动"/"卷起"
+# 失败：❌ 任一镜头缺 4 件套 = seedance 输出固定镜头 + 主体原地动
+for clip in clip*-prompt.txt; do
+  echo "🔍 检查 $clip 镜头 4 件套规范（v5.0.16）..."
+  # 检查运镜首句
+  CAMERA_MISSING=$(grep -cE "镜头.*横移|镜头.*跟拍|镜头.*推近|镜头.*拉远|镜头.*固定|镜头.*俯瞰|镜头.*平视|镜头.*侧面|Camera:.*shot|camera follows" "$clip" 2>/dev/null || echo "0")
+  if [ "$CAMERA_MISSING" -lt 1 ]; then
+    echo "  ⚠️  $clip 镜头首句缺运镜描述 → seedance 可能输出固定镜头"
+  fi
+  # 检查方向锚点
+  ANCHOR_COUNT=$(grep -cE "从画面左|从画面右|向画面|飞出画面|跑出画面|由近及远|toward the right edge|exits the frame|off-frame|camera follows" "$clip" 2>/dev/null || echo "0")
+  if [ "$ANCHOR_COUNT" -lt 1 ]; then
+    echo "  ❌ $clip 缺方向锚点 → 大概率翻车（v5.0.16 RP-26a 复苏）"
+  fi
+  # 检查环境联动
+  ENV_COUNT=$(grep -cE "带起|被带起|轻摇|晃动|响应|飘动|卷起|brought up|kicked up|shook|swayed" "$clip" 2>/dev/null || echo "0")
+  if [ "$ENV_COUNT" -lt 1 ]; then
+    echo "  💡 $clip 缺环境联动 → 画面空间感可能单薄"
   fi
 done

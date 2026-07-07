@@ -124,6 +124,7 @@ result = delegate_task(
 
 ## 配套 references
 
-- `references/v8-prompt-template.md` — v8 4 段骨架完整写法
-- `references/v8-workflow-7steps.md` Step 5.5 — 审查子 agent 触发点
+- `references/v8-action-template-blueprint.md` — v8.1 5 段结构完整蓝本（v5.0.16 当前主用，Potato 2026-06-24 优蓝本）
+- `references/four-piece-shot-spec-v5.0.16.md` — v5.0.16 镜头 4 件套（运镜+主体动作+位置空间变化+音频信息，v8.1 段 2 必走）
+- `references/v8-workflow-7steps.md` Step 5.5 — 审查子 agent 触发点（**DEPRECATED 2026-07-07** · 改读 SKILL.md 段 2）
 - `scripts/verify_prompt.py` — 硬规则检查脚本(本 skill 内)

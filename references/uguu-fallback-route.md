@@ -169,7 +169,7 @@ for n in [2, 3]:
 ## 兜底脚本纳入标准工具
 
 **v1.0.4 待办**：
-- `picturebook-video/scripts/fill_v15_template.py`（含 _parse_en_color 数据清洗 · 支持 v3/v5/v6 模板变体）
+- ~~`picturebook-video/scripts/fill_v15_template.py`~~ **v5.0.16 已弃用** · 改用 v8.1 5 段结构（`picturebook-video/references/v8-action-template-blueprint.md`）
 - `seedance2.0-tool/scripts/uguu_ark_wrapper.py`（uguu 兜底 + 直接 curl 调 ark API）
 - `seedance2.0-tool/scripts/run_batch_clips.py`（批量跑 N 段 · ≤2/批 · 续跑模式）
 
@@ -178,5 +178,5 @@ for n in [2, 3]:
 - 铁律 #58：A+B+D 主 agent · D 改主 agent 用 `seedance.py` 或 `uguu_ark_wrapper.py`
 - 铁律 #71：chevereto 挂了用 uguu 兜底（**本 reference**）
 - 铁律 #72：seedance 整数时长（设计时长 = 实跑时长）
-- 铁律 #75：fill_v15 模板脚本 = 标准工具
+- 铁律 #75：~~fill_v15 模板脚本~~ **v5.0.16 已弃用** · 改用 v8.1 5 段结构（`v8-action-template-blueprint.md`）
 - 铁律 #76：send_message 防串扰（附 md5+task_id）
