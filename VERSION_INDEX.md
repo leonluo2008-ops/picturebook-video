@@ -1,8 +1,8 @@
 # 范式版本索引（速查表 · v5.0.16 精简版）
 
 > **v5.0.16 精简**: 删除 v3-v14 死链（这些版本文件不存在/已合并到 git history），仅保留 v8.1 + v5.0.16 + v15 范式说明
-> **当前主用 = v8.1**（5 段结构 + R6-R10 强制 + v5.0.16 镜头 4 件套）
-> **详细实测日志**：`references/versions/v8.1.md` + `references/versions/v15.md`（v15 与 v8.1 平行范式）
+> **当前主用 = v8.1**（5 段结构 + R6-R10 强制 + v5.0.16 镜头 4 件套 + **R11 运镜必写**）
+> **详细实测日志**：`references/v8-action-template-blueprint.md`（v8.1 蓝本）+ `references/four-piece-shot-spec-v5.0.16.md`（v5.0.16 镜头 4 件套）+ `references/versions/v15.md`（v15 与 v8.1 平行范式）
 > **历史版本** = git commit history 可查（v3-v14 已删除实体文件，保留在 commit log）
 
 ## 全景表（v5.0.16 精简版 · 只列当前相关范式）

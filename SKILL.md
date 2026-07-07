@@ -9,9 +9,9 @@ metadata:
   toolkit_role: picturebook-video-orchestrator
 ---
 
-# picturebook-video · 绘本视频标准制作流程 v5.0.13
+# picturebook-video · 绘本视频标准制作流程 v5.0.16
 
-> **核心**: 旁白优先 · 画面跟随旁白走 · 不凑时长 · 不抢画面 · 装不下就拆。v5.0.13 = SRT 驱动 + v8.1 动作模板 + 音频路由（默认有声 + 永远无 BGM）。
+> **核心**: 旁白优先 · 画面跟随旁白走 · 不凑时长 · 不抢画面 · 装不下就拆。v5.0.16 = SRT 驱动 + v8.1 动作模板 + 音频路由（默认有声 + 永远无 BGM）+ **镜头 4 件套运镜必写（v5.0.16 新增硬约束 #6，修复 v8 → v8.1 升级时丢运镜的 BUG）**。
 
 ## 0. 这是什么
 
@@ -19,7 +19,7 @@ metadata:
 
 **触发词**: 绘本视频、绘本转视频、绘本动画、v8.1 写法、SRT 时间戳、动作模板、单仓安装、音频路由、generate_audio、无 BGM、有声视频。
 
-**版本**: v5.0.14。变更历史见 `CHANGELOG.md`。
+**版本**: v5.0.16。变更历史见 `CHANGELOG.md`。**v5.0.16 关键变更**：新增硬约束 #6「镜头 4 件套 = 运镜+主体动作+位置空间变化+音频信息」（v8 → v8.1 升级时丢运镜的 BUG 修复，详见 `references/four-piece-shot-spec-v5.0.16.md`）。
 
 **必读**: `manifest.json` / `INSTALL.md` / `references/clip-划分方法论.md`(**Step 4 唯一权威依据**)。
 
@@ -288,7 +288,7 @@ metadata:
 | L2-B | `agents/storyboard-narration/` | 旁白量化 | Step 1 后 |
 | L2-C | `agents/storyboard-design/` | 分镜设计(11 维 JSON) | Step 2 后(主 agent 决定 delegate 还是直干) |
 | L2-D | `agents/video-executor/` | seedance 提交执行 | Step 6 |
-| **L3** | **`agents/prompt-reviewer/`(v5.0.9 新)** | **v8 prompt 视觉逻辑审查** | **Step 5.5 必调** |
+| **L3** | **`agents/prompt-reviewer/`(v5.0.9 新)** | **v8.1 prompt 视觉逻辑审查（v5.0.16 加 R11 镜头 4 件套）** | **Step 5.5 必调** |
 
 **delegate vs 直干判定**(v5.0.9 修订):
 - 1-2 Clip = 主 agent 直干
