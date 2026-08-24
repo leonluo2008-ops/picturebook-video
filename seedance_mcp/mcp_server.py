@@ -47,8 +47,13 @@ import seedance_uploads as U  # noqa: E402
 server = Server("seedance")
 
 # 默认参数
-DEFAULT_MODEL = "doubao-seedance-2-0-fast-260128"
-ARK_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks"
+DEFAULT_MODEL = os.environ.get(
+    "SEEDANCE_MODEL", "doubao-seedance-2-0-fast-260128"
+)
+ARK_BASE_URL = os.environ.get(
+    "SEEDANCE_BASE_URL",
+    "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks",
+)
 
 
 # ===== 业务包装层（薄壳委托给 seedance_uploads）=====

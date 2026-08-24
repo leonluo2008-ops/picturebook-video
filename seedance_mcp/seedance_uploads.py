@@ -57,9 +57,14 @@ except ImportError:
 
 # ===== 常量 =====
 
-ARK_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks"
+ARK_BASE_URL = os.environ.get(
+    "SEEDANCE_BASE_URL",
+    "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks",
+)
 UGUU_UPLOAD_URL = "https://uguu.se/upload.php"
-DEFAULT_MODEL = "doubao-seedance-2-0-fast-260128"
+DEFAULT_MODEL = os.environ.get(
+    "SEEDANCE_MODEL", "doubao-seedance-2-0-fast-260128"
+)
 UA = "SeedanceMCP/0.1.0"
 
 # CACHE_DIR / CACHE_FILE / CACHE_TTL_FALLBACK_SEC 已删（2026-06-13 移除本地 cache 机制）
