@@ -215,13 +215,22 @@ cp $SKILL_DIR/seedance_mcp/.env.example $SKILL_DIR/seedance_mcp/.env
 nano $SKILL_DIR/seedance_mcp/.env
 ```
 
-### 4.2 必填环境变量
+### 4.2 必填环境变量（v5.0.3 · 三变量渠道配置）
 
 ```bash
 # === picturebook-video/seedance_mcp/.env ===
-# Volcengine Ark API Key（视频生成）
+# Seedance 渠道配置（三变量必填 · v5.0.3 起）
 ARK_API_KEY=<YOUR_ARK_API_KEY_HERE>
+SEEDANCE_BASE_URL=https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks
+SEEDANCE_MODEL=doubao-seedance-2-0-fast-260128
 ```
+
+> **渠道说明**（v5.0.3）：
+> - `ARK_API_KEY`：渠道 API Key
+> - `SEEDANCE_BASE_URL`：渠道 base URL。默认官方火山，可换第三方 Ark 兼容网关（如 `aigc.learningcat.cn`）。
+> - `SEEDANCE_MODEL`：模型 ID（必须带版本后缀，无后缀 404）。
+> - **换渠道 = 只改这 3 个变量，不碰代码**。
+> - ⚠️ wrapper.sh 会完整加载这 3 个变量。**只填 key 不填 base URL → 回落官方火山 → 第三方 key 会 401**。
 
 > **加载路径**（v5.0 体检实测）：
 > - **MCP 路径**（AI agent 自动调 `mcp_seedance_*` 工具）：由 `bin/seedance-mcp-wrapper.sh` 自动从 `seedance_mcp/.env` 加载（**无需 source**）
@@ -366,17 +375,23 @@ nano $SKILL_DIR/seedance_mcp/.env
 
 **修复**：
 ```bash
+# 0. 用环境变量定位 hermes venv（不硬编码用户名/机器）
+HERMES_ROOT="${HERMES_ROOT:-$HOME/.hermes}"
+PY="${HERMES_ROOT}/hermes-agent/venv/bin/python3"
+[ ! -x "$PY" ] && PY="$(command -v python3)"
+
 # 1. 检查 Python 版本 + 依赖
-/home/luo/.hermes/hermes-agent/venv/bin/python3 -c "import mcp, httpx, dotenv; print('OK')"
+$PY -c "import mcp, httpx, dotenv; print('OK')"
 # 如 ModuleNotFoundError：
-/home/luo/.hermes/hermes-agent/venv/bin/pip install mcp httpx python-dotenv
+$PY -m pip install mcp httpx python-dotenv
 
 # 2. 检查 seedance_uploads.py 能正常 import
-cd ~/.hermes/profiles/huiben/skills/creative/picturebook-video/seedance_mcp
-/home/luo/.hermes/hermes-agent/venv/bin/python3 -c "import seedance_uploads; print('OK')"
+cd "$HERMES_ROOT"/skills/creative/picturebook-video/seedance_mcp 2>/dev/null \
+  || cd "$HERMES_ROOT"/profiles/*/skills/creative/picturebook-video/seedance_mcp
+$PY -c "import seedance_uploads; print('OK')"
 
-# 3. 跑冒烟测试看具体错
-/home/luo/.hermes/hermes-agent/venv/bin/python3 smoke_test.py
+# 3. 跑冒烟测试看具体错（smoke_test.py 已自动探测 .env 路径，跨电脑可用）
+$PY smoke_test.py
 ```
 
 ### 7.3 uguu.se 上传失败

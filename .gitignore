@@ -1,5 +1,8 @@
 # 真实 .env（必填 API key，**绝不** commit）
 seedance_mcp/.env
+# .env 备份同样含 key，一律忽略（防误提交）
+seedance_mcp/.env.bak*
+seedance_mcp/.env.*.bak*
 
 # Python
 __pycache__/

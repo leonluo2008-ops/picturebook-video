@@ -15,8 +15,24 @@ set -e
 #   → HERMES_ROOT = /path/to/.hermes
 SCRIPT_PATH="$(readlink -f "$0")"
 SKILL_DIR="$(dirname "$SCRIPT_PATH")"
-HERMES_ROOT="$(dirname "$(dirname "$(dirname "$(dirname "$(dirname "$SKILL_DIR")")")")")"
+# v5.0.3: 健壮探测 HERMES_ROOT —— 向上找含 hermes-agent/ 的目录
+# 兼容两种部署结构：
+#   A) ~/.hermes/profiles/huiben/skills/creative/picturebook-video/  (profiles 结构)
+#   B) ~/.hermes/skills/creative/picturebook-video/                 (根 skills 结构)
+HERMES_ROOT=""
+_D="$SKILL_DIR"
+for _i in 1 2 3 4 5 6 7 8; do
+  if [ -d "$_D/hermes-agent" ]; then HERMES_ROOT="$_D"; break; fi
+  _D="$(dirname "$_D")"
+done
+[ -z "$HERMES_ROOT" ] && HERMES_ROOT="$HOME/.hermes"
+# PROFILE_BIN：找到实际 wrapper 部署目录（profiles/<p>/bin 或根 bin）
 PROFILE_BIN="$HERMES_ROOT/profiles/huiben/bin"
+if [ ! -d "$PROFILE_BIN" ]; then
+  _PB=$(ls -d "$HERMES_ROOT"/profiles/*/bin 2>/dev/null | head -1)
+  [ -n "$_PB" ] && PROFILE_BIN="$_PB"
+fi
+[ ! -d "$PROFILE_BIN" ] && [ -d "$HERMES_ROOT/bin" ] && PROFILE_BIN="$HERMES_ROOT/bin"
 TEST_DIR="/tmp/picturebook_install_test_$$"
 
 # Python 解释器：优先用 hermes-agent 的 venv，找不到就退化到系统 python3
@@ -85,6 +101,14 @@ if [ -z "$ARK_KEY" ] || [ "$ARK_KEY" = "<YOUR_ARK_API_KEY_HERE>" ]; then
   exit 1
 fi
 echo -e "${GREEN}✅ ARK_API_KEY 已配置 (长度 ${#ARK_KEY})${NC}"
+
+# v5.0.3: 从 .env 读取 SEEDANCE_BASE_URL / SEEDANCE_MODEL（渠道配置，缺省回落官方）
+SEEDANCE_BASE_URL=$(grep '^SEEDANCE_BASE_URL=' "$SKILL_DIR/seedance_mcp/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d ' ')
+SEEDANCE_MODEL=$(grep '^SEEDANCE_MODEL=' "$SKILL_DIR/seedance_mcp/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d ' ')
+[ -z "$SEEDANCE_BASE_URL" ] && SEEDANCE_BASE_URL="https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks"
+[ -z "$SEEDANCE_MODEL" ] && SEEDANCE_MODEL="doubao-seedance-2-0-fast-260128"
+echo -e "${GREEN}✅ 渠道: $SEEDANCE_BASE_URL${NC}"
+echo -e "${GREEN}✅ 模型: $SEEDANCE_MODEL${NC}"
 echo ""
 
 # ===== Step 3: wrapper.sh 已部署 =====
@@ -149,14 +173,15 @@ echo ""
 
 # ===== Step 5: API key 有效性 =====
 echo -e "${YELLOW}[5/7] 验证 API key 有效性（不扣费）...${NC}"
-cd "$SKILL_DIR/seedance_mcp" && ARK_API_KEY="$ARK_KEY" $PY -c "
-import asyncio, sys, json
+cd "$SKILL_DIR/seedance_mcp" && ARK_API_KEY="$ARK_KEY" SEEDANCE_BASE_URL="$SEEDANCE_BASE_URL" $PY -c "
+import asyncio, sys, json, os
 sys.path.insert(0, '.')
 import seedance_uploads as U
 
 async def main():
     try:
-        result = await U.ark_request_async('GET', 'https://ark.cn-beijing.volcsandbox.com/api/v3/contents/generations/tasks?page_size=1', timeout=15)
+        url = os.environ.get('SEEDANCE_BASE_URL', 'https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks')
+        result = await U.ark_request_async('GET', url + '?page_size=1', timeout=15)
         print('✅ API key 有效 · response keys: ' + str(list(result.keys()) if isinstance(result, dict) else type(result).__name__))
     except Exception as e:
         print(f'❌ API key 无效: {e}')
@@ -184,7 +209,7 @@ echo ""
 # ===== Step 7: 端到端视频生成 =====
 echo -e "${YELLOW}[7/7] 端到端视频生成测试（5s clip）...${NC}"
 echo "  提交任务..."
-TASK_ID=$(cd "$SKILL_DIR/seedance_mcp" && ARK_API_KEY="$ARK_KEY" $PY -c "
+TASK_ID=$(cd "$SKILL_DIR/seedance_mcp" && ARK_API_KEY="$ARK_KEY" SEEDANCE_BASE_URL="$SEEDANCE_BASE_URL" SEEDANCE_MODEL="$SEEDANCE_MODEL" $PY -c "
 import asyncio, sys, json
 sys.path.insert(0, '.')
 sys.path.insert(0, '$TEST_DIR')
@@ -225,7 +250,7 @@ fi
 echo "  task_id: $TASK_ID"
 
 echo "  等待完成（最长 180s）..."
-cd "$SKILL_DIR/seedance_mcp" && ARK_API_KEY="$ARK_KEY" $PY -c "
+cd "$SKILL_DIR/seedance_mcp" && ARK_API_KEY="$ARK_KEY" SEEDANCE_BASE_URL="$SEEDANCE_BASE_URL" SEEDANCE_MODEL="$SEEDANCE_MODEL" $PY -c "
 import asyncio, sys, json
 sys.path.insert(0, '.')
 import mcp_server

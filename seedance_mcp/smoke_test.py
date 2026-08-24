@@ -6,12 +6,16 @@ import json
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 让 seedance_uploads 自己 dotenv
-ENV_FILE = Path("/home/luo/.hermes/profiles/huiben/skills/creative/picturebook-video/seedance_mcp/.env")
+# 路径自动探测：基于本文件位置，不硬编码用户名/机器（跨电脑通用）
+SKILL_MCP_DIR = Path(__file__).resolve().parent
+ENV_FILE = SKILL_MCP_DIR / ".env"
+
 load_dotenv(ENV_FILE)
 print(f"ARK_API_KEY loaded, len={len(os.environ.get('ARK_API_KEY',''))}", flush=True)
+print(f"SEEDANCE_BASE_URL={os.environ.get('SEEDANCE_BASE_URL','<默认官方>')}", flush=True)
+print(f"SEEDANCE_MODEL={os.environ.get('SEEDANCE_MODEL','<默认>')}", flush=True)
 
-sys.path.insert(0, '/home/luo/.hermes/profiles/huiben/skills/creative/picturebook-video/seedance_mcp')
+sys.path.insert(0, str(SKILL_MCP_DIR))
 import mcp_server
 from mcp_server import call_tool
 
