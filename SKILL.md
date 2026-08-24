@@ -25,6 +25,8 @@ metadata:
 
 **实战坑点(v5.0.16 实测 · 紫罗兰绘本 2026-07-21)**: `references/verify-prompt-pitfalls-v5.0.16.md` — R3 凝固语假阳性(连禁用句"持续循环"也命中) / R11 空间关键词白名单("画面正中"不在列表要用"画面中央") / sed 替换二次检查 / patch 工具 mode 必填。4 个 Clip 全部踩过,必读。
 
+**安装坑点(v5.0.19 实测 · 2026-08-24 渠道切换 401)**: `references/seedance-mcp-install-ironrules.md` — **任何电脑装 Seedance MCP 必读**。3 铁律：① wrapper.sh 必须完整加载 ARK_API_KEY+SEEDANCE_BASE_URL+SEEDANCE_MODEL 三变量(只载 key→回落官方火山→第三方 key 401)；② 路径自动探测禁硬编码用户名(向上找 hermes-agent，不能数 dirname 次数)；③ 改 .env 后必须重启 gateway(MCP 是常驻进程)。附加：verify_api_key 走 GET list=假阴性，判断看 generate_video 能否拿 task_id；第三方网关 fast 不认 resolution。
+
 **官方文档兜底**: 当 skill 规则不够明确、遇到新场景、或 seedance 实际效果与预期不符时，**必查以下两套官方文档**（详见 §7）:
 - `references/seedance-official-docs/` — Seedance 2.0 官方教程（3 篇：教程/提示词指南/视频生成教程）
 - `references/ai-drama-sop/` — 即梦(Dreamina)官方工作流 SOP（9 篇：从创意发散到成片全流程）

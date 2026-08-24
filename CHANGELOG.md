@@ -1,5 +1,18 @@
 # CHANGELOG - picturebook-video 开发日志
 
+---
+
+## [5.0.19] - 2026-08-24
+
+### 修复（跨电脑安装 · 渠道切换 401）
+- **wrapper.sh 三变量完整加载**：bin/seedance-mcp-wrapper.sh 从 .env 完整加载并 export ARK_API_KEY + SEEDANCE_BASE_URL + SEEDANCE_MODEL。旧版只载 ARK_API_KEY → base URL 回落官方火山 → 第三方渠道 key 401。
+- **路径自动探测**：wrapper.sh / INSTALL_TEST.sh / smoke_test.py 去硬编码 /home/luo，向上找 hermes-agent 定位 HERMES_ROOT（兼容 profiles + 根 skills 两种结构）。
+- **INSTALL_TEST.sh**：Step2 读取回显三变量；Step5/7 传递 SEEDANCE_BASE_URL/SEEDANCE_MODEL（Step7 wait 段原漏传 → 查不到第三方 task）。端到端实测出片。
+- **.env.example**：补 SEEDANCE 三变量模板 + 渠道切换说明。
+- **.gitignore**：加 .env.bak* 忽略（防含 key 备份误提交）。
+- **新增 references/seedance-mcp-install-ironrules.md**：安装 3 铁律 + verify_api_key 假阴性等坑沉淀。
+
+
 > 长期维护记录。每次更新都必须填写，格式参照 [Keep a Changelog](https://keepachangelog.com/)。
 
 ---
