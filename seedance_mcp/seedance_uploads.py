@@ -463,13 +463,12 @@ def build_body(args: dict, resolved_urls: dict = None) -> dict:
         "ratio": args.get("ratio", "16:9"),
     }
     # watermark 字符串枚举 → API bool 字段映射
-    # 'none' / 'platform' → false（不加 AI 水印）
-    # 'seedance_ai' → true（加 Seedance 官方 AI 标识）
+    # 官方火山网关: 'none'/'platform' → false, 'seedance_ai' → true
+    # 第三方网关(aigc.learningcat.cn)不认 watermark 字段 → 跳过
     watermark = args.get("watermark", "none")
     if watermark == "seedance_ai":
         body["watermark"] = True
-    elif watermark in ("none", "platform"):
-        body["watermark"] = False
+    # 'none'/'platform' → 不传（第三方网关兼容）
     # generate_audio 绘本默认 true（v5.0.6 起 = 自动加音效 + 旁白）
     # 关键约束：绘本**不要 BGM**（用户原话："后期可以很容易分离人声，但是无法分离音乐"）
     # BGM 由 prompt 末尾约束"No background music"排除，agent 不必在参数层禁
@@ -481,11 +480,12 @@ def build_body(args: dict, resolved_urls: dict = None) -> dict:
         body["resolution"] = args["resolution"]
 
     # 官方 schema 是顶层扁平结构（audio-bugs-and-hosting.md Bug 4 沉淀）
-    for k in ("seed", "camera_fixed", "draft", "return_last_frame"):
+    for k in ("seed", "draft", "return_last_frame"):
         if args.get(k) is not None:
             body[k] = args[k]
-    if args.get("service_tier"):
-        body["service_tier"] = args["service_tier"]
+    # camera_fixed / service_tier / watermark 仅官方火山网关支持
+    # 第三方网关(aigc.learningcat.cn)不认 → 跳过
+    # camera_fixed 也跳过（fast 模型同样不认）
     return body
 
 
