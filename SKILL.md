@@ -539,5 +539,7 @@ v5.0.10 SRT 路径直接用真实速率校准 → prompt 时间锚点跟旁白 1
 | picturebook-video-session-pitfalls | references/companion-skills/picturebook-video-session-pitfalls/SKILL.md | 会话级踩坑沉淀（ASR 环境/半身图禁补全身/复检盯尾段帧） |
 | picturebook-video-clip-rules | references/companion-skills/picturebook-video-clip-rules/SKILL.md | Clip 划分用户硬性规则（≤3图/Clip 等，Step 4 补丁） |
 | picturebook-video-cloud-receipt | references/companion-skills/picturebook-video-cloud-receipt/SKILL.md | Step 1 飞书云盘素材接收 3 步 fallback 协议 |
+| seedance-prompt-pitfalls | references/companion-skills/seedance-prompt-pitfalls/SKILL.md | Seedance prompt 陷阱库（Step 5 写 prompt 前必读） |
+| seedance-video-refinement | references/companion-skills/seedance-video-refinement/SKILL.md | 成片后修正流程（发音修正/画面布局/核心词格式） |
 
 > 历史注记：这些 skill 曾以"picturebook-video 是 bundled skill 不可直接编辑"为由放在外部。2026-09-03 经用户确认归并回本仓统一版本管理。
