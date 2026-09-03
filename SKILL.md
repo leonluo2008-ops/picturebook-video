@@ -528,3 +528,16 @@ v5.0.10 SRT 路径直接用真实速率校准 → prompt 时间锚点跟旁白 1
 - **无 SRT**: 走路径 B(v5.0.9 估算模式, 容差 5s)— 仅作为 fallback
 - **v8 → v8.1**: 4 段结构不变,但段 2/段 4 必须按 v8.1 新写法(动作序列 + 不凝固收尾)
 - **反模式 R1-R5**: verify_prompt.py 新硬规则,v8.1 prompt 必走检查
+
+## 9. companion skill 归并说明（2026-09-03 · 全部并入本仓 references/companion-skills/）
+
+以下 4 个 skill 原为独立目录（用户偏好补丁/边界案例库），已整体归并进本仓库（内容未改动）。旧 skill 名不再作为独立 skill 存在，需要时**直接读对应文件**：
+
+| 原独立 skill | 现路径（相对本文件） | 用途 |
+|---|---|---|
+| picturebook-video-references | references/companion-skills/picturebook-video-references/SKILL.md | 补充参考主库（76KB：§12b 竖版反推 / §22.4 探测纪律 / §25.6-25.10 final 验收 / §26 跨会话核查 / §27 clip 划分） |
+| picturebook-video-session-pitfalls | references/companion-skills/picturebook-video-session-pitfalls/SKILL.md | 会话级踩坑沉淀（ASR 环境/半身图禁补全身/复检盯尾段帧） |
+| picturebook-video-clip-rules | references/companion-skills/picturebook-video-clip-rules/SKILL.md | Clip 划分用户硬性规则（≤3图/Clip 等，Step 4 补丁） |
+| picturebook-video-cloud-receipt | references/companion-skills/picturebook-video-cloud-receipt/SKILL.md | Step 1 飞书云盘素材接收 3 步 fallback 协议 |
+
+> 历史注记：这些 skill 曾以"picturebook-video 是 bundled skill 不可直接编辑"为由放在外部。2026-09-03 经用户确认归并回本仓统一版本管理。
